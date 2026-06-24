@@ -5,7 +5,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "echo \"REMINDER: Follow the engineering standards in MATERIALS/software_submission_guidelines-V3_Summary.md and CLAUDE.md. Enforce: docs-first (PRD/PLAN/TODO before code), SDK-only architecture, files max 150 lines, tests min 85% coverage via TDD, Ruff zero violations, uv only (no pip/venv), central API gatekeeper with rate limiting, no hardcoded values, no secrets in code (.env + .env-example), versions start at 1.00.\"",
+            "command": "echo \"REMINDER: Follow the engineering standards in MATERIALS/software_submission_guidelines-V3_Summary.md and CLAUDE.md. Enforce: docs-first (PRD/PLAN/TODO before code), SDK-only architecture, files max 150 lines, tests min 85% coverage via TDD, Ruff zero violations, uv only (no pip/venv), central API gatekeeper with rate limiting, no hardcoded values, no secrets in code (.env + .env-example), versions start at 1.00. ALSO report everything we do in README.md (Report/Results section) with graphs and screenshots when possible.\"",
             "statusMessage": "Loading project engineering standards..."
           }
         ]

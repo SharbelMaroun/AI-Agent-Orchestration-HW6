@@ -19,8 +19,8 @@
 | T0.2 | Author specialized PRDs (game/mcp/nl/strategy/gatekeeper/email) | P0 | ✅ | `<TBD>` | One PRD per central mechanism |
 | T0.3 | Get all docs **approved** before coding | P0 | ⬜ | `<TBD>` | Sign-off recorded here |
 | T0.4 | Init `uv` project: `pyproject.toml`, `uv.lock`, `src/` package | P0 | ⬜ | `<TBD>` | `uv sync` works; package imports |
-| T0.5 | Add `.gitignore`, `.env-example`, Ruff & coverage config | P0 | ⬜ | `<TBD>` | `.env` ignored; Ruff/pytest configured |
-| T0.6 | Create `config/config.json` (+ `rate_limits.json`) with `version` 1.00 | P0 | ⬜ | `<TBD>` | Params load; version validated at runtime |
+| T0.5 | Add `.gitignore`, `.env-example`, Ruff & coverage config | P0 | ⬜ | `<TBD>` | `.env`, `client_secret.json`, `token.json` ignored; Ruff/pytest configured |
+| T0.6 | Create `config/config.json` (+ `rate_limits.json`) with `version` 1.00 | P0 | ⬜ | `<TBD>` | Params load (incl. `reporting`/`google` blocks); version validated at runtime |
 
 ## Phase 1 — Game logic & rules engine (Milestone: M1) — *do first* 
 | ID | Task | Pri | Status | Owner | DoD |
@@ -77,14 +77,20 @@
 | T7.2 | Token-based auth + revocation on both URLs | P0 | ⬜ | `<TBD>` | Unauthorized access rejected |
 | T7.3 | Firewall/port/tunneling notes in README | P1 | ⬜ | `<TBD>` | Documented & reproducible |
 
-## Phase 8 — Gmail reporting & scientific README (Milestone: M8)
+## Phase 8 — Gmail/Calendar agent, reporting & scientific README (Milestone: M8)
 | ID | Task | Pri | Status | Owner | DoD |
 |----|------|-----|--------|-------|-----|
-| T8.1 | Google OAuth Desktop client + scopes + test user | P0 | ⬜ | `<TBD>` | `token.json` generated |
-| T8.2 | `reporting.py`: build JSON + send via Gmail API (gatekeeper) | P0 | ⬜ | `<TBD>` | JSON-only email delivered |
-| T8.3 | Internal + inter-group JSON schemas | P1 | ⬜ | `<TBD>` | Matches spec; validated |
-| T8.4 | Scientific `README.md` (Dec-POMDP, comms analysis, screenshots, logs) | P0 | ⬜ | `<TBD>` | All required sections present |
-| Ref | See [`PRD_email_reporting.md`](PRD_email_reporting.md) | — | — | — | — |
+| T8.1 | Google OAuth Desktop client; enable **Gmail + Calendar API**; scopes; test user | P0 | ⬜ | `<TBD>` | `token.json` generated; both APIs enabled |
+| T8.2 | `google_auth.py`: token load/refresh + **expiry re-consent recovery**; secrets in external folder | P0 | ⬜ | `<TBD>` | Delete-token → re-consent path tested |
+| T8.3 | `email_reader.py` → `read_emails()` (via gatekeeper) | P0 | ⬜ | `<TBD>` | Returns inbox messages; Gmail mocked in tests |
+| T8.4 | `meeting_extractor.py` → `extract_meeting()` (LLM-assisted) | P0 | ⬜ | `<TBD>` | Correct meeting / `None` on non-invite, no crash |
+| T8.5 | `calendar_writer.py` → `add_calendar_event()` | P0 | ⬜ | `<TBD>` | Event start matches extracted time |
+| T8.6 | `gmail_client.send_email()`: real send (not draft) to `reporting.recipient_email` | P0 | ⬜ | `<TBD>` | Email sent to `sharbelma3@gmail.com` (dev) |
+| T8.7 | `reporting.py`: build JSON + send via `send_email` (gatekeeper) | P0 | ⬜ | `<TBD>` | JSON-only email delivered |
+| T8.8 | Internal + inter-group JSON schemas | P1 | ⬜ | `<TBD>` | Matches spec; validated |
+| T8.9 | Flip `recipient_email` → `rmisegal+uoh26b@gmail.com` (verbatim) **at submission** | P0 | ⬜ | `<TBD>` | Config-only change; tag kept |
+| T8.10 | Scientific `README.md` (Dec-POMDP, comms analysis, screenshots, logs) | P0 | 🟦 | `<TBD>` | Skeleton + Report/Results section created; fill all required sections |
+| Ref | See [`PRD_gmail_calendar_agent.md`](PRD_gmail_calendar_agent.md), [`PRD_email_reporting.md`](PRD_email_reporting.md) | — | — | — | — |
 
 ## Phase 9 — Quality gates & submission (cross-cutting)
 | ID | Task | Pri | Status | Owner | DoD |
@@ -97,6 +103,7 @@
 | T9.6 | Parameter/sensitivity research + visualizations notebook | P2 | ⬜ | `<TBD>` | `notebooks/` analysis with graphs |
 | T9.7 | Prompt-engineering log + token-cost analysis | P2 | ⬜ | `<TBD>` | Documented |
 | T9.8 | *(Optional bonus)* inter-group match + matching JSON reports | P3 | ⬜ | `<TBD>` | Both reports agree |
+| T9.9 | **Report everything continuously** in `README.md` Report/Results (work log + graphs + screenshots) | P0 | 🟦 | `<TBD>` | A Work Log row + evidence added per task; images in `assets/`/`results/` |
 
 ---
 

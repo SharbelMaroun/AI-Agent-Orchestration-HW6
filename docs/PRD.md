@@ -23,6 +23,12 @@ infer the opponent's position under **partial observation**, and translate infer
 moves. The full match (6 sub-games) runs without manual intervention, from initialization to the
 final automated email report.
 
+The project also includes a **Gmail & Calendar agent** that acts on a real Google account — it can
+**read the inbox, extract a meeting invitation, add it to Google Calendar, and send email**. When the
+match finishes, the orchestrator uses this agent's `send_email` to deliver the JSON result. The game
+and the Gmail/Calendar agent share one Google credential and one recipient mailbox but are otherwise
+independent capabilities. See [`PRD_gmail_calendar_agent.md`](PRD_gmail_calendar_agent.md).
+
 ### 1.2 The problem
 Single-agent reasoning in a static, fully-observed environment does not transfer to real
 multi-agent systems, where autonomous entities must make real-time decisions while coordinating
@@ -52,14 +58,18 @@ sophistication. Reinforcement learning is **optional enrichment**, not a require
 | G5 | Cloud deployment | Public, authenticated MCP URLs (cop + thief) | **2 URLs**, token-secured |
 | G6 | Automated reporting | JSON-only report email delivered after 6 games | **1 email**, machine-parseable |
 | G7 | Engineering quality | Ruff violations / test coverage | **0 / ≥85%** |
+| G8 | Gmail/Calendar agent | read → extract meeting → add Calendar event → send, autonomously | **4/4 tools working** |
 
 ### 2.2 Acceptance criteria (Definition of Done for the product)
 - A single command launches a complete match: 6 sub-games, ≤25 moves each, scored and accumulated.
 - All board/scoring parameters are read from `config/config.json` (nothing hard-coded).
 - Cop and Thief each run as a separate FastMCP server; the LLM lives in the **client/orchestrator**,
   never inside the MCP server.
-- At match end, a **JSON-only** email (no free text) is sent to `rmisegal+uoh26b@gmail.com`
-  via the Gmail API using token-based auth.
+- At match end, a **JSON-only** email (no free text) is sent to the configured
+  `reporting.recipient_email` (dev: `sharbelma3@gmail.com`; submission: `rmisegal+uoh26b@gmail.com`
+  verbatim) via the Gmail API using token-based auth.
+- The **Gmail & Calendar agent** can read the inbox, extract a meeting invite, add a Calendar event,
+  and send email; all Google API calls route through the gatekeeper.
 - Repository satisfies the submission guidelines (docs-first, SDK architecture, gatekeeper,
   ≤150-line files, ≥85% coverage, Ruff clean, `uv`-managed, `.env-example`, no secrets).
 - Scientific `README.md` includes the Dec-POMDP formalization, communication analysis, GUI
@@ -115,8 +125,18 @@ Match range: **30–90** points per group.
 - Phase 2: deploy MCP servers to a public cloud (e.g., Prefect Cloud) with token-based auth & revocation.
 
 ### FR-9 — Automated reporting
-- After 6 games, trigger an automated **Gmail API** send to `rmisegal+uoh26b@gmail.com`.
+- After 6 games, trigger an automated **Gmail API** send to `reporting.recipient_email`
+  (dev default `sharbelma3@gmail.com`; submission `rmisegal+uoh26b@gmail.com`, tag kept verbatim).
 - Email body contains **only** the JSON report (internal or inter-group schema). Token-based auth.
+
+### FR-13 — Gmail & Calendar agent
+- `read_emails()` — scan the Gmail inbox and return messages.
+- `extract_meeting()` — find a meeting invitation + its time inside an email (LLM-assisted, via gatekeeper).
+- `add_calendar_event()` — create the extracted meeting on Google Calendar.
+- `send_email()` — actually **send** mail (not just draft); used for the end-of-match report.
+- Requires Gmail **read + send** and **Calendar** scopes; `client_secret.json`/`token.json` kept in a
+  secret folder **outside the repo**, with a token-expiry re-consent recovery path.
+  See [`PRD_gmail_calendar_agent.md`](PRD_gmail_calendar_agent.md).
 
 ### FR-10 — Configuration
 - `config/config.json` includes at minimum: `grid_size`, `max_moves`, `num_games`, `max_barriers`,
@@ -168,8 +188,10 @@ Match range: **30–90** points per group.
 - Cloud platform (e.g., Prefect Cloud) account and a network allowing non-standard outbound ports.
 
 ### 6.2 Dependencies
-- FastMCP, an LLM provider/Ollama, Gmail API (`google-api-python-client`, `google-auth-oauthlib`),
-  a cloud host, `uv`, Ruff, pytest/pytest-cov. (See [`PRD_email_reporting.md`](PRD_email_reporting.md) for Google setup.)
+- FastMCP, an LLM provider/Ollama, **Gmail API + Google Calendar API**
+  (`google-api-python-client`, `google-auth-oauthlib`, `google-auth-httplib2`),
+  a cloud host, `uv`, Ruff, pytest/pytest-cov.
+  (See [`PRD_gmail_calendar_agent.md`](PRD_gmail_calendar_agent.md) and [`PRD_email_reporting.md`](PRD_email_reporting.md) for Google setup.)
 
 ### 6.3 Out of scope
 - Beating any specific opponent / guaranteed win rate.
@@ -202,4 +224,5 @@ publication.
 - [`PRD_nl_communication.md`](PRD_nl_communication.md) — natural-language protocol & ambiguity handling.
 - [`PRD_decision_strategy.md`](PRD_decision_strategy.md) — heuristic & optional Q-learning.
 - [`PRD_gatekeeper.md`](PRD_gatekeeper.md) — centralized API gatekeeper & rate limiting.
-- [`PRD_email_reporting.md`](PRD_email_reporting.md) — Gmail API JSON reporting.
+- [`PRD_gmail_calendar_agent.md`](PRD_gmail_calendar_agent.md) — Gmail/Calendar agent (read, extract, calendar, send).
+- [`PRD_email_reporting.md`](PRD_email_reporting.md) — end-of-match JSON report content, schema & timing.

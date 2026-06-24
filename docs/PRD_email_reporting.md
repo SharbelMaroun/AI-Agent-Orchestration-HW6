@@ -4,15 +4,23 @@
 **Document version:** 1.00
 **Parent:** [`PRD.md`](PRD.md) · **Design:** [`PLAN.md`](PLAN.md)
 **Setup guide:** [`../MATERIALS/main-google-api-installtion-guid_Summary.md`](../MATERIALS/main-google-api-installtion-guid_Summary.md)
+**Uses:** [`PRD_gmail_calendar_agent.md`](PRD_gmail_calendar_agent.md) — the `send_email` tool and the
+shared Google OAuth client/scopes are defined there; this PRD covers the **report content, schema, and timing**.
 
 ---
 
 ## 1. Description & Theoretical Background
-At the end of every full match (6 sub-games), the system **autonomously emails a JSON report** to
-`rmisegal+uoh26b@gmail.com`. The **Gmail API** is used (not raw SMTP) for reliability and to avoid
-being blocked by external mail servers. Authentication uses **token-based OAuth** rather than a
+At the end of every full match (6 sub-games), the system **autonomously emails a JSON report** via the
+Gmail/Calendar agent's `send_email` tool. The **Gmail API** is used (not raw SMTP) for reliability and
+to avoid being blocked by external mail servers. Authentication uses **token-based OAuth** rather than a
 username/password: a stolen short-lived token is far less dangerous than a password. Google issues a
-secret client file (`credentials.json`) and a `token.json` created on first authentication.
+secret client file (`client_secret.json`) and a `token.json` created on first authentication.
+
+**Recipient (config-driven — `reporting.recipient_email`, never hard-coded):**
+- **Now (development/testing):** `sharbelma3@gmail.com`.
+- **At submission:** switch the config value to `rmisegal+uoh26b@gmail.com` **verbatim** — keep the
+  `+uoh26b` plus-address tag (it routes to the lecturer's filtered folder; stripping it may drop the submission).
+Switching recipients is a **one-line config change, no code edit**.
 
 **Hard rule:** the email **body contains ONLY the JSON report** — no free text — so the testing system
 can ingest it automatically.
@@ -23,16 +31,18 @@ can ingest it automatically.
 - Accumulated `MatchReport` data (per-sub-game results + totals), group metadata, MCP URLs, GitHub link.
 
 ### 2.2 Output
-- One email to `rmisegal+uoh26b@gmail.com` whose body is exactly the JSON document (UTF-8).
+- One email to `reporting.recipient_email` (dev: `sharbelma3@gmail.com`) whose body is exactly the JSON document (UTF-8).
 
-### 2.3 Setup (Google Cloud, per the installation guide)
-- OAuth Client of type **Desktop**; enable **Gmail API**; scope `https://www.googleapis.com/auth/gmail.modify`.
+### 2.3 Setup (Google Cloud) — shared with the agent
+- OAuth Client of type **Desktop**; enable **Gmail API** **and Google Calendar API**.
+- Scopes (config-driven): `https://www.googleapis.com/auth/gmail.modify` (read + send) +
+  `https://www.googleapis.com/auth/calendar`. Full rationale in [`PRD_gmail_calendar_agent.md`](PRD_gmail_calendar_agent.md) §3.
 - Add the sending Gmail account as a **Test user** (Testing mode).
-- Files: `credentials.json` (downloaded), `token.json` (generated on first run) — **both git-ignored**.
+- Files: `client_secret.json` (downloaded) + `token.json` (generated on first run) live in a **secret
+  folder OUTSIDE the repo** — **both git-ignored**; include a token-expiry re-consent recovery path.
 - Dependencies via `uv`: `google-api-python-client`, `google-auth-oauthlib`, `google-auth-httplib2`.
 
-> Note: the assignment requires **Gmail** for reporting. Calendar (in the setup guide) is not required.
-> All Gmail sends route through the **gatekeeper** ([`PRD_gatekeeper.md`](PRD_gatekeeper.md)).
+> All Gmail/Calendar sends route through the **gatekeeper** ([`PRD_gatekeeper.md`](PRD_gatekeeper.md)).
 
 ## 3. JSON Schemas
 

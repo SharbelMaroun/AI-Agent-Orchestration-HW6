@@ -11,8 +11,13 @@ standards, flag it and propose a compliant alternative rather than silently viol
 
 The assignment being built is defined in
 [`MATERIALS/ex06-Dual AI agent race via MCP servers_Summary.md`](MATERIALS/ex06-Dual%20AI%20agent%20race%20via%20MCP%20servers_Summary.md)
-(Cop vs. Thief pursuit game over dual MCP servers). The Gmail reporting setup is described in
+(Cop vs. Thief pursuit game over dual MCP servers). The project also includes a **Gmail & Calendar
+agent** (read inbox → extract meeting → add Calendar event → send email), described in
+[`MATERIALS/Gmail_calendar_agent_guide.md`](MATERIALS/Gmail_calendar_agent_guide.md); the Google
+OAuth/token setup is in
 [`MATERIALS/main-google-api-installtion-guid_Summary.md`](MATERIALS/main-google-api-installtion-guid_Summary.md).
+The report recipient is **config-driven** (`reporting.recipient_email`): dev `sharbelma3@gmail.com`,
+submission `rmisegal+uoh26b@gmail.com` (kept verbatim). Google secrets live **outside the repo**.
 
 ---
 
@@ -70,6 +75,17 @@ tests/       unit/  integration/  conftest.py
 data/  results/  assets/  notebooks/
 README.md  pyproject.toml  uv.lock  .env-example  .gitignore
 ```
+
+## 8b. Reporting & evidence (REPORT EVERYTHING WE DO)
+The root **[`README.md`](README.md)** is the project's **living scientific report**, not just a manual.
+- **Document every change/feature/experiment/decision there as we go** — in the **`📊 Project Report /
+  Results`** section (work-log table + subsections), not only at submission time.
+- Include **graphs** (results, learning curves, sensitivity analysis) and **screenshots** (GUI states,
+  CLI logs, MCP communication) **whenever possible**. Store images in `assets/`, generated plots & run
+  outputs in `results/`, and embed them with markdown image links.
+- Keep the required scientific sections current: Dec-POMDP formalization, communication-challenge
+  analysis, token-cost analysis, and a **prompt-engineering log** (guidelines §8.3, §9, §11).
+- After completing a task, add a **Work Log** row (date · what · why · evidence) before moving on.
 
 ## 8. Also expected at submission
 - Scientific `README.md` (for ex06: Dec-POMDP formalization, communication-challenge analysis,

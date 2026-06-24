@@ -48,17 +48,19 @@ External Consumers (GUI / CLI / Tests / Inter-group runner)
 |  - CopAgent / ThiefAgent (belief + policy)       |
 |  - NLProtocol (encode/decode free text)          |
 |  - Strategy (heuristic | q_table)                |
-|  - Reporting (JSON builder + Gmail sender)       |
+|  - GoogleAgent (read/extract/calendar/send)      |
+|  - Reporting (JSON builder -> send_email)        |
 +--------------------------------------------------+
         |                         |
         v                         v
-+-------------------+   +---------------------------+
-| Infrastructure    |   |  MCP Layer (FastMCP)      |
-| - Gatekeeper      |   |  - Cop MCP server         |
-| - LLM client      |   |  - Thief MCP server       |
-| - Config / Version|   |  - Tools (send/recv/move) |
-| - Gmail transport |   +---------------------------+
-+-------------------+
++----------------------+   +---------------------------+
+| Infrastructure       |   |  MCP Layer (FastMCP)      |
+| - Gatekeeper         |   |  - Cop MCP server         |
+| - LLM client         |   |  - Thief MCP server       |
+| - Config / Version   |   |  - Tools (send/recv/move) |
+| - Google transport   |   +---------------------------+
+|   (Gmail + Calendar) |
++----------------------+
 ```
 
 ### 1.3 Level 3 — Components (key)
@@ -113,6 +115,16 @@ See the module layout in §4 and the per-mechanism PRDs.
 - **Decision:** `uv` as the only package manager/task runner; `src/marl_cop_thief/` package; Ruff; pytest-cov.
 - **Rationale:** Mandated; reproducible locks; clean importable package.
 
+### ADR-008 — Gmail/Calendar agent: config-driven recipient + external secret folder
+- **Decision:** The report recipient is `reporting.recipient_email` (dev `sharbelma3@gmail.com`,
+  submission `rmisegal+uoh26b@gmail.com`). `client_secret.json`/`token.json` live in a secret folder
+  **outside** the repo, located via `google.secrets_dir`. The Gmail/Calendar agent uses Gmail
+  read+send + Calendar scopes and a token-expiry re-consent recovery path.
+- **Rationale:** No hard-coded recipient/secrets (guidelines); switching to the lecturer's address is a
+  config-only change; secrets can never be committed; survives token expiry near the deadline.
+- **Trade-off:** Requires a documented external path & one-time consent; mitigated by `.env-example`
+  and README setup steps. See [`PRD_gmail_calendar_agent.md`](PRD_gmail_calendar_agent.md).
+
 ---
 
 ## 3. Deployment Architecture
@@ -145,7 +157,11 @@ src/marl_cop_thief/
 │   ├── cop_agent.py            # belief + policy (cop)
 │   ├── thief_agent.py          # belief + policy (thief)
 │   ├── nl_protocol.py          # encode/decode free-text messages
-│   ├── reporting.py            # JSON report builder + send trigger
+│   ├── reporting.py            # JSON report builder -> send_email trigger
+│   ├── google_agent/           # Gmail & Calendar agent
+│   │   ├── email_reader.py     # read_emails
+│   │   ├── meeting_extractor.py# extract_meeting (LLM-assisted, via gatekeeper)
+│   │   └── calendar_writer.py  # add_calendar_event
 │   └── strategy/
 │       ├── heuristic.py        # default decision strategy
 │       └── q_table.py          # optional tabular Q-learning
@@ -156,7 +172,9 @@ src/marl_cop_thief/
 └── shared/
     ├── gatekeeper.py           # centralized API gatekeeper
     ├── llm_client.py           # LLM transport (via gatekeeper)
-    ├── gmail_client.py         # Gmail API transport (via gatekeeper)
+    ├── google_auth.py          # OAuth flow, token load/refresh/recovery (external secret folder)
+    ├── gmail_client.py         # Gmail read/send transport (via gatekeeper)
+    ├── calendar_client.py      # Google Calendar transport (via gatekeeper)
     ├── config.py               # config loader + version validation
     ├── version.py              # __code_version__ = "1.00"
     ├── constants.py            # immutable constants / enums
@@ -186,9 +204,26 @@ tests/
   "num_games": 6,
   "max_barriers": 5,
   "visibility_radius": 1,
-  "scoring": { "cop_win": 20, "thief_win": 10, "cop_loss": 5, "thief_loss": 5 }
+  "scoring": { "cop_win": 20, "thief_win": 10, "cop_loss": 5, "thief_loss": 5 },
+  "reporting": {
+    "recipient_email": "sharbelma3@gmail.com",
+    "_submission_recipient": "rmisegal+uoh26b@gmail.com",
+    "send_real_email": true
+  },
+  "google": {
+    "secrets_dir": "<absolute path to a secret folder OUTSIDE the repo>",
+    "credentials_file": "client_secret.json",
+    "token_file": "token.json",
+    "scopes": [
+      "https://www.googleapis.com/auth/gmail.modify",
+      "https://www.googleapis.com/auth/calendar"
+    ]
+  }
 }
 ```
+> `reporting.recipient_email` is **dev = `sharbelma3@gmail.com`** now; flip it to the submission
+> address (tag kept verbatim) at hand-in — a config-only change. `google.secrets_dir` points outside
+> the repo so `client_secret.json`/`token.json` are never committed.
 
 ### 5.2 Core domain models (conceptual)
 ```text
