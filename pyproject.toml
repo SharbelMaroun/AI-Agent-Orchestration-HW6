@@ -33,7 +33,12 @@ addopts = "--cov=src --cov-branch --cov-report=term-missing"
 [tool.coverage.run]
 source = ["src"]
 branch = true
-omit = ["src/marl_cop_thief/main.py", "*/tests/*", "src/marl_cop_thief/**/gui/*"]
+omit = [
+    "src/marl_cop_thief/main.py",
+    "src/marl_cop_thief/__main__.py",
+    "*/tests/*",
+    "src/marl_cop_thief/**/gui/*",
+]
 
 [tool.coverage.report]
 fail_under = 85
