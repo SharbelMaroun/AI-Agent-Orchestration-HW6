@@ -1,0 +1,33 @@
+{
+  "version": "1.00",
+  "grid_size": [5, 5],
+  "max_moves": 25,
+  "num_games": 6,
+  "max_barriers": 5,
+  "visibility_radius": 1,
+  "seed": 42,
+  "scoring": {
+    "cop_win": 20,
+    "thief_win": 10,
+    "cop_loss": 5,
+    "thief_loss": 5
+  },
+  "strategy": {
+    "type": "heuristic"
+  },
+  "reporting": {
+    "recipient_email": "sharbelma3@gmail.com",
+    "submission_recipient": "rmisegal+uoh26b@gmail.com",
+    "send_real_email": false,
+    "timezone": "Asia/Jerusalem"
+  },
+  "google": {
+    "secrets_dir": "",
+    "credentials_file": "client_secret.json",
+    "token_file": "token.json",
+    "scopes": [
+      "https://www.googleapis.com/auth/gmail.modify",
+      "https://www.googleapis.com/auth/calendar"
+    ]
+  }
+}
