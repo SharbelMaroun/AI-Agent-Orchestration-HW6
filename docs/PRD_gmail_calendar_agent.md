@@ -26,6 +26,13 @@ the JSON result and calls `send_email` to deliver it. The read/extract/calendar 
 Google competency demonstrated on real inbox data. The game and the email/calendar agent share **one
 Google credential** and **one recipient mailbox**; they are otherwise independent capabilities.
 
+### 1.2 Autonomy boundary (interactive setup vs autonomous runs)
+The "fully autonomous, zero manual intervention" requirement (PRD G1/NFR-1) applies to the **match
+runs**. OAuth has a **one-time interactive first run**: a browser opens (`run_local_server(port=0)`)
+for the human to consent as a Test user, producing `token.json`. After that, the token is reused/
+refreshed and the full pipeline (game → report email) runs with no human in the loop. Build the
+**token-expiry recovery path** (delete `token.json` → re-consent) so a near-deadline expiry is recoverable.
+
 ## 2. Tools (Inputs / Outputs)
 | Tool | Input | Output | Notes |
 |------|-------|--------|-------|
@@ -36,9 +43,23 @@ Google credential** and **one recipient mailbox**; they are otherwise independen
 
 `EmailMessage(id, sender, subject, body, received_at)` · `Meeting(title, start_dt, end_dt, location?)`.
 
+**Timezone:** `start_dt`/`end_dt` are timezone-aware; use the configured timezone (`Asia/Jerusalem`,
+matching the report JSON) and emit ISO-8601 datetimes. Build services as
+`build("gmail","v1",credentials=creds)` and `build("calendar","v3",credentials=creds)` (via the
+gatekeeper). If extraction yields a start but no end, default `end_dt = start_dt + 1 hour`.
+
 ## 3. Setup, Scopes & Configuration
 - **Google Cloud (per the install guide):** OAuth **Desktop** client; enable **Gmail API** *and*
   **Google Calendar API**; add the authenticating Gmail as a **Test user** (External app, Testing mode).
+- **Use ONE Google Cloud project end-to-end**; verify the correct project is selected in the console
+  top bar before every action. Note the **two distinct work areas**: *APIs & Services → Library*
+  (enable APIs) vs the **new Google Auth Platform** (Branding/Audience/Clients/Data-access/Test-users) —
+  switch between them consciously. At *Credentials → Create credentials* choose **OAuth client ID**
+  (NOT API key, NOT Service account). Audience = **External** (not Internal). Use clear snake_case
+  names (project, app, client), e.g. `desktop-client-for-gmail-and-calendar`.
+- **Combined OAuth troubleshooting gate** ("client created but auth fails"): verify all three together —
+  (1) authenticating account is in **Test users**, (2) both **scopes** present under Data access,
+  (3) **both** Gmail + Calendar APIs enabled. Stale scopes → delete `token.json` and re-consent.
 - **Scopes (least-privilege, config-driven — never hard-coded):**
   - `https://www.googleapis.com/auth/gmail.modify` — read + send + drafts (covers `read_emails` & `send_email`), **or** the stricter pair `gmail.readonly` + `gmail.send`.
   - `https://www.googleapis.com/auth/calendar` — create/update Calendar events.

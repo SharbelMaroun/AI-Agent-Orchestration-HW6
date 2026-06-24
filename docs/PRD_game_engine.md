@@ -49,6 +49,15 @@ rejects them, preventing desync or cheating.
 
 Match total range: **30–90**. Scoring reads values from config; no literals in code.
 
+### 4.1 Match role structure (⚠️ confirm with course staff)
+The assignment derives the **max 90 = 3×20 (cop) + 3×10 (thief)**, which implies that within one
+internal 6-sub-game match the group is credited for **Cop performance in 3 sub-games and Thief
+performance in 3** (mirroring the inter-group bonus's 3+3 role swap), and totals are tracked
+**separately** as `totals.cop` and `totals.thief`. The engine must therefore support a **per-sub-game
+role assignment** (which of the group's two agents is scored as cop vs thief), config-driven, rather
+than assuming one fixed Cop vs one fixed Thief for all 6. The exact internal-match accumulation rule is
+ambiguous in the source — **verify with staff** before finalizing `scoring.py`/`accumulator.py`.
+
 ## 5. Performance Metrics
 - Single `apply()` is O(1) w.r.t. grid size (constant-time neighbour/bounds/barrier checks).
 - A full 5×5, 25-move sub-game completes engine-side in well under 1 ms (excluding LLM latency).
