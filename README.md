@@ -5,7 +5,7 @@
 > Engineering standards: [`MATERIALS/software_submission_guidelines-V3_Summary.md`](MATERIALS/software_submission_guidelines-V3_Summary.md).
 > Design docs: [`docs/`](docs/) ([PRD](docs/PRD.md) · [PLAN](docs/PLAN.md) · [TODO](docs/TODO.md) · [Audit](docs/AUDIT-2026-06-25.md)).
 
-**Status:** 🟦 In progress — documentation phase. Commands marked _planned_ run once the code lands.
+**Status:** 🟩 Implemented — the full pipeline runs end-to-end. 249 tests, 100% coverage, Ruff clean.
 
 ---
 
@@ -161,7 +161,7 @@ Two teams play on **one shared authoritative game** via a role-parameterized **h
 | 7 | Cloud deploy | ✅ done* | **deployed + verified end-to-end on Render** — `cop-mcp`/`thief-mcp` live at public HTTPS URLs with token auth; an **authenticated `get_game_status` tool call succeeds** through `McpClient` on both (`results/cloud_check.txt`); unauthenticated → 401 (S5). *Live 6-game inter-group match pending a partner team |
 | 10 | Research/submission | 🟦 partial | audit closure batches 1–2 done; final submission steps pending |
 
-Whole suite: **189 tests, 100% coverage, Ruff zero-violation.** Every `uv run pytest` emits an automated
+Whole suite: **249 tests, 100% coverage, Ruff zero-violation.** Every `uv run pytest` emits an automated
 **JUnit + coverage report** to `results/` (pass/fail per test); expected results and how to regenerate are
 in [`results/TEST_REPORT.md`](results/TEST_REPORT.md), with a captured run log at
 [`results/test_run.log`](results/test_run.log) (guidelines §6.4). The NL match is runnable via
@@ -174,6 +174,7 @@ Newest first.
 
 | Date | What we did | Why | Evidence |
 |------|-------------|-----|----------|
+| 2026-06-26 | **Closed the standards-evaluation gaps** — (1) **Gmail/Calendar now route through the central gatekeeper** (`shared/google_api.execute_request`; `gmail` service in `rate_limits.json`), wired into the CLI + remote drivers, so *all* external calls (LLM · MCP · Gmail/Calendar) are gatekept (CLAUDE §2); (2) inter-group **bonus award values are config-driven** (`config.bonus` via `bonus.points_from_config`), not hardcoded; (3) **DRY** — `remote_match` distances unified onto new `shared/grid_math` (shared with `strategy/geometry`); (4) docs reconciled (task count **689** across TODO/CLAUDE/PROMPT_LOG; PRD/PLAN Draft→Approved; removed the report-send contradiction; PLAN **C4-L4 + deployment view** added); (5) `pyproject` `0.1.0`→`1.0.0`; coverage `omit` justified inline | Close the engineering-standards evaluation findings (gatekeeper §2, no-hardcode §7.2, DRY §4.2, doc consistency, versioning §8.1) | `shared/{google_api,grid_math}.py`; **249 tests, 100% cov**, Ruff clean |
 | 2026-06-25 | **Live remote flow emails the result** — `remote_match.build_match_report` turns the finished game's status into a JSON report (role/winner/scores); `play_remote.py` emails it via `send_report` when `reporting.send_real_email=true`, to `reporting.recipient_email` (kept as the dev address `sharbelma3@gmail.com`, not the lecturer, per request) | Get the live-match result by email; both teams can send the same JSON for the bonus | `services/remote_match.py` (100% cov); 239 tests, 100% cov |
 | 2026-06-25 | **Stronger live-match heuristic** — upgraded `remote_match.remote_decider` (observation-only, per assignment §4): now **edge/barrier-aware** (filters legal steps from `visible_cells`/`visible_barriers` → no wasted illegal→STAY turns), **searches when blind** (heads for the visible interior instead of standing still — a still cop hands the thief the clock), cop tie-breaks by **alignment then mobility** (corners the thief), thief tie-breaks by **escape room** | A stronger heuristic wins more inter-group games ⇒ more bonus | `services/remote_match.py` (100% cov); 236 tests, 100% cov |
 | 2026-06-25 | **Cross-network match driver (live inter-group play)** — role-parameterized `mcp/host_server.py` (one shared authoritative game), `services/remote_match.py` (`play_my_turns` polls the host, acts only on its role's turn, observe→decide→submit; greedy `remote_decider`; never stalls — illegal→STAY), `scripts/play_remote.py` (`--role cop|thief` over `HOST_MCP_URL`/`HOST_MCP_TOKEN`), `run_mcp_server.py --role host`. Both teams run their own role against one host | Enable a real live match vs a partner team over MCP (T7.19) | `services/remote_match.py` (100% cov); README §4.1 live-match guide; 233 tests, 100% cov |
@@ -424,7 +425,8 @@ Maintained in [`docs/PROMPT_LOG.md`](docs/PROMPT_LOG.md) — development prompts
 templates, with context/goal, example outputs, and improvements (guidelines §8.3).
 
 ## R.9 API Gatekeeper (rate limiting & queueing)
-Every external call (the LLM today; Gmail/Calendar when OAuth is wired) routes through one
+Every external call — the LLM, **Gmail/Calendar** (via [`shared/google_api`](src/marl_cop_thief/shared/google_api.py)),
+and the remote MCP transport — routes through one
 [`ApiGatekeeper`](src/marl_cop_thief/shared/gatekeeper.py) (CLAUDE.md §2). It enforces **config-driven**
 limits from [`config/rate_limits.json`](config/rate_limits.json), **queues** overflow in FIFO order
 (never rejecting), **drains** the queue when the window resets, **retries** transient failures with
@@ -460,7 +462,7 @@ Mapping each of the eight product-quality characteristics to concrete evidence i
 
 | # | Characteristic | How it is addressed (evidence) |
 |---|---|---|
-| 1 | **Functional suitability** | All FRs implemented (engine, dual MCP tools, NL coordination, scoring, reporting); 189 tests assert correctness incl. edge cases (`docs/EDGE_CASES.md`). |
+| 1 | **Functional suitability** | All FRs implemented (engine, dual MCP tools, NL coordination, scoring, reporting); 249 tests assert correctness incl. edge cases (`docs/EDGE_CASES.md`). |
 | 2 | **Performance efficiency** | O(grid) move selection; gatekeeper bounds external-call rate/concurrency; token-cost analysis (R.7). I/O-bound work uses threads, not processes (R.9). |
 | 3 | **Compatibility** | Pure-Python, OS-agnostic (`uv`); SDK-only core decoupled from CLI/GUI; MCP standard for agent interop. |
 | 4 | **Usability** | One-command run; clear CLI banners + colored GUI HUD/legend; documented config & workflow (R.11, §2–§3). |

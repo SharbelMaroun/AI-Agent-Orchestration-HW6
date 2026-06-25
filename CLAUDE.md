@@ -30,7 +30,7 @@ submission `rmisegal+uoh26b@gmail.com` (kept verbatim). Google secrets live **ou
 5. Get documents approved → develop, keeping `TODO.md` updated → save results & update `README.md`.
 
 **TODO granularity (lecturer requirement):** [`docs/TODO.md`](docs/TODO.md) is maintained at **≥550
-fine-grained tasks** (currently 604). Keep it that detailed; update statuses as work proceeds.
+fine-grained tasks** (currently 689). Keep it that detailed; update statuses as work proceeds.
 **Prompt log:** maintain [`docs/PROMPT_LOG.md`](docs/PROMPT_LOG.md) (guidelines §8.3 — significant
 development prompts + runtime agent prompt templates).
 

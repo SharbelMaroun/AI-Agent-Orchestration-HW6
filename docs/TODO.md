@@ -4,11 +4,11 @@
 **Document version:** 2.00  
 **Governing standard:** [`../MATERIALS/software_submission_guidelines-V3_Summary.md`](../MATERIALS/software_submission_guidelines-V3_Summary.md)
 
-> **Lecturer requirement:** this task list is maintained at fine granularity — **665 tasks** (≥550).  
+> **Lecturer requirement:** this task list is maintained at fine granularity — **689 tasks** (≥550).  
 > **Status:** ⬜ Not Started · 🟦 In Progress · ✅ Completed — **Priority:** P0–P3. Owner: `<TBD>`.  
 > Update statuses continuously; add a README Work-Log row + evidence (graph/screenshot) per task.
 
-> **Implementation status (code, 2026-06-25):** Phase 0 ✅ · Phase 1 ✅ · Phase 2 🟦 (tool layer + 2 FastMCP servers done; MCP transport/auth pending) · Phase 3 ✅ · Phase 5 ✅ (NL agents; the default `cop-thief` run) · Phase 6 🟦 (GUI renderer + **NL match animation with message overlay** via --gui; --simple --gui for heuristic/smart) · Phase 8 🟦 (report builder + Gmail/Calendar agent tools done; real OAuth send pending) · Phase 4 ✅ (greedy + **cornering "smart" cop**, config-selectable, 100% capture on 3×3–7×7) · Phase 9 🟦 (**full API gatekeeper done** — config-driven rate limiting + FIFO queue + backpressure + drain + retries/backoff + concurrency + `get_queue_status`; research/submission tasks pending) — all green (ruff clean, pytest 154 passing, 100% coverage). Phases 7/10 mostly pending.
+> **Implementation status (code, 2026-06-26):** Phases 0–6, 8, 9 ✅ and Phase 7 ✅ (cop/thief MCP servers deployed + verified on Render; live inter-group match pending a partner). NL match is the default `cop-thief` run; GUI via `--gui`/`--live`; **report email wired** (CLI + remote drivers → `send_match_report`/`send_report`, gated by `reporting.send_real_email`, verified live); **all external calls (LLM + Gmail/Calendar) are gatekeeper-routed**; bonus award values config-driven. Phase 10 (research/submission) mostly done — remaining: the live inter-group series + final submission switches. All green — Ruff clean, **pytest 249 passing, 100% coverage**.
 
 ---
 

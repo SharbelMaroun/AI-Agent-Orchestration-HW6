@@ -21,26 +21,26 @@ from __future__ import annotations
 from collections.abc import Callable
 from typing import Any
 
-from ..shared.constants import Role
+from ..shared import grid_math
+from ..shared.constants import DIRECTIONS_8, Role
 
 RemoteDecider = Callable[[dict[str, Any]], tuple[str, int, int]]
 Cell = tuple[int, int]
-_STEPS = [(dx, dy) for dx in (-1, 0, 1) for dy in (-1, 0, 1) if (dx, dy) != (0, 0)]
 
 
 def _cheb(a: Cell, b: Cell) -> int:
-    return max(abs(a[0] - b[0]), abs(a[1] - b[1]))
+    return grid_math.chebyshev(a[0], a[1], b[0], b[1])
 
 
 def _manhattan(a: Cell, b: Cell) -> int:
-    return abs(a[0] - b[0]) + abs(a[1] - b[1])
+    return grid_math.manhattan(a[0], a[1], b[0], b[1])
 
 
 def _mobility(cell: Cell, on_board: set[Cell], blocked: set[Cell]) -> int:
     """Open, on-board neighbours of ``cell`` (escape room for thief / options for cop)."""
     return sum(
         1
-        for dx, dy in _STEPS
+        for dx, dy in DIRECTIONS_8
         if (cell[0] + dx, cell[1] + dy) in on_board and (cell[0] + dx, cell[1] + dy) not in blocked
     )
 
@@ -71,7 +71,7 @@ def remote_decider(role: str) -> RemoteDecider:
         blocked = {(b[0], b[1]) for b in obs["visible_barriers"]}
         legal = [
             s
-            for s in _STEPS
+            for s in DIRECTIONS_8
             if (here[0] + s[0], here[1] + s[1]) in on_board
             and (here[0] + s[0], here[1] + s[1]) not in blocked
         ]

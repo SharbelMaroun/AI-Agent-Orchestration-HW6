@@ -4,7 +4,7 @@
 **Course:** Orchestration of AI Agents — University of Haifa, Dept. of Computer Science
 **Assignment:** Task 6 (ex06)
 **Document version:** 1.00
-**Status:** Draft — pending approval
+**Status:** Approved (2026-06-25)
 **Owner:** `<TBD: team lead>`
 
 > This PRD is the central requirements document for the project. It is governed by the

@@ -55,11 +55,13 @@ def main() -> None:
     print(json.dumps(report, indent=2))
     if cfg.get("reporting", {}).get("send_real_email", False):
         from marl_cop_thief.shared.gmail_client import send_email
+        from marl_cop_thief.shared.google_api import gmail_gatekeeper
         from marl_cop_thief.shared.google_auth import build_services
 
         sd = os.environ.get("MARL_GOOGLE_SECRETS_DIR") or cfg.get("google", {}).get("secrets_dir", "")
         gmail, _ = build_services(sd, cfg["google"]["scopes"])
-        mid = send_report(cfg, report, lambda to, subj, body: send_email(gmail, to, subj, body))
+        gk = gmail_gatekeeper()
+        mid = send_report(cfg, report, lambda to, subj, body: send_email(gmail, to, subj, body, gk))
         print(f"Report emailed to {cfg['reporting']['recipient_email']}: id={mid}")
     else:
         print("(email off: set reporting.send_real_email=true to email this report)")

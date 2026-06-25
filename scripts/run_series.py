@@ -35,10 +35,12 @@ def main() -> None:
         import os
 
         from marl_cop_thief.shared.gmail_client import send_email
+        from marl_cop_thief.shared.google_api import gmail_gatekeeper
         from marl_cop_thief.shared.google_auth import build_services
         sd = os.environ.get("MARL_GOOGLE_SECRETS_DIR") or sdk.config.get("google", {}).get("secrets_dir", "")
         gmail, _ = build_services(sd, sdk.config["google"]["scopes"])
-        mid = sdk.send_report(report, lambda to, subj, body: send_email(gmail, to, subj, body))
+        gk = gmail_gatekeeper()
+        mid = sdk.send_report(report, lambda to, subj, body: send_email(gmail, to, subj, body, gk))
         print(f"Series report emailed: id={mid}")
 
 

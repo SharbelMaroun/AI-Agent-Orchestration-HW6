@@ -14,7 +14,7 @@ import random
 from typing import Any
 
 from ..shared.constants import Role
-from .bonus import SeriesResult, series_awards
+from .bonus import SeriesResult, points_from_config, series_awards
 from .game_engine import GameEngine
 from .orchestrator import select_cop_policy, select_thief_policy
 from .reporting import build_intergroup_report
@@ -54,6 +54,7 @@ def run_series(
     full_meta = dict(meta or {})
     full_meta.update(
         group_1=group_a, group_2=group_b, totals_by_group=totals,
-        bonus_claim=series_awards(SeriesResult(totals)), mutual_agreement=True,
+        bonus_claim=series_awards(SeriesResult(totals), **points_from_config(config)),
+        mutual_agreement=True,
     )
     return build_intergroup_report(config, {"sub_games": sub_games}, full_meta)
