@@ -185,28 +185,28 @@ _Two FastMCP servers exposing tools (no LLM in server). See PRD_mcp_server.md._
 | T2.31 | Ruff clean `mcp/thief_server.py` | P0 | ✅ | `<TBD>` | 0 ruff violations |
 | T2.32 | Mock external deps in `mcp/thief_server.py` tests | P0 | ✅ | `<TBD>` | No live external calls |
 | T2.33 | Coverage ≥85% for `mcp/thief_server.py` + add README Work Log row | P0 | ✅ | `<TBD>` | ≥85% coverage; Work Log updated |
-| T2.34 | Spec & single-concern interface for `shared/mcp_transport.py` — HTTP(S) client transport (via gatekeeper) | P0 | ⬜ | `<TBD>` | Interface + docstring agreed; ≤150-LOC plan |
-| T2.35 | Define typed models/signatures for `shared/mcp_transport.py` | P0 | ⬜ | `<TBD>` | Typed inputs/outputs defined |
-| T2.36 | RED: write failing unit tests for `shared/mcp_transport.py` (happy path) | P0 | ⬜ | `<TBD>` | Failing tests committed |
-| T2.37 | GREEN: implement `shared/mcp_transport.py` | P0 | ⬜ | `<TBD>` | Happy-path tests pass |
-| T2.38 | Edge-case & boundary tests for `shared/mcp_transport.py` | P0 | ⬜ | `<TBD>` | Empty/invalid/limit inputs covered |
-| T2.39 | Defensive error handling in `shared/mcp_transport.py` | P0 | ⬜ | `<TBD>` | Graceful failure + clear message |
-| T2.40 | Refactor `shared/mcp_transport.py`: DRY, ≤150 lines, single responsibility | P0 | ⬜ | `<TBD>` | No duplication; ≤150 LOC |
-| T2.41 | Docstrings + why-comments for `shared/mcp_transport.py` | P0 | ⬜ | `<TBD>` | Module/functions documented |
-| T2.42 | Ruff clean `shared/mcp_transport.py` | P0 | ⬜ | `<TBD>` | 0 ruff violations |
-| T2.43 | Mock external deps in `shared/mcp_transport.py` tests | P0 | ⬜ | `<TBD>` | No live external calls |
-| T2.44 | Coverage ≥85% for `shared/mcp_transport.py` + add README Work Log row | P0 | ⬜ | `<TBD>` | ≥85% coverage; Work Log updated |
-| T2.45 | Spec & single-concern interface for `shared/mcp_auth.py` — token-based auth + revocation | P0 | ⬜ | `<TBD>` | Interface + docstring agreed; ≤150-LOC plan |
-| T2.46 | Define typed models/signatures for `shared/mcp_auth.py` | P0 | ⬜ | `<TBD>` | Typed inputs/outputs defined |
-| T2.47 | RED: write failing unit tests for `shared/mcp_auth.py` (happy path) | P0 | ⬜ | `<TBD>` | Failing tests committed |
-| T2.48 | GREEN: implement `shared/mcp_auth.py` | P0 | ⬜ | `<TBD>` | Happy-path tests pass |
-| T2.49 | Edge-case & boundary tests for `shared/mcp_auth.py` | P0 | ⬜ | `<TBD>` | Empty/invalid/limit inputs covered |
-| T2.50 | Defensive error handling in `shared/mcp_auth.py` | P0 | ⬜ | `<TBD>` | Graceful failure + clear message |
-| T2.51 | Refactor `shared/mcp_auth.py`: DRY, ≤150 lines, single responsibility | P0 | ⬜ | `<TBD>` | No duplication; ≤150 LOC |
-| T2.52 | Docstrings + why-comments for `shared/mcp_auth.py` | P0 | ⬜ | `<TBD>` | Module/functions documented |
-| T2.53 | Ruff clean `shared/mcp_auth.py` | P0 | ⬜ | `<TBD>` | 0 ruff violations |
-| T2.54 | Mock external deps in `shared/mcp_auth.py` tests | P0 | ⬜ | `<TBD>` | No live external calls |
-| T2.55 | Coverage ≥85% for `shared/mcp_auth.py` + add README Work Log row | P0 | ⬜ | `<TBD>` | ≥85% coverage; Work Log updated |
+| T2.34 | Spec & single-concern interface for `shared/mcp_transport.py` — HTTP(S) client transport (via gatekeeper) | P0 | ✅ | `<TBD>` | `McpClient(base_url, token, invoke, gatekeeper)` |
+| T2.35 | Define typed models/signatures for `shared/mcp_transport.py` | P0 | ✅ | `<TBD>` | `Invoke` callable + `call_tool` typed |
+| T2.36 | RED→GREEN: unit tests for `shared/mcp_transport.py` (happy path) | P0 | ✅ | `<TBD>` | `test_mcp_transport.py` |
+| T2.37 | GREEN: implement `shared/mcp_transport.py` | P0 | ✅ | `<TBD>` | Implemented; tests pass |
+| T2.38 | Edge-case tests for `shared/mcp_transport.py` | P0 | ✅ | `<TBD>` | trailing-slash, gatekeeper routing |
+| T2.39 | Defensive error handling in `shared/mcp_transport.py` | P0 | ✅ | `<TBD>` | gatekeeper retries/queue front the call |
+| T2.40 | Refactor `shared/mcp_transport.py`: DRY, ≤150 lines | P0 | ✅ | `<TBD>` | 13 LOC; single responsibility |
+| T2.41 | Docstrings + why-comments for `shared/mcp_transport.py` | P0 | ✅ | `<TBD>` | Documented (DI seam rationale) |
+| T2.42 | Ruff clean `shared/mcp_transport.py` | P0 | ✅ | `<TBD>` | 0 ruff violations |
+| T2.43 | Mock external deps in `shared/mcp_transport.py` tests | P0 | ✅ | `<TBD>` | `invoke` injected (fake in tests) |
+| T2.44 | Coverage 100% for `shared/mcp_transport.py` + README Work Log | P0 | ✅ | `<TBD>` | 100% cov; Work Log updated |
+| T2.45 | Spec & single-concern interface for `shared/mcp_auth.py` — token-based auth + revocation | P0 | ✅ | `<TBD>` | `TokenAuth.mint/verify/revoke` |
+| T2.46 | Define typed models/signatures for `shared/mcp_auth.py` | P0 | ✅ | `<TBD>` | Typed; HMAC-signed tokens |
+| T2.47 | RED→GREEN: unit tests for `shared/mcp_auth.py` (happy path) | P0 | ✅ | `<TBD>` | `test_mcp_auth.py` |
+| T2.48 | GREEN: implement `shared/mcp_auth.py` | P0 | ✅ | `<TBD>` | Implemented; tests pass |
+| T2.49 | Edge-case tests for `shared/mcp_auth.py` | P0 | ✅ | `<TBD>` | tamper/revoke/empty/wrong-secret |
+| T2.50 | Defensive error handling in `shared/mcp_auth.py` | P0 | ✅ | `<TBD>` | empty secret raises; bad token → None |
+| T2.51 | Refactor `shared/mcp_auth.py`: DRY, ≤150 lines | P0 | ✅ | `<TBD>` | ~30 LOC; single responsibility |
+| T2.52 | Docstrings + why-comments for `shared/mcp_auth.py` | P0 | ✅ | `<TBD>` | Documented (HMAC + revocation) |
+| T2.53 | Ruff clean `shared/mcp_auth.py` | P0 | ✅ | `<TBD>` | 0 ruff violations |
+| T2.54 | Mock external deps in `shared/mcp_auth.py` tests | P0 | ✅ | `<TBD>` | Pure logic; no external deps |
+| T2.55 | Coverage 100% for `shared/mcp_auth.py` + README Work Log | P0 | ✅ | `<TBD>` | 100% cov; Work Log updated |
 | T2.56 | Distinct localhost ports for cop/thief from config | P0 | ⬜ | `<TBD>` | Ports config-driven |
 | T2.57 | `get_observation` returns partial view | P0 | ⬜ | `<TBD>` | Visibility radius honoured |
 | T2.58 | `send_message`/`receive_message` round-trip | P0 | ⬜ | `<TBD>` | NL message delivered |
