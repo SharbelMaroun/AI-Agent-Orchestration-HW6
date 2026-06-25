@@ -4,11 +4,11 @@
 **Document version:** 2.00  
 **Governing standard:** [`../MATERIALS/software_submission_guidelines-V3_Summary.md`](../MATERIALS/software_submission_guidelines-V3_Summary.md)
 
-> **Lecturer requirement:** this task list is maintained at fine granularity — **658 tasks** (≥550).  
+> **Lecturer requirement:** this task list is maintained at fine granularity — **665 tasks** (≥550).  
 > **Status:** ⬜ Not Started · 🟦 In Progress · ✅ Completed — **Priority:** P0–P3. Owner: `<TBD>`.  
 > Update statuses continuously; add a README Work-Log row + evidence (graph/screenshot) per task.
 
-> **Implementation status (code, 2026-06-25):** Phase 0 ✅ · Phase 1 ✅ · Phase 2 🟦 (tool layer + 2 FastMCP servers done; MCP transport/auth pending) · Phase 3 ✅ · Phase 5 ✅ (NL agents, runnable via --nl) · Phase 6 🟦 (GUI renderer + animated GIF via --gui) · Phase 8 🟦 (report builder + Gmail/Calendar agent tools done; real OAuth send pending) · Phase 4 🟦 (heuristic only) · Phase 9 🟦 (**full API gatekeeper done** — config-driven rate limiting + FIFO queue + backpressure + drain + retries/backoff + concurrency + `get_queue_status`; research/submission tasks pending) — all green (ruff clean, pytest 134 passing, 100% coverage). Phases 7/10 mostly pending.
+> **Implementation status (code, 2026-06-25):** Phase 0 ✅ · Phase 1 ✅ · Phase 2 🟦 (tool layer + 2 FastMCP servers done; MCP transport/auth pending) · Phase 3 ✅ · Phase 5 ✅ (NL agents, runnable via --nl) · Phase 6 🟦 (GUI renderer + animated GIF via --gui) · Phase 8 🟦 (report builder + Gmail/Calendar agent tools done; real OAuth send pending) · Phase 4 ✅ (greedy + **cornering "smart" cop**, config-selectable, 100% capture on 3×3–7×7) · Phase 9 🟦 (**full API gatekeeper done** — config-driven rate limiting + FIFO queue + backpressure + drain + retries/backoff + concurrency + `get_queue_status`; research/submission tasks pending) — all green (ruff clean, pytest 144 passing, 100% coverage). Phases 7/10 mostly pending.
 
 ---
 
@@ -20,14 +20,14 @@
 | 1 | Game logic & rules engine | M1 | 68 |
 | 2 | MCP communication infrastructure | M2 | 63 |
 | 3 | Orchestrator & full local match | M3 | 60 |
-| 4 | Decision strategy | M4 | 63 |
+| 4 | Decision strategy | M4 | 70 |
 | 5 | Natural-language integration | M5 | 60 |
 | 6 | GUI & CLI | M6 | 38 |
 | 7 | Cloud deployment & security | M7 | 27 |
 | 8 | Gmail/Calendar agent & reporting | M8 | 104 |
 | 9 | Gatekeeper, quality gates, research & submission | M9 | 85 |
 | 10 | Audit closure (requirements coverage gaps) | M10 | 54 |
-| — | **Total** | — | **658** |
+| — | **Total** | — | **665** |
 
 ---
 
@@ -284,6 +284,11 @@ _Match/sub-game loop and single SDK entry point._
 
 ## Phase 4 — Decision strategy (Milestone: M4)
 _Heuristic policies + optional tabular Q-learning. See PRD_decision_strategy.md._
+> **As-built (2026-06-25):** greedy cop+thief live together in `services/strategy/heuristic.py`
+> (one module, not separate `heuristic_cop.py`/`heuristic_thief.py`); the **cornering "smart" cop** is
+> `services/strategy/smart_cop.py` with shared distance in `geometry.py`. The `Strategy` interface is the
+> lightweight `Decider` Callable (`turn_pipeline.py`) + the `COP_POLICIES` registry in the orchestrator,
+> not a Template-Method base class. `belief_model.py`/`q_table.py` remain optional/pending.
 
 | ID | Task | Pri | Status | Owner | DoD |
 |----|------|-----|--------|-------|-----|
@@ -298,28 +303,28 @@ _Heuristic policies + optional tabular Q-learning. See PRD_decision_strategy.md.
 | T4.9 | Ruff clean `services/strategy/strategy_base.py` | P0 | 🟦 | `<TBD>` | 0 ruff violations |
 | T4.10 | Mock external deps in `services/strategy/strategy_base.py` tests | P0 | 🟦 | `<TBD>` | No live external calls |
 | T4.11 | Coverage ≥85% for `services/strategy/strategy_base.py` + add README Work Log row | P0 | 🟦 | `<TBD>` | ≥85% coverage; Work Log updated |
-| T4.12 | Spec & single-concern interface for `services/strategy/heuristic_cop.py` — cop pursuit policy | P0 | 🟦 | `<TBD>` | Interface + docstring agreed; ≤150-LOC plan |
-| T4.13 | Define typed models/signatures for `services/strategy/heuristic_cop.py` | P0 | 🟦 | `<TBD>` | Typed inputs/outputs defined |
-| T4.14 | RED: write failing unit tests for `services/strategy/heuristic_cop.py` (happy path) | P0 | 🟦 | `<TBD>` | Failing tests committed |
-| T4.15 | GREEN: implement `services/strategy/heuristic_cop.py` | P0 | 🟦 | `<TBD>` | Happy-path tests pass |
-| T4.16 | Edge-case & boundary tests for `services/strategy/heuristic_cop.py` | P0 | 🟦 | `<TBD>` | Empty/invalid/limit inputs covered |
-| T4.17 | Defensive error handling in `services/strategy/heuristic_cop.py` | P0 | 🟦 | `<TBD>` | Graceful failure + clear message |
-| T4.18 | Refactor `services/strategy/heuristic_cop.py`: DRY, ≤150 lines, single responsibility | P0 | 🟦 | `<TBD>` | No duplication; ≤150 LOC |
-| T4.19 | Docstrings + why-comments for `services/strategy/heuristic_cop.py` | P0 | 🟦 | `<TBD>` | Module/functions documented |
-| T4.20 | Ruff clean `services/strategy/heuristic_cop.py` | P0 | 🟦 | `<TBD>` | 0 ruff violations |
-| T4.21 | Mock external deps in `services/strategy/heuristic_cop.py` tests | P0 | 🟦 | `<TBD>` | No live external calls |
-| T4.22 | Coverage ≥85% for `services/strategy/heuristic_cop.py` + add README Work Log row | P0 | 🟦 | `<TBD>` | ≥85% coverage; Work Log updated |
-| T4.23 | Spec & single-concern interface for `services/strategy/heuristic_thief.py` — thief evasion policy | P0 | 🟦 | `<TBD>` | Interface + docstring agreed; ≤150-LOC plan |
-| T4.24 | Define typed models/signatures for `services/strategy/heuristic_thief.py` | P0 | 🟦 | `<TBD>` | Typed inputs/outputs defined |
-| T4.25 | RED: write failing unit tests for `services/strategy/heuristic_thief.py` (happy path) | P0 | 🟦 | `<TBD>` | Failing tests committed |
-| T4.26 | GREEN: implement `services/strategy/heuristic_thief.py` | P0 | 🟦 | `<TBD>` | Happy-path tests pass |
-| T4.27 | Edge-case & boundary tests for `services/strategy/heuristic_thief.py` | P0 | 🟦 | `<TBD>` | Empty/invalid/limit inputs covered |
-| T4.28 | Defensive error handling in `services/strategy/heuristic_thief.py` | P0 | 🟦 | `<TBD>` | Graceful failure + clear message |
-| T4.29 | Refactor `services/strategy/heuristic_thief.py`: DRY, ≤150 lines, single responsibility | P0 | 🟦 | `<TBD>` | No duplication; ≤150 LOC |
-| T4.30 | Docstrings + why-comments for `services/strategy/heuristic_thief.py` | P0 | 🟦 | `<TBD>` | Module/functions documented |
-| T4.31 | Ruff clean `services/strategy/heuristic_thief.py` | P0 | 🟦 | `<TBD>` | 0 ruff violations |
-| T4.32 | Mock external deps in `services/strategy/heuristic_thief.py` tests | P0 | 🟦 | `<TBD>` | No live external calls |
-| T4.33 | Coverage ≥85% for `services/strategy/heuristic_thief.py` + add README Work Log row | P0 | 🟦 | `<TBD>` | ≥85% coverage; Work Log updated |
+| T4.12 | Spec & single-concern interface for cop pursuit policy (as-built: `heuristic.cop_action`) | P0 | ✅ | `<TBD>` | Interface + docstring agreed; ≤150-LOC plan |
+| T4.13 | Define typed models/signatures for the cop policy | P0 | ✅ | `<TBD>` | Typed inputs/outputs defined |
+| T4.14 | RED: write failing unit tests for the cop policy (happy path) | P0 | ✅ | `<TBD>` | Failing tests committed |
+| T4.15 | GREEN: implement the cop policy (`heuristic.cop_action`) | P0 | ✅ | `<TBD>` | Happy-path tests pass |
+| T4.16 | Edge-case & boundary tests for the cop policy | P0 | ✅ | `<TBD>` | Boxed-in/no-move cases covered |
+| T4.17 | Defensive error handling in the cop policy | P0 | ✅ | `<TBD>` | Falls back to STAY; engine validates |
+| T4.18 | Refactor cop policy: DRY, ≤150 lines, single responsibility | P0 | ✅ | `<TBD>` | Shared `geometry.chebyshev`; ≤150 LOC |
+| T4.19 | Docstrings + why-comments for the cop policy | P0 | ✅ | `<TBD>` | Module/functions documented |
+| T4.20 | Ruff clean the cop policy module | P0 | ✅ | `<TBD>` | 0 ruff violations |
+| T4.21 | Mock external deps in cop-policy tests | P0 | ✅ | `<TBD>` | Pure/offline; no live external calls |
+| T4.22 | Coverage ≥85% for the cop policy + add README Work Log row | P0 | ✅ | `<TBD>` | 100% coverage; Work Log updated |
+| T4.23 | Spec & single-concern interface for thief evasion policy (as-built: `heuristic.thief_action`) | P0 | ✅ | `<TBD>` | Interface + docstring agreed; ≤150-LOC plan |
+| T4.24 | Define typed models/signatures for the thief policy | P0 | ✅ | `<TBD>` | Typed inputs/outputs defined |
+| T4.25 | RED: write failing unit tests for the thief policy (happy path) | P0 | ✅ | `<TBD>` | Failing tests committed |
+| T4.26 | GREEN: implement the thief policy (`heuristic.thief_action`) | P0 | ✅ | `<TBD>` | Happy-path tests pass |
+| T4.27 | Edge-case & boundary tests for the thief policy | P0 | ✅ | `<TBD>` | Boxed-in stay case covered |
+| T4.28 | Defensive error handling in the thief policy | P0 | ✅ | `<TBD>` | Falls back to STAY; engine validates |
+| T4.29 | Refactor thief policy: DRY, ≤150 lines, single responsibility | P0 | ✅ | `<TBD>` | Shared `geometry.chebyshev`; ≤150 LOC |
+| T4.30 | Docstrings + why-comments for the thief policy | P0 | ✅ | `<TBD>` | Module/functions documented |
+| T4.31 | Ruff clean the thief policy module | P0 | ✅ | `<TBD>` | 0 ruff violations |
+| T4.32 | Mock external deps in thief-policy tests | P0 | ✅ | `<TBD>` | Pure/offline; no live external calls |
+| T4.33 | Coverage ≥85% for the thief policy + add README Work Log row | P0 | ✅ | `<TBD>` | 100% coverage; Work Log updated |
 | T4.34 | Spec & single-concern interface for `services/strategy/belief_model.py` — belief over opponent cell (partial obs) | P1 | ⬜ | `<TBD>` | Interface + docstring agreed; ≤150-LOC plan |
 | T4.35 | Define typed models/signatures for `services/strategy/belief_model.py` | P1 | ⬜ | `<TBD>` | Typed inputs/outputs defined |
 | T4.36 | RED: write failing unit tests for `services/strategy/belief_model.py` (happy path) | P1 | ⬜ | `<TBD>` | Failing tests committed |
@@ -342,14 +347,21 @@ _Heuristic policies + optional tabular Q-learning. See PRD_decision_strategy.md.
 | T4.53 | Ruff clean `services/strategy/q_table.py` | P3 | ⬜ | `<TBD>` | 0 ruff violations |
 | T4.54 | Mock external deps in `services/strategy/q_table.py` tests | P3 | ⬜ | `<TBD>` | No live external calls |
 | T4.55 | Coverage ≥85% for `services/strategy/q_table.py` + add README Work Log row | P3 | ⬜ | `<TBD>` | ≥85% coverage; Work Log updated |
-| T4.56 | Strategy selection via config (heuristic|q_table) | P1 | ⬜ | `<TBD>` | Switch with no code change |
+| T4.56 | Strategy selection via config (heuristic\|smart\|q_table) | P1 | ✅ | `<TBD>` | `Orchestrator._select_cop_policy` switches with no code change |
 | T4.57 | Heuristic beats random baseline | P1 | ⬜ | `<TBD>` | Win-rate > 50% |
-| T4.58 | Chebyshev/distance utilities | P1 | ⬜ | `<TBD>` | Unit-tested |
+| T4.58 | Chebyshev/distance utilities | P1 | ✅ | `<TBD>` | `services/strategy/geometry.py`, unit-tested |
 | T4.59 | (Opt) Q-state encoding compact for 5x5 | P3 | ⬜ | `<TBD>` | State space bounded |
 | T4.60 | (Opt) Q-update matches Bellman on hand example | P3 | ⬜ | `<TBD>` | Unit test passes |
 | T4.61 | (Opt) Epsilon-greedy explore/exploit | P3 | ⬜ | `<TBD>` | Policy implemented |
 | T4.62 | (Opt) Training loop over episodes | P3 | ⬜ | `<TBD>` | Q-table improves |
 | T4.63 | (Opt) Learning-curve plot saved to results/ | P3 | ⬜ | `<TBD>` | Curve in README |
+| T4.64 | Spec & single-concern interface for `services/strategy/smart_cop.py` — cornering 1-ply cop | P1 | ✅ | `<TBD>` | Interface + docstring agreed; ≤150-LOC plan |
+| T4.65 | RED+GREEN: implement `smart_cop.smart_cop_action` (lexicographic `(distance, escape-options)` eval after thief reply) | P1 | ✅ | `<TBD>` | Tests pass; breaks the greedy limit cycle |
+| T4.66 | Edge/boundary tests for smart cop (immediate capture, boxed-in stay, determinism) | P1 | ✅ | `<TBD>` | 100% coverage |
+| T4.67 | Empirical capture-rate ≥ greedy (100% on 3×3–7×7, 60 seeds) | P1 | ✅ | `<TBD>` | Measured; `test_corners_thief_on_every_sampled_seed` |
+| T4.68 | Config-driven `smart` selection in `Orchestrator` + reject unknown strategy | P1 | ✅ | `<TBD>` | `test_smart_strategy_is_selected_and_dominates` / `test_unknown_strategy_is_rejected` |
+| T4.69 | Refresh comparison graphs (greedy vs smart vs NL; grid-size overlay) via `make_figures.py` | P1 | ✅ | `<TBD>` | `assets/heuristic_vs_nl.png`, `assets/winrate_vs_gridsize.png` |
+| T4.70 | Update `PRD_decision_strategy.md` §3.1 + README R.3 (cornering policy + barrier analysis) | P1 | ✅ | `<TBD>` | Docs reflect as-built |
 
 ## Phase 5 — Natural-language integration (Milestone: M5)
 _Free-text protocol + belief update; robust to ambiguity/deception. See PRD_nl_communication.md._

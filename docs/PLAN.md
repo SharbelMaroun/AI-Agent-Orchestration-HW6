@@ -164,7 +164,8 @@ src/marl_cop_thief/
 │   │                           #   prompt_templates, nl_decider
 │   ├── google_agent/           # email_reader, meeting_extractor, calendar_writer (DI)
 │   ├── mcp/                    # tools (ToolService, 6 tools), message_bus, servers (FastMCP)
-│   └── strategy/heuristic.py   # cop_action / thief_action   (belief_model, q_table: planned)
+│   └── strategy/              # heuristic.py (greedy cop+thief), smart_cop.py (cornering 1-ply),
+│                              #   geometry.py (shared chebyshev); belief_model/q_table planned
 ├── gui/                        # board_renderer, match_animator (renders state; omitted from coverage)
 └── shared/
     ├── gatekeeper.py           # API gatekeeper (rate limit + FIFO queue + backpressure + retries + concurrency)

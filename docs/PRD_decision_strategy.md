@@ -27,14 +27,31 @@ selected from config without code changes.
 - **Output:** a single chosen `Action` (+ optional message hint for the NL layer).
 
 ### 2.2 Setup (from config)
-- `strategy.type ∈ {"heuristic", "q_table"}`, plus RL hyper-params (`learning_rate`, `discount_factor`,
-  `epsilon`) when `q_table` is selected. Defaults documented; nothing hard-coded.
+- `strategy.type ∈ {"heuristic", "smart", "q_table"}` (default `heuristic`), plus RL hyper-params
+  (`learning_rate`, `discount_factor`, `epsilon`) when `q_table` is selected. Defaults documented;
+  nothing hard-coded. The `Orchestrator` rejects an unknown `strategy.type` with a clear error.
 
 ## 3. Default Heuristic Policy
-- **Cop:** move to minimize Chebyshev distance to the belief's most-likely Thief cell; place a barrier
-  when it provably reduces the Thief's escape options and barriers remain.
+- **Cop (`heuristic`):** move to minimize Chebyshev distance to the belief's most-likely Thief cell.
 - **Thief:** move to maximize minimum distance to the Cop / toward the largest open region; avoid
   dead-ends created by barriers.
+
+### 3.1 Cornering Cop Policy (`smart`, implemented Phase 4)
+The greedy cop above only minimizes distance, so against an equal-speed evader on an open board the two
+**mirror each other into a limit cycle** and the Thief survives the move cap (README R.3; greedy ≈ 0.72
+on 5×5, dropping to ≈ 0.62 on 6×6). The `smart` cop fixes this with a **one-ply look-ahead**:
+- For each legal Cop action, simulate it, then simulate the **Thief's greedy evasion**, and rank the
+  resulting position **lexicographically by `(Chebyshev distance, Thief escape-options)`** — where an
+  *escape option* is a Thief move that strictly increases its distance from the Cop. An immediate
+  capture short-circuits to that action.
+- Minimizing escape options **herds the Thief into a corner**, where the board edges act as walls and
+  its mobility collapses, so the Cop closes the final gap. Measured **capture rate = 1.00** on 3×3–7×7.
+
+**Barrier analysis (why cornering, not walls).** In this engine `place_barrier` seals the **Cop's own
+cell** and costs a full turn (the Cop does not move). It therefore cannot block the cell a fleeing Thief
+is moving *toward*, so wall-building is a weak, tempo-negative lever; geometric cornering dominates. The
+`smart` policy still includes `place_barrier` in its action search, so it is used only if it ever scores
+best. (Stronger barrier use would need an engine that lets the Cop place barriers on adjacent cells.)
 
 ## 4. Performance Metrics
 - **Baseline dominance:** heuristic beats a random policy in head-to-head tests (win-rate > 50%).
@@ -50,11 +67,15 @@ selected from config without code changes.
 - **Deep RL / DQN:** rejected — out of scope; tabular is the optional ceiling; no heavy compute needed.
 - **Pure LLM prompt-only decisions:** acceptable variant; we keep a deterministic heuristic for
   testability and as a fallback when the LLM is unavailable.
-- **Minimax/expectimax search:** possible enrichment; heuristic chosen first for simplicity & speed.
+- **Minimax/expectimax search:** the `smart` cop (§3.1) is a shallow (one-ply) instance of this —
+  deeper search is possible enrichment but unnecessary once capture rate is already 1.00.
 
 ## 7. Success Criteria & Test Scenarios
 - **S1:** With a known belief, the Cop heuristic strictly decreases distance to the target cell.
 - **S2:** The Thief heuristic never steps into a one-cell dead-end when an alternative exists.
-- **S3:** Strategy selection switches between `heuristic` and `q_table` purely via config.
-- **S4 (optional):** Q-update matches the Bellman formula on a hand-computed example (unit test).
-- **S5:** All policy branches covered; module ≥85% coverage; files ≤150 lines.
+- **S3:** Strategy selection switches between `heuristic`, `smart`, and `q_table` purely via config;
+  an unknown type is rejected with a clear error.
+- **S4:** The `smart` cop captures the greedy Thief within the move cap on every sampled seed (5×5);
+  it takes an immediate capture when one is available and stays when fully boxed in.
+- **S5 (optional):** Q-update matches the Bellman formula on a hand-computed example (unit test).
+- **S6:** All policy branches covered; module ≥85% coverage; files ≤150 lines.

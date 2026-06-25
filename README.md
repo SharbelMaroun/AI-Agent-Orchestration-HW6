@@ -108,14 +108,14 @@ Nielsen's 10 usability heuristics (GUI/CLI) — see [`docs/PLAN.md`](docs/PLAN.m
 | 1 | Game engine (board, models, engine, scoring, barriers) | ✅ done | 100% cov |
 | 2 | MCP tool layer + 2 FastMCP servers | 🟦 partial | tools/observation/bus/servers done; transport/auth pending |
 | 3 | Orchestrator + SDK + CLI (full local match) | ✅ done | `python -m marl_cop_thief` runs |
-| 4 | Decision strategy | 🟦 minimal | heuristic decider only; belief/Q-table pending |
+| 4 | Decision strategy | ✅ done | greedy heuristic + **cornering "smart" cop** (1-ply look-ahead, 100% capture, config-selectable); Q-table optional/pending |
 | 5 | Natural-language + LLM | ✅ done | NL encode/decode, ambiguity handler, NL decider; LLM via gatekeeper |
 | 6 | GUI | 🟦 partial | board renderer + animated GIF (`--gui`); live interactive window pending |
 | 8 | Report builder + Gmail/Calendar agent | 🟦 partial | JSON builders + read/extract/calendar/send tools tested; real OAuth send pending |
 | 9 | API gatekeeper | ✅ done | config-driven rate limit + FIFO queue + backpressure + drain + retries/backoff + concurrency + `get_queue_status` (see R.9) |
 | 7, 10 | Cloud, research/submission | ⬜ pending | — |
 
-Whole suite: **134 tests, 100% coverage, Ruff zero-violation.** The NL match is runnable via
+Whole suite: **144 tests, 100% coverage, Ruff zero-violation.** The NL match is runnable via
 `uv run python -m marl_cop_thief --nl`. The Gmail/Calendar tools are dependency-injected (tested with
 fakes); `shared/google_auth.py` builds the real services and needs your Google OAuth `client_secret.json`.
 
@@ -124,6 +124,7 @@ Newest first.
 
 | Date | What we did | Why | Evidence |
 |------|-------------|-----|----------|
+| 2026-06-25 | **Phase 4: cornering "smart" cop** — 1-ply look-ahead ranking actions by `(distance, thief escape-options)` after the thief's reply; config-selectable (`strategy.type`); refreshed comparison graphs | Greedy cop fell into limit cycles and let the thief escape (R.3) | **Capture 0.72→1.00** on 5×5; 100% on 3×3–7×7; 144 tests, 100% cov; `smart_cop.py` + `geometry.py`; graphs in `assets/` |
 | 2026-06-25 | **Phase 9: full API gatekeeper** — config-driven rate limiting (`rate_limits.json`), FIFO overflow queue with backpressure alert + drain-on-reset, retries with backoff, `concurrent_max` semaphore, thread-safe `RLock`, `get_queue_status()`; injected clock/sleep for deterministic offline tests; **adversarial multi-agent review** then fixed 6 confirmed defects (ticket-leak deadlock, retries bypassing the limiter, prod path not loading `rate_limits.json`, backpressure off-by-one, version validation, drain test) | Required centralized chokepoint (CLAUDE §2); close T9.1–11/45–50 | 134 tests, 100% cov; `shared/{gatekeeper,rate_limit}.py`; demo → [R.9](#r9-api-gatekeeper-rate-limiting--queueing) |
 | 2026-06-25 | Made **NL the default** (`cop-thief`; `--simple` for heuristic) + wired a **real OpenAI backend** auto-loaded from `.env` | NL is the assignment; use a real LLM | 111 tests; offline fallback intact |
 | 2026-06-25 | Synced `docs/PLAN.md` to the as-built tree; added a **single-command** runner (`cop-thief` console script + `run.ps1`) | Keep docs accurate; simpler UX | `uv run cop-thief` works |
@@ -160,20 +161,28 @@ Generated from **real match runs** by [`scripts/make_figures.py`](scripts/make_f
 ![Win distribution](assets/win_distribution.png)
 ![Moves histogram](assets/moves_histogram.png)
 
-**Sensitivity — cop capture rate vs grid size** (40 seeds per size):
+**Sensitivity — cop capture rate vs grid size, greedy vs cornering** (40 seeds per size):
 
 ![Capture rate vs grid size](assets/winrate_vs_gridsize.png)
 
-Capture rate falls from **100% (2×2)** to **~62% (6×6)** — larger boards give the thief more room to
-evade, matching the assignment's sanity-check intuition.
+The **greedy** cop's capture rate falls from **100% (2×2)** to **~62% (6×6)** — larger boards give the
+thief more room to evade, matching the assignment's sanity-check intuition. The **cornering (smart)** cop
+(Phase 4) holds **100% at every size**.
 
-**Strategy comparison — cop win rate, heuristic vs natural-language** (5×5, 40 seeds):
+**Strategy comparison — cop win rate by strategy** (5×5, 40 seeds):
 
-![Heuristic vs NL](assets/heuristic_vs_nl.png)
+![Strategy comparison](assets/heuristic_vs_nl.png)
 
-**Finding (heuristic limitation):** the greedy Chebyshev pursuit can fall into a **limit cycle** — e.g.
-the cop oscillating (2,1)↔(1,2) while the thief mirrors (4,3)↔(3,4) — so the thief survives the 25-move
-cap. This explains the sub-100% capture rate and motivates barrier use / a belief-based strategy (Phase 4).
+**Finding & fix (Phase 4).** The greedy Chebyshev pursuit falls into a **limit cycle** — the cop
+oscillating (2,1)↔(1,2) while the thief mirrors (4,3)↔(3,4) — so the thief survives the 25-move cap
+(greedy ≈ 0.72 on 5×5). The **cornering cop** (`strategy.type: "smart"`,
+[`smart_cop.py`](src/marl_cop_thief/services/strategy/smart_cop.py)) fixes this with a **one-ply
+look-ahead**: it ranks each candidate action by the position it leaves *after the thief's best evasion*,
+lexicographically by `(distance, thief escape-options)`. Minimising the thief's escape options herds it
+into a corner — where the board edges act as walls and its mobility collapses — lifting capture to
+**1.00** on every sampled board. (Barriers only seal the cop's own cell at a tempo cost, so geometric
+cornering, not wall-building, is the effective lever here — see
+[`docs/PRD_decision_strategy.md`](docs/PRD_decision_strategy.md) §3.1 for the analysis.)
 
 ## R.4 Screenshots & GUI (Phase 6)
 The GUI renders the board — **cop = blue circle, thief = red star, barriers = black** — reading state
@@ -258,6 +267,7 @@ All tunables live in `config/` (nothing hard-coded). Full schema in [`docs/PLAN.
 | `max_barriers` | int | `5` | Cop barrier budget per game |
 | `visibility_radius` | int | `1` | Partial-observation radius |
 | `scoring.*` | int | `20/10/5/5` | cop_win / thief_win / cop_loss / thief_loss |
+| `strategy.type` | str | `heuristic` | Cop policy for the simple match: `heuristic` (greedy) or `smart` (cornering, ~100% capture) |
 | `llm.model` | str | `gpt-4o-mini` | OpenAI model for the NL match (used when `OPENAI_API_KEY` is set) |
 | `reporting.recipient_email` | str | `sharbelma3@gmail.com` | Report recipient (→ `rmisegal+uoh26b@gmail.com` at submission) |
 | `google.secrets_dir` | path | _external_ | Folder (outside repo) holding `client_secret.json`/`token.json` |

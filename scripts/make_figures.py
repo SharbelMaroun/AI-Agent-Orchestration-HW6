@@ -17,6 +17,7 @@ from marl_cop_thief.services.game_engine import GameEngine  # noqa: E402
 from marl_cop_thief.services.mcp.message_bus import MessageBus  # noqa: E402
 from marl_cop_thief.services.nl_protocol.nl_decider import NLDecider  # noqa: E402
 from marl_cop_thief.services.strategy.heuristic import cop_action, thief_action  # noqa: E402
+from marl_cop_thief.services.strategy.smart_cop import smart_cop_action  # noqa: E402
 from marl_cop_thief.services.turn_pipeline import run_turn  # noqa: E402
 from marl_cop_thief.shared.constants import Role  # noqa: E402
 from marl_cop_thief.shared.gatekeeper import ApiGatekeeper  # noqa: E402
@@ -28,6 +29,10 @@ _OPP = {Role.COP: Role.THIEF, Role.THIEF: Role.COP}
 
 def heuristic_deciders(_engine):
     return {Role.COP: cop_action, Role.THIEF: thief_action}
+
+
+def smart_deciders(_engine):
+    return {Role.COP: smart_cop_action, Role.THIEF: thief_action}
 
 
 def nl_deciders(_engine):
@@ -71,25 +76,34 @@ def fig_moves(states):
 
 def fig_gridsize(runs):
     sizes = [2, 3, 4, 5, 6]
-    rates = [cop_rate(n, heuristic_deciders, runs) for n in sizes]
+    greedy = [cop_rate(n, heuristic_deciders, runs) for n in sizes]
+    smart = [cop_rate(n, smart_deciders, runs) for n in sizes]
     fig, ax = plt.subplots(figsize=(5, 4))
-    ax.plot(sizes, rates, marker="o", color="tab:green")
+    ax.plot(sizes, greedy, marker="o", color="tab:green", label="Greedy (heuristic)")
+    ax.plot(sizes, smart, marker="s", color="tab:purple", label="Cornering (smart)")
     ax.set_title(f"Cop capture rate vs grid size ({runs} seeds)")
     ax.set_xlabel("grid size (N x N)")
     ax.set_ylabel("cop win rate")
-    ax.set_ylim(0, 1)
+    ax.set_ylim(0, 1.05)
     ax.grid(True)
+    ax.legend(loc="lower left")
     fig.tight_layout()
     fig.savefig("assets/winrate_vs_gridsize.png", dpi=DPI)
 
 
 def fig_strategy(runs):
-    rates = [cop_rate(5, heuristic_deciders, runs), cop_rate(5, nl_deciders, runs)]
+    labels = ["Greedy\nheuristic", "Cornering\nsmart", "Natural\nlanguage"]
+    rates = [
+        cop_rate(5, heuristic_deciders, runs),
+        cop_rate(5, smart_deciders, runs),
+        cop_rate(5, nl_deciders, runs),
+    ]
     fig, ax = plt.subplots(figsize=(5, 4))
-    ax.bar(["Heuristic", "Natural language"], rates, color=["tab:blue", "tab:orange"])
+    bars = ax.bar(labels, rates, color=["tab:blue", "tab:purple", "tab:orange"])
+    ax.bar_label(bars, fmt="%.2f")
     ax.set_title(f"Cop win rate by strategy on 5x5 ({runs} seeds)")
     ax.set_ylabel("cop win rate")
-    ax.set_ylim(0, 1)
+    ax.set_ylim(0, 1.1)
     fig.tight_layout()
     fig.savefig("assets/heuristic_vs_nl.png", dpi=DPI)
 
