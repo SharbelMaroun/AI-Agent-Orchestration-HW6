@@ -534,7 +534,7 @@ _Deploy both MCP servers with token auth (deployment tasks, not modules)._
 | T7.24 | Health checks on cloud URLs | P1 | ✅ | `<TBD>` | `scripts/check_mcp.py` probes both servers via McpClient |
 | T7.25 | Rollback / redeploy procedure | P2 | ⬜ | `<TBD>` | Documented |
 | T7.26 | Cloud cost note | P3 | ⬜ | `<TBD>` | Estimated |
-| T7.27 | Capture CLI logs from a cloud run | P1 | ⬜ | `<TBD>` | Saved to results/ |
+| T7.27 | Capture CLI logs from a cloud run | P1 | ✅ | `<TBD>` | `results/cloud_check.txt` (authenticated get_game_status on both servers) |
 
 ## Phase 8 — Gmail/Calendar agent & reporting (Milestone: M8)
 _Google setup + read/extract/calendar/send agent + JSON report. See PRD_gmail_calendar_agent.md & PRD_email_reporting.md._
