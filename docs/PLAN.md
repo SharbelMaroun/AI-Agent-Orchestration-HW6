@@ -169,6 +169,8 @@ src/marl_cop_thief/
 └── shared/
     ├── gatekeeper.py           # API gatekeeper (minimal: retry+log; full FIFO queue planned)
     ├── llm_client.py           # LLMClient protocol + GatekeptLLM
+    ├── llm_backend.py          # select OpenAI vs offline echo backend (by OPENAI_API_KEY)
+    ├── openai_backend.py       # real OpenAI Chat Completions (omitted from coverage)
     ├── google_auth.py          # lazy build_services (real OAuth; omitted from coverage)
     ├── gmail_client.py         # send_email (DI service)
     ├── config.py · version.py · constants.py

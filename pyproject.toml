@@ -11,6 +11,8 @@ dependencies = [
     "google-api-python-client>=2.197.0",
     "google-auth-httplib2>=0.4.0",
     "google-auth-oauthlib>=1.4.0",
+    "openai>=2.44.0",
+    "python-dotenv>=1.2.2",
 ]
 
 [project.scripts]
@@ -51,6 +53,7 @@ omit = [
     "src/marl_cop_thief/__main__.py",
     "src/marl_cop_thief/services/mcp/servers.py",
     "src/marl_cop_thief/shared/google_auth.py",
+    "src/marl_cop_thief/shared/openai_backend.py",
     "*/tests/*",
     "src/marl_cop_thief/gui/*",
     "src/marl_cop_thief/**/gui/*",

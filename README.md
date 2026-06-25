@@ -45,7 +45,9 @@ uv sync          # creates the venv and installs locked dependencies
 
 ### 2.4 Environment & secrets
 1. Copy the template: `cp .env-example .env`
-2. Set your LLM key in `.env` (e.g. `ANTHROPIC_API_KEY=...`).
+2. **Add your OpenAI API key** in `.env` (git-ignored): `OPENAI_API_KEY=sk-...`. The app auto-loads
+   `.env` on every run, so once it's there the natural-language match always uses OpenAI. The model is
+   set in `config/config.json` → `llm.model` (default `gpt-4o-mini`). Without a key it runs offline.
 3. Put the Google OAuth files (`client_secret.json`, and `token.json` once generated) in a **secret
    folder OUTSIDE this repo**, and point `google.secrets_dir` (in `config/config.json`) at it.
 4. **First run is interactive** (one time): a browser opens for OAuth consent → approve as a Google
@@ -64,16 +66,18 @@ uv sync          # creates the venv and installs locked dependencies
 ### 3.1 Run it — one command
 | Command | What it does |
 |---|---|
-| `uv run cop-thief` | Full local match (heuristic) → prints the JSON summary |
-| `uv run cop-thief --nl` | Natural-language match (agents talk via MCP + LLM) → JSON |
+| `uv run cop-thief` | **Natural-language match** (the assignment) → prints the JSON summary |
+| `uv run cop-thief --simple` | Simple heuristic match (no natural language, no LLM) |
 | `uv run cop-thief --gui` | Renders an animated GIF to `assets/match.gif` |
-| `.\run.ps1 [--nl\|--gui]` | Windows wrapper for the same thing (shorter) |
+| `.\run.ps1 [--simple\|--gui]` | Windows wrapper (shortest) |
 
-Long form (equivalent): `uv run python -m marl_cop_thief [--nl\|--gui]`. All parameters
-(grid size, moves, scoring, seed, report recipient) come from `config/config.json` — no flags for them.
+The default NL match uses **OpenAI** when `OPENAI_API_KEY` is in `.env` (§2.4); otherwise it falls back
+to a deterministic offline backend so it still runs without a key. Long form:
+`uv run python -m marl_cop_thief [--simple\|--gui]`. All parameters (grid size, moves, scoring, seed,
+report recipient, `llm.model`) come from `config/config.json` — no flags for them.
 
 ### 3.2 Typical workflow
-Edit `config/config.json` → `uv run cop-thief --nl` to watch a natural-language match → `uv run cop-thief
+Add `OPENAI_API_KEY` to `.env` → `uv run cop-thief` to watch a natural-language match → `uv run cop-thief
 --gui` to render the animation → (with Google OAuth set up) the report email is sent after the 6 games.
 
 ### 3.3 Example output
@@ -120,6 +124,7 @@ Newest first.
 
 | Date | What we did | Why | Evidence |
 |------|-------------|-----|----------|
+| 2026-06-25 | Made **NL the default** (`cop-thief`; `--simple` for heuristic) + wired a **real OpenAI backend** auto-loaded from `.env` | NL is the assignment; use a real LLM | 111 tests; offline fallback intact |
 | 2026-06-25 | Synced `docs/PLAN.md` to the as-built tree; added a **single-command** runner (`cop-thief` console script + `run.ps1`) | Keep docs accurate; simpler UX | `uv run cop-thief` works |
 | 2026-06-25 | **Phase 6**: GUI board renderer + match animator (`--gui` → animated GIF) + smoke tests | Visualize the game; required screenshots | 108 tests; `assets/match.gif` |
 | 2026-06-25 | Generated **experiment graphs + board screenshots + NL log** from real runs; filled README R.3–R.5 | Report results with evidence | `scripts/make_figures.py`; 5 PNGs in `assets/`, log in `results/` |

@@ -15,6 +15,10 @@
   "strategy": {
     "type": "heuristic"
   },
+  "llm": {
+    "provider": "openai",
+    "model": "gpt-4o-mini"
+  },
   "reporting": {
     "recipient_email": "sharbelma3@gmail.com",
     "submission_recipient": "rmisegal+uoh26b@gmail.com",
