@@ -118,7 +118,10 @@ Nielsen's 10 usability heuristics (GUI/CLI) — see [`docs/PLAN.md`](docs/PLAN.m
 | 9 | API gatekeeper | ✅ done | config-driven rate limit + FIFO queue + backpressure + drain + retries/backoff + concurrency + `get_queue_status` (see R.9) |
 | 7, 10 | Cloud, research/submission | ⬜ pending | — |
 
-Whole suite: **189 tests, 100% coverage, Ruff zero-violation.** The NL match is runnable via
+Whole suite: **189 tests, 100% coverage, Ruff zero-violation.** Every `uv run pytest` emits an automated
+**JUnit + coverage report** to `results/` (pass/fail per test); expected results and how to regenerate are
+in [`results/TEST_REPORT.md`](results/TEST_REPORT.md), with a captured run log at
+[`results/test_run.log`](results/test_run.log) (guidelines §6.4). The NL match is runnable via
 `uv run cop-thief` (NL is the default; `--simple` for heuristic; `--gui` for a GIF; `--live` for a live
 window). The Gmail/Calendar tools are dependency-injected (tested with
 fakes); `shared/google_auth.py` builds the real services and needs your Google OAuth `client_secret.json`.
@@ -128,6 +131,7 @@ Newest first.
 
 | Date | What we did | Why | Evidence |
 |------|-------------|-----|----------|
+| 2026-06-25 | **Phase 10 audit/quality closure (batch 1)** — automated **JUnit + coverage report** to `results/` on every `pytest` run + `results/TEST_REPORT.md` (expected results) + committed `test_run.log`; **ISO/IEC 25010** self-assessment (R.10); **Nielsen 10 heuristics + accessibility + standards alignment** (R.11); **`docs/EDGE_CASES.md`** register; **extension-points** table (PLAN §4.1); `__init__.py` in all test dirs | Close graded scientific/quality gaps (guidelines §6.4, §10, §17; audit T10.8–31) | README R.10/R.11, `results/TEST_REPORT.md`, `docs/EDGE_CASES.md`, PLAN §4.1; 189 tests, 100% cov |
 | 2026-06-25 | **Smarter thief — fixed the "always goes left" drift** — greedy evasion tied on distance and the fixed `DIRECTIONS_8` order made `max` pick the leftmost move every time. Added a config-selectable `smart` thief (default) ranking moves by `(distance, mobility, centrality)` via `strategy/evasion.py`, used by the simple match, the NL belief-based `_choose`, and the GUI; greedy retained as the R.3 baseline | "The thief keeps making the same move, not smart/varied" — reported in R.3 | `strategy/{smart_thief,evasion}.py`; 189 tests, 100% cov; honest capture trade-off in R.3/PRD §4 |
 | 2026-06-25 | **Fixed clipped speech bubbles** — the NL message bubble (and title) were cut off the figure edge because `tight_layout` squeezed the axes; reserved explicit top/bottom margins (`subplots_adjust`) and dropped `tight_layout`, so each turn's spoken line is fully visible below the board | "I don't see the comments the agents send" — bubbles were rendered but off-frame | `gui/{board_renderer,overlays}.py`; regenerated `assets/*`; 180 tests, 100% cov |
 | 2026-06-25 | **Modern-dark GUI redesign** — new `gui/theme.py` (dark palette + `glow()` halo) and `gui/overlays.py` (HUD banner/move-counter/legend + rounded **speech bubble** on the speaker); `board_renderer` now draws a dark board with **glowing cop/thief tokens**, barrier slabs, faded **movement trails**, and a **capture flash** on a cop win (renderer stays stateless; trails + `max_moves` passed in) | "Make the GUI very very beautiful" | `assets/board_state.png`, `match.gif`, `match_nl.gif` (regenerated); 180 tests, 100% cov, Ruff clean |
@@ -361,6 +365,44 @@ critical sections; gatekept calls are **I/O-bound**, so concurrency uses threads
 snappy; when `OPENAI_API_KEY` is set the CLI auto-selects a config-driven gatekeeper
 (`select_gatekeeper` → `gatekeeper_from_config(rate_limits.json, "llm")`), so editing `rate_limits.json`
 changes real-run throttling with **no code edit** (version-checked on load).
+
+## R.10 ISO/IEC 25010 Quality Self-Assessment
+Mapping each of the eight product-quality characteristics to concrete evidence in this project.
+
+| # | Characteristic | How it is addressed (evidence) |
+|---|---|---|
+| 1 | **Functional suitability** | All FRs implemented (engine, dual MCP tools, NL coordination, scoring, reporting); 189 tests assert correctness incl. edge cases (`docs/EDGE_CASES.md`). |
+| 2 | **Performance efficiency** | O(grid) move selection; gatekeeper bounds external-call rate/concurrency; token-cost analysis (R.7). I/O-bound work uses threads, not processes (R.9). |
+| 3 | **Compatibility** | Pure-Python, OS-agnostic (`uv`); SDK-only core decoupled from CLI/GUI; MCP standard for agent interop. |
+| 4 | **Usability** | One-command run; clear CLI banners + colored GUI HUD/legend; documented config & workflow (R.11, §2–§3). |
+| 5 | **Reliability** | Defensive NL parsing (never crashes on ambiguity); gatekeeper retries + FIFO queue (never rejects); deterministic seeds; 100% branch coverage. |
+| 6 | **Security** | No secrets in code (`.env`/`.env-example`, git-ignored creds); token-based Google/MCP auth; gatekeeper as single audited choke-point. |
+| 7 | **Maintainability** | ≤150-line files, SDK layering, DRY, Ruff-clean, docs-first PRD/PLAN/TODO, ≥85% coverage gate, per-feature commits. |
+| 8 | **Portability** | `uv`-managed deps + lockfile; config-driven (no hard-coded paths/values); local→cloud deployment path (PLAN §3). |
+
+## R.11 Usability (UI/UX) — Nielsen's Heuristics & Accessibility
+The CLI/GUI is assessed against **Nielsen's 10 usability heuristics** (a required standard):
+
+| # | Heuristic | In this project |
+|---|---|---|
+| 1 | Visibility of system status | GUI HUD shows move count, whose turn, winner banner; CLI prints backend + gatekeeper call count |
+| 2 | Match to the real world | Cop/thief metaphor; plain-language NL messages; compass words (north-east…) |
+| 3 | User control & freedom | Run modes/flags (`--simple/--gui/--live`); window closes on demand or auto-closes; Ctrl-C safe (gatekeeper releases tickets) |
+| 4 | Consistency & standards | One config schema; consistent colors (cop=blue, thief=amber) across PNG/GIF/live; standard `uv`/pytest tooling |
+| 5 | Error prevention | Config version-checked on load; illegal moves fall back to STAY; unknown strategy rejected with a clear message |
+| 6 | Recognition over recall | On-screen legend + labels; documented config table (§5); no hidden commands |
+| 7 | Flexibility & efficiency | One-command default plus power flags; config-tunable grid/strategy/pacing without code edits |
+| 8 | Aesthetic & minimalist design | Modern-dark theme, uncluttered board, single speech bubble per turn |
+| 9 | Help users recover from errors | Troubleshooting table (§2.5); token re-consent path; clear exceptions |
+| 10 | Help & documentation | Scientific README + `docs/` suite + `--help` |
+
+**Accessibility:** high-contrast dark palette; cop/thief differ by **shape *and* color** (disc vs star) so
+they're distinguishable without color vision; legible sans-serif HUD. *Planned:* a color-blind-safe
+palette toggle and keyboard navigation for a future live window.
+
+**Standards alignment:** **ISO/IEC 25010** (R.10), **MIT SQA** practices (docs-first, TDD, reviews),
+**Google/Microsoft API** design guidance (SDK facade, gatekeeper, versioned config), and **Nielsen's 10
+heuristics** (above) — see also [`docs/PLAN.md`](docs/PLAN.md) and `docs/PRD.md` §4.
 
 ---
 
