@@ -147,12 +147,13 @@ Reflects the actual `src/` tree. `(planned)` marks not-yet-built items.
 src/marl_cop_thief/
 ├── __init__.py                 # __all__, __version__
 ├── __main__.py                 # enables `python -m marl_cop_thief`
-├── main.py                     # CLI: default NL run · --simple · --gui flags -> SDK
+├── main.py                     # CLI: default NL run · --simple · --gui (GIF) · --live (window) -> SDK
 ├── sdk/sdk.py                  # single public entry point (run_match, run_nl_match)
 ├── services/
 │   ├── orchestrator.py         # heuristic match loop
 │   ├── nl_match.py             # natural-language match loop (run_nl_match)
 │   ├── turn_pipeline.py        # one-turn pipeline (pluggable Decider)
+│   ├── match_stream.py         # per-turn (state, caption) frame streams (live GUI + GIF)
 │   ├── accumulator.py          # match summary builder
 │   ├── game_engine.py          # state machine, legality, capture
 │   ├── board.py                # grid, neighbours, passability
@@ -166,7 +167,7 @@ src/marl_cop_thief/
 │   ├── mcp/                    # tools (ToolService, 6 tools), message_bus, servers (FastMCP)
 │   └── strategy/              # heuristic.py (greedy cop+thief), smart_cop.py (cornering 1-ply),
 │                              #   geometry.py (shared chebyshev); belief_model/q_table planned
-├── gui/                        # board_renderer, match_animator (renders state; omitted from coverage)
+├── gui/                        # board_renderer, match_animator (GIF), live_viewer (interactive window); render-only, omitted from coverage
 └── shared/
     ├── gatekeeper.py           # API gatekeeper (rate limit + FIFO queue + backpressure + retries + concurrency)
     ├── rate_limit.py           # RateLimitConfig, QueueStatus, SlidingWindowLimiter (config-driven)
@@ -185,7 +186,17 @@ assets/    graphs, board screenshots, match.gif        results/  run logs
 ```
 > Every file targets **≤150 lines of code** (comments/blanks excluded); split when exceeded.
 > Note: the `mcp/` package lives under `services/mcp/` (not the package root). `belief_model`/`q_table`
-> and a live interactive GUI window remain planned.
+> remain planned.
+>
+> **GUI streaming design (real-time window).** The service layer exposes the game as a *per-turn frame
+> stream* — `services/match_stream.py` (`heuristic_subgame_stream`) and `services/nl_match.py`
+> (`nl_subgame_stream`) are generators that `yield (deepcopy(state), caption)` once before the first move
+> and again after every turn; the shared `stream_subgame()` helper holds the single engine loop (DRY).
+> Two consumers render the same stream: the **GIF animator** collects it into a list and writes a file
+> (headless `Agg`, deterministic/CI-safe), while the **live viewer** (`gui/live_viewer.py`) switches
+> matplotlib to an interactive backend at runtime (config `gui.live_backend`, default `TkAgg`) and draws
+> each frame the instant it streams off the engine — so an NL match visibly advances as each LLM call
+> returns. The GUI stays render-only; all game logic is in the SDK-exposed services (SDK-only).
 
 ---
 

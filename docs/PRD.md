@@ -146,7 +146,9 @@ Match range: **30–90** points per group.
   Full schema in [`PLAN.md`](PLAN.md) §5.1 and the README §5 configuration table.
 
 ### FR-11 — GUI & CLI
-- GUI visualizes agent and barrier movement in real time.
+- GUI visualizes agent and barrier movement in real time: a **live interactive window** (`--live`) renders
+  each turn the instant the engine computes it (so an NL match advances as each LLM call returns), plus an
+  **animated GIF** (`--gui`) for headless/report use. Both render from SDK frame streams only (no logic in GUI).
 - CLI demonstrates valid communication with the cloud MCP server (loggable).
 
 ### FR-12 — Decision strategy

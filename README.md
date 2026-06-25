@@ -113,13 +113,14 @@ Nielsen's 10 usability heuristics (GUI/CLI) — see [`docs/PLAN.md`](docs/PLAN.m
 | 3 | Orchestrator + SDK + CLI (full local match) | ✅ done | `python -m marl_cop_thief` runs |
 | 4 | Decision strategy | ✅ done | greedy heuristic + **cornering "smart" cop** (1-ply look-ahead, 100% capture, config-selectable); Q-table optional/pending |
 | 5 | Natural-language + LLM | ✅ done | NL encode/decode, ambiguity handler, NL decider; LLM via gatekeeper |
-| 6 | GUI | 🟦 partial | board renderer + **NL match animation with message overlay** (`--gui`) + heuristic/smart GIF (`--simple --gui`); live interactive window pending |
+| 6 | GUI | ✅ done | board renderer + GIF animation w/ NL overlay (`--gui`) + **live real-time interactive window** (`--live`, draws each turn the instant the engine computes it) |
 | 8 | Report builder + Gmail/Calendar agent | 🟦 partial | JSON builders + read/extract/calendar/send tools tested; real OAuth send pending |
 | 9 | API gatekeeper | ✅ done | config-driven rate limit + FIFO queue + backpressure + drain + retries/backoff + concurrency + `get_queue_status` (see R.9) |
 | 7, 10 | Cloud, research/submission | ⬜ pending | — |
 
-Whole suite: **154 tests, 100% coverage, Ruff zero-violation.** The NL match is runnable via
-`uv run cop-thief` (NL is the default; `--simple` for heuristic). The Gmail/Calendar tools are dependency-injected (tested with
+Whole suite: **166 tests, 100% coverage, Ruff zero-violation.** The NL match is runnable via
+`uv run cop-thief` (NL is the default; `--simple` for heuristic; `--gui` for a GIF; `--live` for a live
+window). The Gmail/Calendar tools are dependency-injected (tested with
 fakes); `shared/google_auth.py` builds the real services and needs your Google OAuth `client_secret.json`.
 
 ## R.1 Work Log (running changelog)
@@ -127,6 +128,7 @@ Newest first.
 
 | Date | What we did | Why | Evidence |
 |------|-------------|-----|----------|
+| 2026-06-25 | **Live real-time GUI window** — `cop-thief --live` opens an interactive window that draws each turn the instant the engine computes it (so an NL match advances as each LLM call returns). Refactored the game loop into service-layer per-turn *frame streams* (`services/match_stream.py` `stream_subgame`/`heuristic_subgame_stream` + `nl_subgame_stream`); the GIF animator now collects the same stream (DRY); exposed via SDK (`stream_simple_frames`/`stream_nl_frames`); backend/pacing config-driven (`gui.live_backend`, `gui.turn_delay_seconds`) | The GIF was a recording, not real-time — user wanted to watch the game live | `gui/live_viewer.py`; **166 tests, 100% cov**, Ruff clean; docs-first (PLAN §4, PRD FR-11, TODO T6.39–48) |
 | 2026-06-25 | **GUI now animates the NL match** — `cop-thief --gui` renders the natural-language sub-game with each turn's NL message overlaid (real OpenAI when keyed, else offline); `--simple --gui` keeps the heuristic/smart GIF | One command to *see* the full NL run, not just text | `assets/match_nl.gif`; 154 tests, 100% cov; `peek_last` bus API + `nl_subgame_frames` |
 | 2026-06-25 | **Token-cost analysis (R.7)** — `token_cost.py` util + `token_report.py` capture real prompts from an offline match; filled the cost table (config-driven gpt-4o-mini pricing) | Required cost analysis now that OpenAI is wired | **66 calls, 3310 tokens, $0.000615/match**; 149 tests, 100% cov; `results/token_cost.txt` |
 | 2026-06-25 | **Phase 4: cornering "smart" cop** — 1-ply look-ahead ranking actions by `(distance, thief escape-options)` after the thief's reply; config-selectable (`strategy.type`); refreshed comparison graphs | Greedy cop fell into limit cycles and let the thief escape (R.3) | **Capture 0.72→1.00** on 5×5; 100% on 3×3–7×7; 144 tests, 100% cov; `smart_cop.py` + `geometry.py`; graphs in `assets/` |
@@ -206,6 +208,16 @@ watch the agents *talk* as they move (`assets/match_nl.gif`):
 Heuristic/`smart` sub-game (`uv run cop-thief --simple --gui`, the cop closes in and captures):
 
 ![Match animation](assets/match.gif)
+
+### Live real-time window (`--live`)
+The GIFs above are *recordings*. For a **live** view, `uv run cop-thief --live` opens an interactive
+matplotlib window (backend from `config.gui.live_backend`, default `TkAgg`) that draws **each turn the
+instant the engine computes it** — for the NL match the board advances as every LLM call returns, so you
+watch the pursuit unfold move-by-move (add `--simple` for the heuristic/smart match). The window stays on
+the final board until you close it. Architecture: the game is exposed as a per-turn *frame stream* from
+the SDK (`Sdk.stream_nl_frames` / `stream_simple_frames` → `services/match_stream.py`); the live viewer
+and the GIF animator are two render-only consumers of the same stream (SDK-only; GUI holds no game logic).
+Pacing is config-driven via `gui.turn_delay_seconds`.
 
 ## R.5 CLI Logs & MCP Communication
 A natural-language sub-game (full log: [`results/nl_match_sample.txt`](results/nl_match_sample.txt)) —

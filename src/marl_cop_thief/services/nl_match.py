@@ -8,17 +8,16 @@ match runs deterministically with no network or external services.
 
 from __future__ import annotations
 
-import copy
 import random
-from collections.abc import Callable
+from collections.abc import Callable, Iterator
 from typing import Any
 
 from ..shared.constants import Role
 from ..shared.gatekeeper import ApiGatekeeper
 from ..shared.llm_client import GatekeptLLM
-from ..shared.models import GameState
 from .accumulator import summarize
 from .game_engine import GameEngine
+from .match_stream import Frame, stream_subgame
 from .mcp.message_bus import MessageBus
 from .nl_protocol.nl_decider import NLDecider
 from .scoring import score_subgame
@@ -75,13 +74,18 @@ def run_nl_match(
     return summarize(results)
 
 
-def nl_subgame_frames(
+def nl_subgame_stream(
     config: dict[str, Any],
     backend: Callable[[str], str] | None = None,
     gatekeeper: ApiGatekeeper | None = None,
     seed: int | None = None,
-) -> list[tuple[GameState, str]]:
-    """Play one NL sub-game, returning per-turn ``(state, spoken message)`` for the GUI."""
+) -> Iterator[Frame]:
+    """Stream one NL sub-game as per-turn ``(state, spoken message)`` frames.
+
+    Reuses the shared :func:`stream_subgame` engine loop (DRY); the caption reads
+    the message the acting role just spoke off the bus, so the live window shows
+    the agents *talking* as they move.
+    """
     width, height = config["grid_size"]
     engine = GameEngine(width, height, config["max_moves"], config["max_barriers"])
     if seed is None:
@@ -89,11 +93,20 @@ def nl_subgame_frames(
     bus = MessageBus()
     deciders = _nl_deciders(bus, _make_llm(backend, gatekeeper), config["visibility_radius"])
     state = engine.new_state(random.Random(seed))
-    frames: list[tuple[GameState, str]] = [(copy.deepcopy(state), "")]
-    while not state.done:
-        actor = state.to_move
-        run_turn(engine, state, deciders)
+
+    def caption(actor: Role) -> str:
         opponent = Role.THIEF if actor is Role.COP else Role.COP
         spoken = bus.peek_last(opponent)  # the actor always speaks each turn, so never None
-        frames.append((copy.deepcopy(state), f"{actor.value}: {spoken.text}"))  # type: ignore[union-attr]
-    return frames
+        return f"{actor.value}: {spoken.text}"  # type: ignore[union-attr]
+
+    yield from stream_subgame(engine, state, deciders, caption)
+
+
+def nl_subgame_frames(
+    config: dict[str, Any],
+    backend: Callable[[str], str] | None = None,
+    gatekeeper: ApiGatekeeper | None = None,
+    seed: int | None = None,
+) -> list[Frame]:
+    """Play one NL sub-game, returning per-turn ``(state, spoken message)`` for the GUI."""
+    return list(nl_subgame_stream(config, backend, gatekeeper, seed))

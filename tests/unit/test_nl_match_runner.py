@@ -5,7 +5,11 @@ services. Covers ``run_nl_match`` and ``Sdk.run_nl_match`` to 100% (incl. branch
 """
 
 from marl_cop_thief.sdk import Sdk
-from marl_cop_thief.services.nl_match import nl_subgame_frames, run_nl_match
+from marl_cop_thief.services.nl_match import (
+    nl_subgame_frames,
+    nl_subgame_stream,
+    run_nl_match,
+)
 from marl_cop_thief.shared.gatekeeper import ApiGatekeeper
 from marl_cop_thief.shared.models import GameState
 
@@ -86,3 +90,17 @@ def test_nl_subgame_frames_captures_states_and_messages():
 
 def test_nl_subgame_frames_seed_override_is_deterministic():
     assert nl_subgame_frames(CONFIG, seed=3)[-1][0].winner == nl_subgame_frames(CONFIG, seed=3)[-1][0].winner
+
+
+def test_nl_subgame_stream_matches_the_collected_list():
+    # the GIF path collects the stream into a list; both must agree turn-for-turn
+    stream_frames = list(nl_subgame_stream(CONFIG, seed=3))
+    list_frames = nl_subgame_frames(CONFIG, seed=3)
+    assert len(stream_frames) == len(list_frames)
+    assert stream_frames[-1][0].winner == list_frames[-1][0].winner
+
+
+def test_nl_subgame_stream_speaks_each_turn():
+    frames = list(nl_subgame_stream(CONFIG))
+    assert frames[0][1] == ""  # nothing spoken before the first move
+    assert any(cap.startswith(("cop:", "thief:")) for _, cap in frames[1:])
