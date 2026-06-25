@@ -135,6 +135,8 @@ Two teams play on **one shared authoritative game** via a role-parameterized **h
    ```
    Each driver polls for its turn, observes, decides client-side (ADR-001), and submits over MCP
    (gatekeeper-routed, token-authenticated). `services/remote_match.py` is the reusable engine.
+   When the game ends, `play_remote.py` builds a JSON result report and — if `reporting.send_real_email`
+   is `true` — **emails it to `reporting.recipient_email`** (currently your own address, `sharbelma3@gmail.com`).
 
 ---
 
@@ -172,6 +174,7 @@ Newest first.
 
 | Date | What we did | Why | Evidence |
 |------|-------------|-----|----------|
+| 2026-06-25 | **Live remote flow emails the result** — `remote_match.build_match_report` turns the finished game's status into a JSON report (role/winner/scores); `play_remote.py` emails it via `send_report` when `reporting.send_real_email=true`, to `reporting.recipient_email` (kept as the dev address `sharbelma3@gmail.com`, not the lecturer, per request) | Get the live-match result by email; both teams can send the same JSON for the bonus | `services/remote_match.py` (100% cov); 239 tests, 100% cov |
 | 2026-06-25 | **Stronger live-match heuristic** — upgraded `remote_match.remote_decider` (observation-only, per assignment §4): now **edge/barrier-aware** (filters legal steps from `visible_cells`/`visible_barriers` → no wasted illegal→STAY turns), **searches when blind** (heads for the visible interior instead of standing still — a still cop hands the thief the clock), cop tie-breaks by **alignment then mobility** (corners the thief), thief tie-breaks by **escape room** | A stronger heuristic wins more inter-group games ⇒ more bonus | `services/remote_match.py` (100% cov); 236 tests, 100% cov |
 | 2026-06-25 | **Cross-network match driver (live inter-group play)** — role-parameterized `mcp/host_server.py` (one shared authoritative game), `services/remote_match.py` (`play_my_turns` polls the host, acts only on its role's turn, observe→decide→submit; greedy `remote_decider`; never stalls — illegal→STAY), `scripts/play_remote.py` (`--role cop|thief` over `HOST_MCP_URL`/`HOST_MCP_TOKEN`), `run_mcp_server.py --role host`. Both teams run their own role against one host | Enable a real live match vs a partner team over MCP (T7.19) | `services/remote_match.py` (100% cov); README §4.1 live-match guide; 233 tests, 100% cov |
 | 2026-06-25 | **TODO reconciliation + token helper** — flipped the stale-done template rows to ✅ with evidence (Phase 1/2/3 behaviours, Phase 8 Google setup + google_auth/calendar, Phase 9 config/version + quality gates + R.x-backed docs); left optional/by-design (q_table, strategy_base, logging_setup, cli_runner) and process/blocked rows honest. Added `scripts/mint_token.py` to issue partner bearer tokens | Make the TODO honestly reflect the ~complete state; ease partner onboarding | `docs/TODO.md`; `scripts/mint_token.py`; 228 tests, 100% cov |

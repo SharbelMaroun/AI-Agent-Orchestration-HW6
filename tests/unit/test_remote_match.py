@@ -1,6 +1,15 @@
 """Tests for the cross-network match driver (fake MCP host client)."""
 
-from marl_cop_thief.services.remote_match import play_my_turns, remote_decider
+from marl_cop_thief.services.remote_match import (
+    build_match_report,
+    play_my_turns,
+    remote_decider,
+)
+
+_SCORE_CFG = {
+    "scoring": {"cop_win": 20, "thief_win": 10, "cop_loss": 5, "thief_loss": 5},
+    "reporting": {"timezone": "Asia/Jerusalem"},
+}
 
 FULL_5x5 = [[x, y] for x in range(5) for y in range(5)]
 
@@ -84,3 +93,21 @@ def test_avoids_visible_barrier():
     # barrier on the best diagonal -> cop picks a different legal step
     out = remote_decider("cop")(_obs((0, 0), (3, 3), barriers=[(1, 1)]))
     assert out[0] == "move" and out != ("move", 1, 1)
+
+
+def test_build_match_report_cop_win():
+    r = build_match_report(_SCORE_CFG, {"winner": "cop", "moves_used": 7}, "cop")
+    assert r["report_type"] == "live_match" and r["winner"] == "cop" and r["my_role"] == "cop"
+    assert r["cop_score"] == 20 and r["thief_score"] == 5
+    assert r["timezone"] == "Asia/Jerusalem"
+
+
+def test_build_match_report_thief_win():
+    r = build_match_report(_SCORE_CFG, {"winner": "thief", "moves_used": 25}, "thief")
+    assert r["cop_score"] == 5 and r["thief_score"] == 10
+
+
+def test_build_match_report_no_winner_and_meta():
+    r = build_match_report(_SCORE_CFG, {"winner": None, "moves_used": 0}, "cop",
+                           meta={"github_repo": "x"})
+    assert r["cop_score"] == 0 and r["thief_score"] == 0 and r["github_repo"] == "x"
