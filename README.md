@@ -113,6 +113,10 @@ The two MCP servers run over HTTP via [`scripts/run_mcp_server.py`](scripts/run_
 `ngrok http 8001` / `ngrok http 8002` for two public URLs. (URLs change per restart; needs your PC on.)
 
 Either way the server prints a valid bearer token on startup; the client carries it via `McpClient`.
+**Verify the deployed URLs:** set the same `MCP_AUTH_SECRET` in your local `.env`, then
+`uv run python scripts/check_mcp.py` — it mints a token and calls `get_game_status` on each server
+through `McpClient` (gatekeeper-routed). A `401` means the server is up and **auth is enforced** but your
+local secret doesn't match Render's; an `[OK]` with status means full end-to-end success.
 
 ---
 
@@ -134,7 +138,7 @@ Either way the server prints a valid bearer token on startup; the client carries
 | 6 | GUI | ✅ done | **modern-dark themed** board (glow cop/thief tokens, barrier slabs, movement trails, capture flash, HUD scoreboard, speech bubbles) · GIF (`--gui`) + **live real-time window** (`--live`, auto-closes when done) |
 | 8 | Report builder + Gmail/Calendar agent | ✅ done* | JSON builders + tools + **report-email wiring** (`match_reporter`→SDK→CLI, gated by `send_real_email`); **real OAuth verified** on live Google (consent + read + extract + calendar + **real email sent**). *Inter-group bonus arithmetic + cloud series pending |
 | 9 | API gatekeeper | ✅ done | config-driven rate limit + FIFO queue + backpressure + drain + retries/backoff + concurrency + `get_queue_status` (see R.9) |
-| 7 | Cloud deploy | 🟦 partial | **deploy scaffolding ready** — `run_mcp_server.py` (HTTP + token auth), `Dockerfile`, `render.yaml` (cop+thief); running it to get the 2 public URLs is the user step (§4.1) |
+| 7 | Cloud deploy | 🟦 partial | **deployed on Render** — `cop-mcp`/`thief-mcp` live at public HTTPS URLs, **both enforcing token auth** (verified: unauthenticated calls → 401, S5). `check_mcp.py` confirms reachability; full tool-call check needs the matching `MCP_AUTH_SECRET` locally; live 6-game cloud match pending a partner |
 | 10 | Research/submission | 🟦 partial | audit closure batches 1–2 done; final submission steps pending |
 
 Whole suite: **189 tests, 100% coverage, Ruff zero-violation.** Every `uv run pytest` emits an automated
@@ -150,6 +154,7 @@ Newest first.
 
 | Date | What we did | Why | Evidence |
 |------|-------------|-----|----------|
+| 2026-06-25 | **Cloud servers deployed + verified (Render)** — `cop-mcp` & `thief-mcp` live at public HTTPS URLs; `scripts/check_mcp.py` connects via our `McpClient` (gatekeeper-routed) and confirms **both enforce token auth** (unauthenticated → 401, assignment S5). URLs added to `.env` | The 2 public authenticated MCP URLs the assignment requires (G4/G5) | `scripts/check_mcp.py`; `cop-mcp.onrender.com` / `thief-mcp.onrender.com`; 222 tests, 100% cov |
 | 2026-06-25 | **Inter-group bonus scoring** — `services/bonus.py`: `series_awards` (higher score 10 / loser 5 / tie 5-5; disagreement voids 0-0) builds the report's `bonus_claim`; `final_bonus` averages a group's awards over valid series. Exposed via `Sdk.bonus_awards`/`bonus_final`; award values parameterized (staff-confirmable, C5) | Assignment §12.2 bonus arithmetic (T10.42) | `services/bonus.py`; 222 tests, 100% cov; PRD_email_reporting §4 |
 | 2026-06-25 | **Cloud deploy scaffolding (Render + ngrok)** — `scripts/run_mcp_server.py` runs the cop/thief FastMCP server over HTTP (`0.0.0.0:$PORT`) gated by `TokenAuth` (FastMCP `TokenVerifier` bridge); `Dockerfile` + `render.yaml` (two services from one image); README §4.1 step-by-step. Verified offline: authed server builds + exposes all 6 tools, verifier accepts/rejects tokens | Enable the 2 public MCP URLs (assignment Phase 2/7) | `scripts/run_mcp_server.py`, `Dockerfile`, `render.yaml`; 213 tests, 100% cov |
 | 2026-06-25 | **MCP transport + token auth (cloud prerequisite)** — `shared/mcp_auth.TokenAuth` mints HMAC-signed, tamper-evident bearer tokens with `verify`/`revoke` (`MCP_AUTH_SECRET`); `shared/mcp_transport.McpClient` makes gatekeeper-routed, token-authenticated remote tool calls (low-level `invoke` injected → offline-testable). Unblocks any cloud deploy (Prefect/ngrok/web host) | Assignment §6 token auth+revocation (C18) + Phase 2/7 transport (T2.34–55) | `shared/{mcp_auth,mcp_transport}.py`; 213 tests, 100% cov; PRD_mcp_server §2.2/§6 |
