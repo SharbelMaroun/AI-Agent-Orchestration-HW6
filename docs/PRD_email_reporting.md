@@ -102,7 +102,12 @@ can ingest it automatically.
   group's awards over all valid series (e.g. 10 & 5 → 7.5). Exposed via `Sdk.bonus_awards` / `Sdk.bonus_final`.
   Award values are **parameters** (defaults from the spec) — the spec's 8.5 example needs a per-series rule
   the docs state inconsistently, so the exact values stay **confirmable with course staff** (audit C5). The
-  6-game **3-cop/3-thief role-swap** *runner* (orchestrating the series itself) is still pending (T10.36).
+  6-game **3-cop/3-thief role-swap** *runner* is built — `services/series_runner.run_series(config, a, b)`
+  (also `Sdk.run_series` / `scripts/run_series.py`) plays the series, accumulates `totals_by_group`, and
+  assembles this `bonus_game` report incl. `bonus_claim`; `Sdk.send_report` emails any report (JSON-only,
+  gated). For a **live cross-group** match the opponent's agents are driven over their remote MCP servers
+  (`McpClient`) instead of local policies — same scoring + report. (Internal single-group role split = C1,
+  staff-confirm.)
 
 ## 5. Performance Metrics
 - Single send succeeds within the gatekeeper's retry budget; delivery confirmed via Gmail API response.

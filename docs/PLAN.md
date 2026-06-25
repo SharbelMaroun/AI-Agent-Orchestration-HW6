@@ -168,6 +168,7 @@ src/marl_cop_thief/
 │   ├── reporting.py            # JSON report builders (internal + inter-group)
 │   ├── match_reporter.py       # summary -> JSON report email (config-gated send)
 │   ├── bonus.py                # inter-group bonus scoring (10/5/5 + averaging, §12.2)
+│   ├── series_runner.py        # 6-game 3-cop/3-thief role-swap series -> bonus_game report
 │   ├── nl_protocol/            # nl_encode, nl_decode, ambiguity_handler,
 │   │                           #   prompt_templates, nl_decider
 │   ├── google_agent/           # email_reader, meeting_extractor, calendar_writer (DI)
@@ -191,7 +192,7 @@ src/marl_cop_thief/
     └── models.py               # Position, Action, GameState, TurnResult, SubGameResult, Message, Meeting
 config/    config.json · rate_limits.json · logging_config.json   (versioned 1.00)
 tests/     unit/ · integration/ · conftest.py
-scripts/   make_figures.py · sensitivity.py · gatekeeper_demo.py · token_report.py · google_smoke.py · run_mcp_server.py · check_mcp.py
+scripts/   make_figures.py · sensitivity.py · gatekeeper_demo.py · token_report.py · google_smoke.py · run_mcp_server.py · check_mcp.py · run_series.py
 Dockerfile · render.yaml   # cloud deploy of the two MCP servers (Render blueprint; ngrok alt)
 
 notebooks/ analysis.ipynb   # Dec-POMDP/Bellman (LaTeX), sensitivity results, references
