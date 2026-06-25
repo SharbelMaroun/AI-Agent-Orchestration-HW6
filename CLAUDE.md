@@ -29,12 +29,22 @@ submission `rmisegal+uoh26b@gmail.com` (kept verbatim). Google secrets live **ou
    (e.g. `PRD_mcp_server.md`, `PRD_nl_communication.md`, `PRD_gatekeeper.md`).
 5. Get documents approved → develop, keeping `TODO.md` updated → save results & update `README.md`.
 
+**TODO granularity (lecturer requirement):** [`docs/TODO.md`](docs/TODO.md) is maintained at **≥550
+fine-grained tasks** (currently 604). Keep it that detailed; update statuses as work proceeds.
+**Prompt log:** maintain [`docs/PROMPT_LOG.md`](docs/PROMPT_LOG.md) (guidelines §8.3 — significant
+development prompts + runtime agent prompt templates).
+
+**Git workflow:** develop each feature on its own branch off `main`, merge via **Pull Request** with
+review; tag major versions (`git tag v1.0.0`). **Audit:** open requirement gaps are tracked in
+[`docs/AUDIT-2026-06-25.md`](docs/AUDIT-2026-06-25.md) and `TODO.md` Phase 10 — close them, don't re-forget.
+
 ## 2. Architecture
 - **SDK-only**: every business function is exposed through a single SDK entry point. GUI/CLI/3rd-party
   layers contain **no business logic** — they delegate to the SDK.
 - Layering: `External Consumers → SDK → Domain Services → Infrastructure`.
-- **OOP / DRY**: no code duplication. Same logic in 2+ files → shared module/base class/mixin.
-  Mixins: one concern each, independently testable, no method overrides between them.
+- **OOP / DRY**: no code duplication. Same function body in 2+ files → shared module; same `try/except`
+  in 3+ files → wrapper function; same method in 3+ classes → base class/mixin; varied duplication →
+  Template Method. Mixins: one concern each, independently testable, no method overrides between them.
 - **API Gatekeeper**: ALL external API calls (LLM, Gmail, MCP) route through one centralized
   gatekeeper that enforces rate limiting, FIFO queueing on overflow (never reject/crash),
   retries, and logging. Rate limits come from config, never hardcoded.
@@ -47,10 +57,13 @@ submission `rmisegal+uoh26b@gmail.com` (kept verbatim). Google secrets live **ou
 
 ## 4. Testing & quality (TDD)
 - Red → Green → Refactor. Tests written before/with code, never after.
-- **Minimum 85% coverage**; suite fails below threshold (`fail_under = 85`).
+- **Minimum 85% coverage** (statement **and** branch — `branch = true`, `fail_under = 85`); suite fails
+  below threshold. Critical/business-logic modules (game_engine, scoring, gatekeeper, orchestrator,
+  nl_protocol) target **≥95%**. Also generate an **automated pass/fail test report** + save run logs to `results/`.
 - Every module has a test file; every public function ≥1 test; cover happy path + error cases.
 - Mock external deps (DB, files, API). `conftest.py` for shared fixtures. Test files ≤150 lines.
-- **Ruff: zero violations.** `line-length = 100`, `select = ["E","F","W","I","N","UP","B","C4","SIM"]`.
+- **Ruff: zero violations.** `line-length = 100`, `target-version = "py310"`,
+  `select = ["E","F","W","I","N","UP","B","C4","SIM"]`, `ignore = ["E501"]`.
 
 ## 5. Configuration & security
 - **No hardcoded values.** All config (URLs, rate limits, timeouts, game params like
