@@ -175,11 +175,12 @@ src/marl_cop_thief/
     ├── openai_backend.py       # real OpenAI Chat Completions (omitted from coverage)
     ├── google_auth.py          # lazy build_services (real OAuth; omitted from coverage)
     ├── gmail_client.py         # send_email (DI service)
+    ├── token_cost.py           # token accounting + cost estimate (config-driven pricing; R.7)
     ├── config.py · version.py · constants.py
     └── models.py               # Position, Action, GameState, TurnResult, SubGameResult, Message, Meeting
 config/    config.json · rate_limits.json · logging_config.json   (versioned 1.00)
 tests/     unit/ · integration/ · conftest.py
-scripts/   make_figures.py · gatekeeper_demo.py   # reproducible analysis -> assets/ graphs + results/ logs
+scripts/   make_figures.py · gatekeeper_demo.py · token_report.py   # reproducible analysis -> assets/ + results/
 assets/    graphs, board screenshots, match.gif        results/  run logs
 ```
 > Every file targets **≤150 lines of code** (comments/blanks excluded); split when exceeded.

@@ -17,7 +17,13 @@
   },
   "llm": {
     "provider": "openai",
-    "model": "gpt-4o-mini"
+    "model": "gpt-4o-mini",
+    "pricing": {
+      "input_per_1m": 0.15,
+      "output_per_1m": 0.60,
+      "chars_per_token": 4,
+      "est_output_tokens_per_call": 4
+    }
   },
   "reporting": {
     "recipient_email": "sharbelma3@gmail.com",

@@ -1,0 +1,11 @@
+Token-cost report (offline estimate, ~4 chars/token; gpt-4o-mini list price)
+======================================================================
+LLM calls (interpret) per match : 66
+Input tokens  (sum of prompts)  : 3046
+Output tokens (modelled replies): 264
+Total tokens                    : 3310
+Cost per match                  : $0.000615
+Cost per 1000 matches           : $0.62
+
+README R.7 row:
+| gpt-4o-mini | 3046 | 264 | 0.15 | 0.60 | $0.000615 |

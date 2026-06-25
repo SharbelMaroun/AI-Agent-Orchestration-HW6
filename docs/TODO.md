@@ -8,7 +8,7 @@
 > **Status:** ⬜ Not Started · 🟦 In Progress · ✅ Completed — **Priority:** P0–P3. Owner: `<TBD>`.  
 > Update statuses continuously; add a README Work-Log row + evidence (graph/screenshot) per task.
 
-> **Implementation status (code, 2026-06-25):** Phase 0 ✅ · Phase 1 ✅ · Phase 2 🟦 (tool layer + 2 FastMCP servers done; MCP transport/auth pending) · Phase 3 ✅ · Phase 5 ✅ (NL agents, runnable via --nl) · Phase 6 🟦 (GUI renderer + animated GIF via --gui) · Phase 8 🟦 (report builder + Gmail/Calendar agent tools done; real OAuth send pending) · Phase 4 ✅ (greedy + **cornering "smart" cop**, config-selectable, 100% capture on 3×3–7×7) · Phase 9 🟦 (**full API gatekeeper done** — config-driven rate limiting + FIFO queue + backpressure + drain + retries/backoff + concurrency + `get_queue_status`; research/submission tasks pending) — all green (ruff clean, pytest 144 passing, 100% coverage). Phases 7/10 mostly pending.
+> **Implementation status (code, 2026-06-25):** Phase 0 ✅ · Phase 1 ✅ · Phase 2 🟦 (tool layer + 2 FastMCP servers done; MCP transport/auth pending) · Phase 3 ✅ · Phase 5 ✅ (NL agents, runnable via --nl) · Phase 6 🟦 (GUI renderer + animated GIF via --gui) · Phase 8 🟦 (report builder + Gmail/Calendar agent tools done; real OAuth send pending) · Phase 4 ✅ (greedy + **cornering "smart" cop**, config-selectable, 100% capture on 3×3–7×7) · Phase 9 🟦 (**full API gatekeeper done** — config-driven rate limiting + FIFO queue + backpressure + drain + retries/backoff + concurrency + `get_queue_status`; research/submission tasks pending) — all green (ruff clean, pytest 149 passing, 100% coverage). Phases 7/10 mostly pending.
 
 ---
 
@@ -691,7 +691,7 @@ _Cross-cutting infra, quality gates, research/visualization, final checklist & s
 | T9.68 | Heatmap (parameter sensitivity) | P2 | ⬜ | `<TBD>` | In assets/ |
 | T9.69 | Box plot (distributions) | P3 | ⬜ | `<TBD>` | In assets/ |
 | T9.70 | Waterfall chart (variance analysis) | P3 | ⬜ | `<TBD>` | In assets/ |
-| T9.71 | Token-cost analysis table | P2 | ⬜ | `<TBD>` | In README R.7 |
+| T9.71 | Token-cost analysis table | P2 | ✅ | `<TBD>` | README R.7 filled from `scripts/token_report.py` (3046 in / 264 out / $0.000615 per match) |
 | T9.72 | Maintain prompt-engineering log | P1 | 🟦 | `<TBD>` | PROMPT_LOG.md / README R.8 |
 | T9.73 | ISO/IEC 25010 self-assessment | P2 | ⬜ | `<TBD>` | Documented |
 | T9.74 | Dec-POMDP formalization in README | P0 | ⬜ | `<TBD>` | Tuple + spaces defined |
@@ -737,7 +737,7 @@ _Close every gap from the 2026-06-25 multi-agent audit (see docs/AUDIT-2026-06-2
 | T10.23 | Notebook includes LaTeX + academic references [gap12] | P2 | ⬜ | `<TBD>` | Bibliography present |
 | T10.24 | Graph quality 5-part (labels,legend,colors,caption,>=150dpi) [gap13] | P2 | ⬜ | `<TBD>` | DoD on viz tasks |
 | T10.25 | Name viz stack (Matplotlib/Seaborn/Plotly) + add deps [gap42] | P2 | ⬜ | `<TBD>` | Deps added |
-| T10.26 | Budget mgmt: forecast + real-time spend counter + overrun alert [gap14,C20] | P2 | ⬜ | `<TBD>` | Gatekeeper budget feature |
+| T10.26 | Budget mgmt: forecast + real-time spend counter + overrun alert [gap14,C20] | P2 | 🟦 | `<TBD>` | Forecast + token-cost util (`token_cost.py`) + design in README R.7; live gatekeeper spend counter/alert pending |
 | T10.27 | Usability NFR + Nielsen 10 heuristics mapping + accessibility [gap15,43,44,46,47,C8] | P1 | ⬜ | `<TBD>` | PRD NFR + README UI section |
 | T10.28 | User-workflow + interactions/feedback documentation [gap45] | P2 | ⬜ | `<TBD>` | README section 3 / PRD_ui |
 | T10.29 | ISO/IEC 25010 per-characteristic self-assessment table [gap50,51] | P2 | ⬜ | `<TBD>` | 8-char mapping |

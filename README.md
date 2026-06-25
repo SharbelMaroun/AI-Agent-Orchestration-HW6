@@ -115,7 +115,7 @@ Nielsen's 10 usability heuristics (GUI/CLI) — see [`docs/PLAN.md`](docs/PLAN.m
 | 9 | API gatekeeper | ✅ done | config-driven rate limit + FIFO queue + backpressure + drain + retries/backoff + concurrency + `get_queue_status` (see R.9) |
 | 7, 10 | Cloud, research/submission | ⬜ pending | — |
 
-Whole suite: **144 tests, 100% coverage, Ruff zero-violation.** The NL match is runnable via
+Whole suite: **149 tests, 100% coverage, Ruff zero-violation.** The NL match is runnable via
 `uv run python -m marl_cop_thief --nl`. The Gmail/Calendar tools are dependency-injected (tested with
 fakes); `shared/google_auth.py` builds the real services and needs your Google OAuth `client_secret.json`.
 
@@ -124,6 +124,7 @@ Newest first.
 
 | Date | What we did | Why | Evidence |
 |------|-------------|-----|----------|
+| 2026-06-25 | **Token-cost analysis (R.7)** — `token_cost.py` util + `token_report.py` capture real prompts from an offline match; filled the cost table (config-driven gpt-4o-mini pricing) | Required cost analysis now that OpenAI is wired | **66 calls, 3310 tokens, $0.000615/match**; 149 tests, 100% cov; `results/token_cost.txt` |
 | 2026-06-25 | **Phase 4: cornering "smart" cop** — 1-ply look-ahead ranking actions by `(distance, thief escape-options)` after the thief's reply; config-selectable (`strategy.type`); refreshed comparison graphs | Greedy cop fell into limit cycles and let the thief escape (R.3) | **Capture 0.72→1.00** on 5×5; 100% on 3×3–7×7; 144 tests, 100% cov; `smart_cop.py` + `geometry.py`; graphs in `assets/` |
 | 2026-06-25 | **Phase 9: full API gatekeeper** — config-driven rate limiting (`rate_limits.json`), FIFO overflow queue with backpressure alert + drain-on-reset, retries with backoff, `concurrent_max` semaphore, thread-safe `RLock`, `get_queue_status()`; injected clock/sleep for deterministic offline tests; **adversarial multi-agent review** then fixed 6 confirmed defects (ticket-leak deadlock, retries bypassing the limiter, prod path not loading `rate_limits.json`, backpressure off-by-one, version validation, drain test) | Required centralized chokepoint (CLAUDE §2); close T9.1–11/45–50 | 134 tests, 100% cov; `shared/{gatekeeper,rate_limit}.py`; demo → [R.9](#r9-api-gatekeeper-rate-limiting--queueing) |
 | 2026-06-25 | Made **NL the default** (`cop-thief`; `--simple` for heuristic) + wired a **real OpenAI backend** auto-loaded from `.env` | NL is the assignment; use a real LLM | 111 tests; offline fallback intact |
@@ -212,11 +213,28 @@ RESULT: cop wins in 8 moves; LLM calls via gatekeeper=7
 > _TBD._ Ambiguity/deception/mutual-understanding without a fixed protocol (see [`docs/PRD_nl_communication.md`](docs/PRD_nl_communication.md)).
 
 ## R.7 Token-Cost Analysis
-| Model | Input tokens | Output tokens | $/1M in | $/1M out | Total cost |
+Per **full match** (6 sub-games, 5×5), measured by [`scripts/token_report.py`](scripts/token_report.py)
+(`uv run python scripts/token_report.py` → [`results/token_cost.txt`](results/token_cost.txt)). The LLM
+is consulted **once per turn** for `interpret_prompt` (parsing the opponent's message); the agent's own
+speech is a deterministic template (no tokens). Counts are an **offline estimate** (~4 chars/token, the
+OpenAI rule of thumb — no tokenizer download); prices are gpt-4o-mini **list price**, config-driven in
+`config.json → llm.pricing`. Exact billing should be read from the API `usage` field on a keyed run.
+
+| Model | Input tokens | Output tokens | $/1M in | $/1M out | Total cost / match |
 |---|---|---|---|---|---|
-| _TBD_ | | | | | |
-> Plus budget management: forecast (cost/token × projected calls/match), real-time spend counter in the
-> gatekeeper, and an overrun alert at a config-driven threshold.
+| gpt-4o-mini | 3046 | 264 | 0.15 | 0.60 | **$0.000615** |
+
+- **66 interpret calls/match** · ~46 input + 4 output tokens each · **3310 tokens/match**.
+- **Forecast:** ≈ **$0.62 per 1000 matches** — cost scales linearly with calls × tokens/call.
+- **Optimization strategies:** (1) the decider already **skips the LLM** when its own observation reveals
+  the opponent (sets belief directly — fewer calls on close range); (2) prompts are kept terse and the
+  reply is constrained to `x,y`/`unknown` (≈4 output tokens); (3) a larger model would be ~30× costlier,
+  so gpt-4o-mini is the right default for this short, structured task.
+
+**Budget management** (config-driven). The gatekeeper is the single chokepoint, so spend control lives
+there: a running **token/spend counter**, a **forecast** (cost/token × projected calls/match), and an
+**overrun alert** at a config threshold are natural extensions of `ApiGatekeeper.log` (each call already
+records service + outcome). Rate limits in `rate_limits.json` cap call volume (and thus spend) per minute/hour.
 
 ## R.8 Prompt-Engineering Log
 Maintained in [`docs/PROMPT_LOG.md`](docs/PROMPT_LOG.md) — development prompts + runtime agent prompt
@@ -269,6 +287,7 @@ All tunables live in `config/` (nothing hard-coded). Full schema in [`docs/PLAN.
 | `scoring.*` | int | `20/10/5/5` | cop_win / thief_win / cop_loss / thief_loss |
 | `strategy.type` | str | `heuristic` | Cop policy for the simple match: `heuristic` (greedy) or `smart` (cornering, ~100% capture) |
 | `llm.model` | str | `gpt-4o-mini` | OpenAI model for the NL match (used when `OPENAI_API_KEY` is set) |
+| `llm.pricing.*` | obj | `0.15/0.60` | `$/1M` input & output, `chars_per_token`, `est_output_tokens_per_call` (token-cost report, R.7) |
 | `reporting.recipient_email` | str | `sharbelma3@gmail.com` | Report recipient (→ `rmisegal+uoh26b@gmail.com` at submission) |
 | `google.secrets_dir` | path | _external_ | Folder (outside repo) holding `client_secret.json`/`token.json` |
 | `google.scopes` | list | gmail.modify, calendar | OAuth scopes |
