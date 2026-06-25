@@ -1,0 +1,25 @@
+# Render Blueprint — two MCP servers (cop + thief) from one Docker image.
+# Deploy: push to GitHub, then on Render: New + > Blueprint > pick this repo.
+# Set MCP_AUTH_SECRET (same value for both) in the dashboard; copy each service URL
+# into .env as COP_MCP_URL / THIEF_MCP_URL. Free tier cold-starts after ~15 min idle.
+services:
+  - type: web
+    name: cop-mcp
+    runtime: docker
+    plan: free
+    dockerfilePath: ./Dockerfile
+    envVars:
+      - key: MCP_ROLE
+        value: cop
+      - key: MCP_AUTH_SECRET
+        sync: false   # set in the Render dashboard (secret; same value as thief-mcp)
+  - type: web
+    name: thief-mcp
+    runtime: docker
+    plan: free
+    dockerfilePath: ./Dockerfile
+    envVars:
+      - key: MCP_ROLE
+        value: thief
+      - key: MCP_AUTH_SECRET
+        sync: false
