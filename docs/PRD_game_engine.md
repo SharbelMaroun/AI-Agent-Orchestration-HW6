@@ -35,8 +35,11 @@ rejects them, preventing desync or cheating.
 2. **Movement:** 8-directional (orthogonal + diagonal), one cell per turn; cannot enter a barrier or
    leave the board.
 3. **Turn order:** thief moves first, then cop, alternating.
-4. **Barriers:** cop may place a barrier on its current cell *instead* of moving; that cell becomes
-   impassable to both agents. Max `max_barriers` per game; thief cannot place barriers.
+4. **Barriers (the cop's "special action"):** a turn is either a relocation (`MOVE`) **or** a special
+   action; the engine's one special action is `PLACE_BARRIER` — the cop seals its current cell *instead*
+   of moving; that cell becomes impassable to both agents. Max `max_barriers` per game; thief cannot place
+   barriers. (The assignment's generic "change location or perform a special action" maps to MOVE vs
+   PLACE_BARRIER here; additional special actions are a documented extension point — C14.)
 5. **Cop win:** cop occupies the thief's exact cell (capture).
 6. **Thief win:** thief survives `max_moves` turns without capture.
 7. **Sub-game:** ≤ `max_moves` moves. **Match:** `num_games` sub-games; scores accumulate.

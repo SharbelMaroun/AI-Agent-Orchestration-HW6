@@ -137,7 +137,12 @@ See the module layout in §4 and the per-mechanism PRDs.
 ```
 - **Security:** token-based auth with revocation on both MCP URLs; outbound-only client requests;
   no inbound ports opened on developer machines (Hybrid). Avoid org networks that block non-standard ports.
+  Token auth should also support **encryption + revocation** of MCP access tokens (assignment §6, C18).
 - **Secrets:** API keys & tokens in `.env` (git-ignored); `.env-example` committed with dummy values.
+  **Production:** for any real deployment, move secrets out of `.env` into a managed **secret store**
+  (HashiCorp Vault or the cloud provider's Secrets Manager) — `.env` is for local/dev only (guidelines §7.4, gap37).
+- **Local transport:** run the two MCP servers over **HTTP on distinct localhost ports** (not raw stdio
+  pipes) during the connect-two-agents phase, to avoid stdio pipe errors (assignment Table 4 / C15).
 
 ---
 

@@ -68,3 +68,11 @@ def test_select_thief_policy_default_smart_and_options():
 def test_unknown_thief_strategy_is_rejected():
     with pytest.raises(ValueError, match="Unknown thief strategy"):
         select_thief_policy({"strategy": {"thief_type": "nope"}})
+
+
+def test_match_runs_on_non_square_boards():
+    # sanity stage 2/3 (assignment Table 2): rectangular W != H boards work generically
+    for w, h in [(3, 2), (4, 3)]:
+        summary = Orchestrator({**CONFIG, "grid_size": [w, h]}).play_match()
+        assert len(summary["sub_games"]) == 6
+        assert all(s["moves_used"] <= CONFIG["max_moves"] for s in summary["sub_games"])
