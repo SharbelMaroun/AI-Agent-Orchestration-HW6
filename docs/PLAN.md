@@ -186,7 +186,8 @@ src/marl_cop_thief/
     └── models.py               # Position, Action, GameState, TurnResult, SubGameResult, Message, Meeting
 config/    config.json · rate_limits.json · logging_config.json   (versioned 1.00)
 tests/     unit/ · integration/ · conftest.py
-scripts/   make_figures.py · sensitivity.py · gatekeeper_demo.py · token_report.py   # reproducible analysis -> assets/ + results/
+scripts/   make_figures.py · sensitivity.py · gatekeeper_demo.py · token_report.py · google_smoke.py   # analysis + Google setup verify
+
 notebooks/ analysis.ipynb   # Dec-POMDP/Bellman (LaTeX), sensitivity results, references
 assets/    graphs, board screenshots, match.gif        results/  run logs
 ```

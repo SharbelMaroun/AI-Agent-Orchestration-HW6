@@ -642,7 +642,7 @@ _Google setup + read/extract/calendar/send agent + JSON report. See PRD_gmail_ca
 | T8.99 | Recipient from config (dev sharbelma3@gmail.com) | P0 | ⬜ | `<TBD>` | Config-driven |
 | T8.100 | send_email performs real SEND (not draft) | P0 | ⬜ | `<TBD>` | Email received |
 | T8.101 | End-to-end: 6 games -> report email sent | P0 | ⬜ | `<TBD>` | One email delivered |
-| T8.102 | Demo read_emails -> extract_meeting -> add_calendar_event | P0 | ⬜ | `<TBD>` | Event from email |
+| T8.102 | Demo read_emails -> extract_meeting -> add_calendar_event | P0 | 🟦 | `<TBD>` | `scripts/google_smoke.py` wires the demo; awaiting user real run |
 | T8.103 | Technical-loss requeue reflected in totals | P1 | ⬜ | `<TBD>` | 6 completed games |
 | T8.104 | Flip recipient to rmisegal+uoh26b@gmail.com (verbatim) at submission | P0 | ⬜ | `<TBD>` | Config-only; tag kept |
 
@@ -786,8 +786,8 @@ _Close every gap from the 2026-06-25 multi-agent audit (see docs/AUDIT-2026-06-2
 | T10.42 | Bonus scoring math: 10/5/5 + average across series + multi-group [gap62,63,C5] | P3 | ⬜ | `<TBD>` | PRD_email_reporting section 4 |
 | T10.43 | Google: one project + two work areas + new Auth Platform + OAuth-client-id-not-API-key [gap27,28,64,65,66,C2] | P1 | ✅ | `<TBD>` | PRD note added |
 | T10.44 | OAuth combined troubleshooting gate (test user+scopes+both APIs) [gap31,C3] | P1 | ✅ | `<TBD>` | PRD note added |
-| T10.45 | Standalone main.py Google smoke test via uv run main.py (draft+event) [gap30,71,72,74,75] | P1 | ⬜ | `<TBD>` | Smoke test passes |
-| T10.46 | End-to-end real-run check: consent no-error, real draft, real event, token.json [gap29,C13] | P1 | ⬜ | `<TBD>` | 4 checks pass |
+| T10.45 | Standalone main.py Google smoke test via uv run main.py (draft+event) [gap30,71,72,74,75] | P1 | 🟦 | `<TBD>` | `scripts/google_smoke.py` ready (`uv run python scripts/google_smoke.py`); awaiting user real run |
+| T10.46 | End-to-end real-run check: consent no-error, real draft, real event, token.json [gap29,C13] | P1 | 🟦 | `<TBD>` | Script does consent+event+send; user verifies the 4 checks |
 | T10.47 | Interactive first-run vs autonomous runs reconciled [C4] | P0 | ✅ | `<TBD>` | PRD section 1.2 added |
 | T10.48 | Calendar timezone Asia/Jerusalem populated + config-driven [C12,C19] | P1 | 🟦 | `<TBD>` | PRD note; implement |
 | T10.49 | MCP token encryption + revocation (not just auth) [C18] | P2 | 🟦 | `<TBD>` | Requirement noted in PLAN §3; implementation pending with cloud (Phase 7) |
