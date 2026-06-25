@@ -139,16 +139,22 @@ Match range: **30–90** points per group.
   See [`PRD_gmail_calendar_agent.md`](PRD_gmail_calendar_agent.md).
 
 ### FR-10 — Configuration
-- `config/config.json` includes at minimum: `grid_size`, `max_moves`, `num_games`, `max_barriers`,
-  and `scoring.{cop_win, thief_win, cop_loss, thief_loss}`, plus a `version`.
+- `config/config.json` includes at minimum: `version`, `grid_size`, `max_moves`, `num_games`,
+  `max_barriers`, `visibility_radius`, `seed`, `scoring.{cop_win, thief_win, cop_loss, thief_loss}`,
+  `strategy.type` (cop policy), `llm.{model, pricing.*}` (token-cost report), and `reporting.*` /
+  `google.*` settings. Gatekeeper limits live in `config/rate_limits.json` (`rate_limits.services.*`).
+  Full schema in [`PLAN.md`](PLAN.md) §5.1 and the README §5 configuration table.
 
 ### FR-11 — GUI & CLI
 - GUI visualizes agent and barrier movement in real time.
 - CLI demonstrates valid communication with the cloud MCP server (loggable).
 
-### FR-12 — Optional decision strategy
-- Heuristic / decision-tree / prompt-engineering strategy is sufficient.
-- Optional Tabular Q-Learning (Bellman update) for academic enrichment.
+### FR-12 — Decision strategy
+- A heuristic / decision-tree / prompt-engineering strategy is sufficient. The cop policy is
+  config-selectable via `strategy.type`: `"heuristic"` (greedy Chebyshev pursuit) or the delivered
+  `"smart"` cornering cop (one-ply look-ahead that herds the thief; ~100% capture — Phase 4,
+  `src/marl_cop_thief/services/strategy/smart_cop.py`).
+- Optional Tabular Q-Learning (Bellman update, `strategy.type: "q_table"`) for academic enrichment.
 
 ---
 
@@ -222,7 +228,7 @@ publication.
 - [`PRD_game_engine.md`](PRD_game_engine.md) — board, state machine, scoring, barriers.
 - [`PRD_mcp_server.md`](PRD_mcp_server.md) — FastMCP dual-server design & tools.
 - [`PRD_nl_communication.md`](PRD_nl_communication.md) — natural-language protocol & ambiguity handling.
-- [`PRD_decision_strategy.md`](PRD_decision_strategy.md) — heuristic & optional Q-learning.
+- [`PRD_decision_strategy.md`](PRD_decision_strategy.md) — heuristic, config-selectable `smart` cornering cop, & optional Q-learning.
 - [`PRD_gatekeeper.md`](PRD_gatekeeper.md) — centralized API gatekeeper & rate limiting.
 - [`PRD_gmail_calendar_agent.md`](PRD_gmail_calendar_agent.md) — Gmail/Calendar agent (read, extract, calendar, send).
 - [`PRD_email_reporting.md`](PRD_email_reporting.md) — end-of-match JSON report content, schema & timing.

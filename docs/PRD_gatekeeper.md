@@ -44,13 +44,17 @@ class ApiGatekeeper:
         "requests_per_hour": 500,
         "concurrent_max": 5,
         "retry_after_seconds": 30,
-        "max_retries": 3
+        "max_retries": 3,
+        "max_queue_depth": 100
       }
     }
   }
 }
 ```
-Per-service overrides (e.g., `llm`, `gmail`) may be added under `services`.
+Per-service overrides already ship under `services`: `llm` (rpm 20, rph 400, concurrent_max 4,
+max_queue_depth 100) and `gmail` (15 / 250 / 2 / 50). `select_gatekeeper()`
+(`src/marl_cop_thief/shared/llm_backend.py`) picks the `llm` service for real OpenAI runs via
+`gatekeeper_from_config(load_json("rate_limits.json"), "llm")`.
 
 ## 4. Required Behaviour
 - **No direct API calls:** services delegate to `gatekeeper.execute`.
@@ -93,3 +97,9 @@ Per-service overrides (e.g., `llm`, `gmail`) may be added under `services`.
 - **S3:** Queue-full triggers a backpressure alert via `get_queue_status`.
 - **S4:** All limits load from `rate_limits.json`; changing the file changes behaviour with no code edit.
 - **S5:** Every call is logged; unit tests mock the provider; ≥85% coverage; file ≤150 lines.
+
+**Evidence (as-built).** S1 (FIFO queue + drain, no rejections), S3 (backpressure when full), and S4
+(config-driven limits via `gatekeeper_from_config` / `select_gatekeeper`) are reproduced offline by
+[`../scripts/gatekeeper_demo.py`](../scripts/gatekeeper_demo.py) → [`../results/gatekeeper_demo.txt`](../results/gatekeeper_demo.txt)
++ [`../assets/gatekeeper_throughput.png`](../assets/gatekeeper_throughput.png); see README
+[R.9](../README.md#r9-api-gatekeeper-rate-limiting--queueing). Built in `shared/{gatekeeper,rate_limit}.py`.

@@ -27,9 +27,11 @@ selected from config without code changes.
 - **Output:** a single chosen `Action` (+ optional message hint for the NL layer).
 
 ### 2.2 Setup (from config)
-- `strategy.type ∈ {"heuristic", "smart", "q_table"}` (default `heuristic`), plus RL hyper-params
-  (`learning_rate`, `discount_factor`, `epsilon`) when `q_table` is selected. Defaults documented;
-  nothing hard-coded. The `Orchestrator` rejects an unknown `strategy.type` with a clear error.
+- `strategy.type ∈ {"heuristic", "smart"}` (default `heuristic`). A Tabular Q-Learning policy
+  (`q_table`) with RL hyper-params (`learning_rate`, `discount_factor`, `epsilon`) is **design-only /
+  pending** — not yet wired into the `Orchestrator` (`COP_POLICIES = {"heuristic", "smart"}`) and not
+  present in `config/config.json`. The `Orchestrator` rejects any unknown `strategy.type` (including
+  `"q_table"` until implemented) with a clear error. Defaults documented; nothing hard-coded.
 
 ## 3. Default Heuristic Policy
 - **Cop (`heuristic`):** move to minimize Chebyshev distance to the belief's most-likely Thief cell.
@@ -54,9 +56,13 @@ is moving *toward*, so wall-building is a weak, tempo-negative lever; geometric 
 best. (Stronger barrier use would need an engine that lets the Cop place barriers on adjacent cells.)
 
 ## 4. Performance Metrics
-- **Baseline dominance:** heuristic beats a random policy in head-to-head tests (win-rate > 50%).
+- **Measured today (README R.3):** greedy `heuristic` cop ≈ 0.72 capture and the cornering `smart` cop
+  **1.00** vs. the greedy thief (5×5; 100% on 3×3–7×7). _A head-to-head vs. a **random** opponent
+  (target win-rate > 50%) is not yet benchmarked — the thief is always greedy in code._
 - **Decision latency:** action chosen in O(grid cells) time, negligible vs. LLM latency.
-- **(RL) learning curve:** average reward per episode trends upward; recorded for the README.
+- **(RL) learning curve — contingent on the optional Q-learning track (§1.1, §7):** if `q_table` is
+  implemented, average reward per episode should trend upward and the curve would be recorded in the
+  README. _Not implemented, so no learning curve is recorded yet._
 
 ## 5. Constraints & Limitations
 - RL is **optional**; the project must be fully functional with the heuristic alone.
@@ -73,8 +79,8 @@ best. (Stronger barrier use would need an engine that lets the Cop place barrier
 ## 7. Success Criteria & Test Scenarios
 - **S1:** With a known belief, the Cop heuristic strictly decreases distance to the target cell.
 - **S2:** The Thief heuristic never steps into a one-cell dead-end when an alternative exists.
-- **S3:** Strategy selection switches between `heuristic`, `smart`, and `q_table` purely via config;
-  an unknown type is rejected with a clear error.
+- **S3:** Strategy selection switches between `heuristic` and `smart` purely via config; an unknown
+  type (e.g. `"q_table"`, not yet implemented) is rejected with a clear error.
 - **S4:** The `smart` cop captures the greedy Thief within the move cap on every sampled seed (5×5);
   it takes an immediate capture when one is available and stays when fully boxed in.
 - **S5 (optional):** Q-update matches the Bellman formula on a hand-computed example (unit test).

@@ -47,7 +47,7 @@ External Consumers (GUI / CLI / Tests / Inter-group runner)
 |  - GameEngine + Board + Scoring (state machine)  |
 |  - CopAgent / ThiefAgent (belief + policy)       |
 |  - NLProtocol (encode/decode free text)          |
-|  - Strategy (heuristic | q_table)                |
+|  - Strategy (heuristic | smart; q_table planned) |
 |  - GoogleAgent (read/extract/calendar/send)      |
 |  - Reporting (JSON builder -> send_email)        |
 +--------------------------------------------------+
@@ -147,7 +147,7 @@ Reflects the actual `src/` tree. `(planned)` marks not-yet-built items.
 src/marl_cop_thief/
 ├── __init__.py                 # __all__, __version__
 ├── __main__.py                 # enables `python -m marl_cop_thief`
-├── main.py                     # CLI: --nl / --gui flags -> SDK
+├── main.py                     # CLI: default NL run · --simple · --gui flags -> SDK
 ├── sdk/sdk.py                  # single public entry point (run_match, run_nl_match)
 ├── services/
 │   ├── orchestrator.py         # heuristic match loop
@@ -202,7 +202,7 @@ assets/    graphs, board screenshots, match.gif        results/  run logs
   "visibility_radius": 1,
   "scoring": { "cop_win": 20, "thief_win": 10, "cop_loss": 5, "thief_loss": 5 },
   "strategy": { "type": "heuristic" },
-  "llm": { "provider": "openai", "model": "gpt-4o-mini" },
+  "llm": { "provider": "openai", "model": "gpt-4o-mini", "pricing": { "input_per_1m": 0.15, "output_per_1m": 0.60, "chars_per_token": 4, "est_output_tokens_per_call": 4 } },
   "reporting": {
     "recipient_email": "sharbelma3@gmail.com",
     "_submission_recipient": "rmisegal+uoh26b@gmail.com",
@@ -227,8 +227,8 @@ assets/    graphs, board screenshots, match.gif        results/  run logs
 ```text
 Position(x:int, y:int)
 Action = MOVE(dx,dy in {-1,0,1}, not both 0) | PLACE_BARRIER | STAY
-Message(sender:str, turn:int, text:str)
-TurnResult(actor, action, message, state_after, event: NONE|CAPTURE|BARRIER|ILLEGAL)
+Message(sender: 'cop'|'thief', text: str)
+TurnResult(actor, action, event: NONE|CAPTURE|BARRIER_PLACED|ILLEGAL|MAX_MOVES_REACHED, state)
 SubGameResult(index, winner:'cop'|'thief', moves_used, cop_score, thief_score)
 MatchReport(group_name, students[], github_repo, cop_mcp_url, thief_mcp_url,
             timezone, sub_games[], totals{cop,thief})

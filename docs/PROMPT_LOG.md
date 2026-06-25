@@ -20,10 +20,15 @@
 | A4 | 2026-06-25 | Implement phases 0/1/3/2/5 | "Implement phase X, check, commit." | Tested modules, 100% cov | Route LLM via gatekeeper; keep deciders pluggable; fake LLM keeps tests offline. |
 | A5 | 2026-06-25 | Phase 9 full gatekeeper | "Upgrade gatekeeper: config-driven rate limit + FIFO queue + backpressure + drain + retries + concurrency; offline tests." | `shared/{gatekeeper,rate_limit}.py` + 15 tests | Inject `clock`/`sleep` so rate limiting is deterministic offline; split the limiter out to stay ≤150 LOC. |
 | A6 | 2026-06-25 | Adversarially review Phase 9 | Workflow: 4 review lenses (concurrency/spec/coverage/regression) → each finding independently verified vs the real code | 12 findings → 6 confirmed, 6 refuted; all 6 fixed | Multi-agent adversarial review caught a Ctrl-C ticket-leak deadlock + a prod path that never loaded `rate_limits.json` — bugs the green 100%-cov suite missed. Verify findings before acting. |
+| A7 | 2026-06-25 | Greedy cop limit-cycles (R.3) | "Add a cornering 'smart' cop (1-ply look-ahead), config-selectable via `strategy.type`; refresh the comparison graphs." | `services/strategy/smart_cop.py` + `geometry.py`: capture 0.72→1.00 on 5×5, 100% on 3×3–7×7 (commit fd11906) | Rank actions by `(distance, thief escape-options)` after the thief's reply; keep it pluggable so the greedy baseline stays for the R.3 comparison. |
+| A8 | 2026-06-25 | Required token-cost analysis (R.7) | "Capture real prompts from an offline match and price them at config-driven gpt-4o-mini rates." | `shared/token_cost.py` + `scripts/token_report.py` → `results/token_cost.txt` (66 calls, 3310 tokens, $0.000615/match) (commit 6aa0d24) | Estimate offline (~4 chars/token, no tokenizer download); keep prices in `config.json → llm.pricing` (never hardcode). |
+| A9 | 2026-06-25 | See the NL run, not just text | "Make `cop-thief --gui` animate the NL sub-game with each turn's NL message overlaid." | `gui/match_animator.animate_nl_match` + `services/nl_match.nl_subgame_frames` + bus `peek_last` → `assets/match_nl.gif` (commit dec7d05) | Read the spoken message off the bus (`peek_last`) so the GUI reuses the live match and stays free of business logic (SDK-only). |
+| A10 | 2026-06-25 | Confirm a real OpenAI run | "Print the active LLM backend + gatekeeper call count for NL runs." | `main.py` shows `LLM backend: OpenAI (gpt-4o-mini)` + `LLM calls via gatekeeper: N` (commit 979d029) | Surface the backend so a silent offline fallback can't be mistaken for a keyed run. |
 | _…_ | | | | | |
 
 ## B. Runtime agent prompts (in-game LLM)
-> Filled when `prompt_templates.py` is implemented (Phase 5). Track each template + version.
+> Runtime LLM templates — implemented and tracked with versions below (B1/B2 in `prompt_templates.py`,
+> B3 in `nl_encode.py`, B4 in `meeting_extractor.py`).
 
 Implemented in `src/marl_cop_thief/services/nl_protocol/prompt_templates.py`.
 

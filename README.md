@@ -119,7 +119,7 @@ Nielsen's 10 usability heuristics (GUI/CLI) — see [`docs/PLAN.md`](docs/PLAN.m
 | 7, 10 | Cloud, research/submission | ⬜ pending | — |
 
 Whole suite: **154 tests, 100% coverage, Ruff zero-violation.** The NL match is runnable via
-`uv run python -m marl_cop_thief --nl`. The Gmail/Calendar tools are dependency-injected (tested with
+`uv run cop-thief` (NL is the default; `--simple` for heuristic). The Gmail/Calendar tools are dependency-injected (tested with
 fakes); `shared/google_auth.py` builds the real services and needs your Google OAuth `client_secret.json`.
 
 ## R.1 Work Log (running changelog)
@@ -135,7 +135,7 @@ Newest first.
 | 2026-06-25 | Synced `docs/PLAN.md` to the as-built tree; added a **single-command** runner (`cop-thief` console script + `run.ps1`) | Keep docs accurate; simpler UX | `uv run cop-thief` works |
 | 2026-06-25 | **Phase 6**: GUI board renderer + match animator (`--gui` → animated GIF) + smoke tests | Visualize the game; required screenshots | 108 tests; `assets/match.gif` |
 | 2026-06-25 | Generated **experiment graphs + board screenshots + NL log** from real runs; filled README R.3–R.5 | Report results with evidence | `scripts/make_figures.py`; 5 PNGs in `assets/`, log in `results/` |
-| 2026-06-25 | **NL match runnable** (`--nl`) + **Phase 8** report builder (internal + inter-group JSON) and Gmail/Calendar agent tools (read/extract/calendar/send, dependency-injected) | Make NL playable + build the submission report | 106 tests, 100% cov; `--nl` CLI works (workflow-authored) |
+| 2026-06-25 | **NL match runnable** (then `--nl`, now the default `cop-thief`) + **Phase 8** report builder (internal + inter-group JSON) and Gmail/Calendar agent tools (read/extract/calendar/send, dependency-injected) | Make NL playable + build the submission report | 106 tests, 100% cov; NL CLI works (workflow-authored) |
 | 2026-06-25 | **Phase 5**: NL encode/decode + ambiguity handler + NL decider; **minimal gatekeeper** + LLM client; agents coordinate in free text via the LLM-through-gatekeeper | The graded core: NL coordination under partial obs | 86 tests, 100% cov; NL sub-game runs offline |
 | 2026-06-25 | **Phase 2**: MCP tool layer (observation, message bus, tool service w/ turn-ownership) + 2 FastMCP servers exposing 6 tools each | Build the agent communication infra | 72 tests, 100% cov, ruff clean |
 | 2026-06-25 | **Phase 3**: orchestrator + turn pipeline + accumulator + SDK + CLI; full autonomous 6-sub-game match runs (heuristic decider) | Wire the end-to-end local match | `uv run python -m marl_cop_thief` works; 55 tests, 100% cov |
@@ -220,7 +220,37 @@ RESULT: cop wins in 8 moves; LLM calls via gatekeeper=7
 ```
 
 ## R.6 Communication-Challenge Analysis
-> _TBD._ Ambiguity/deception/mutual-understanding without a fixed protocol (see [`docs/PRD_nl_communication.md`](docs/PRD_nl_communication.md)).
+The graded core is **coordination in free text with no fixed protocol**, under partial observation
+(Dec-POMDP). Each turn the acting agent speaks a natural-language `Message`; the opponent reads it off the
+MCP bus, has the **LLM (via the gatekeeper) interpret** it into a belief about where the other agent is,
+and acts. Design: [`docs/PRD_nl_communication.md`](docs/PRD_nl_communication.md). Four challenges and how
+the implementation meets each:
+
+- **Ambiguity.** Free text is unstructured, so we *constrain the interpretation, not the speech*:
+  `interpret_prompt` asks the LLM to answer **only** `x,y` or `unknown`, and
+  [`ambiguity_handler.parse_position`](src/marl_cop_thief/services/nl_protocol/nl_decode.py) parses it
+  **defensively** — anything unparseable, out-of-bounds, or an LLM/transport error falls back to the
+  **prior belief** and a safe action. Result: every inbound message yields a valid belief update with
+  **zero crashes** (PRD S2; covered by tests).
+- **Deception.** The thief deliberately **bluffs** — its encoder emits vague/misleading lines (e.g.
+  *"Slipping away to the west — you'll never find me"*), while the cop **reveals its own cell** to apply
+  pressure (R.5 log). The cop never lets talk override facts: belief precedence is **direct observation →
+  message interpretation → prior**, so whenever the opponent is within the visibility radius, observation
+  *overrides* any message (PRD S3). Messages only fill the gap when the opponent is unseen.
+- **No shared protocol.** There is no agreed coordinate schema between the two agents; the **LLM is the
+  bridge** that maps arbitrary free text to a structured guess, and each side **validates** that guess
+  (bounds-checks it) before trusting it. Coordination thus *emerges* from NL + interpretation rather than
+  a rigid wire format — exactly the assignment's intent (a JSON coordinate protocol was rejected, PRD §7).
+- **Mutual understanding.** A minimal **prompt contract** keeps meaning aligned with no prior agreement:
+  `interpret_prompt` fixes the reply shape (`x,y`/`unknown`) the decoder depends on. (`system_prompt` is a
+  versioned role/goal template in `prompt_templates.py`; in the current backend only the user
+  `interpret_prompt` is sent to the model — wiring the system prompt into the call is a noted enhancement.)
+  The asymmetry — cop transparent, thief evasive — directly reflects their opposed incentives.
+
+**Cost & limitation.** Interpretation is the only LLM call (~66/match, R.7); speech is a deterministic
+template (no tokens). Belief is a single most-likely cell rather than a full posterior; a Bayesian filter
+is noted as optional enrichment (PRD §7). The offline backend exercises the same pipeline deterministically
+(echo → the cop recovers any revealed cell), so the mechanics are testable without a network.
 
 ## R.7 Token-Cost Analysis
 Per **full match** (6 sub-games, 5×5), measured by [`scripts/token_report.py`](scripts/token_report.py)
@@ -294,11 +324,13 @@ All tunables live in `config/` (nothing hard-coded). Full schema in [`docs/PLAN.
 | `num_games` | int | `6` | Sub-games per match |
 | `max_barriers` | int | `5` | Cop barrier budget per game |
 | `visibility_radius` | int | `1` | Partial-observation radius |
+| `seed` | int | `42` | RNG seed for deterministic match/figure runs |
 | `scoring.*` | int | `20/10/5/5` | cop_win / thief_win / cop_loss / thief_loss |
 | `strategy.type` | str | `heuristic` | Cop policy for the simple match: `heuristic` (greedy) or `smart` (cornering, ~100% capture) |
 | `llm.model` | str | `gpt-4o-mini` | OpenAI model for the NL match (used when `OPENAI_API_KEY` is set) |
 | `llm.pricing.*` | obj | `0.15/0.60` | `$/1M` input & output, `chars_per_token`, `est_output_tokens_per_call` (token-cost report, R.7) |
 | `reporting.recipient_email` | str | `sharbelma3@gmail.com` | Report recipient (→ `rmisegal+uoh26b@gmail.com` at submission) |
+| `reporting.timezone` | str | `Asia/Jerusalem` | Timezone stamped into the JSON match report (read by `services/reporting.py`) |
 | `google.secrets_dir` | path | _external_ | Folder (outside repo) holding `client_secret.json`/`token.json` |
 | `google.scopes` | list | gmail.modify, calendar | OAuth scopes |
 | `rate_limits.services.*` | obj | see file | Per-service `requests_per_minute`/`requests_per_hour`/`concurrent_max`/`retry_after_seconds`/`max_retries`/`max_queue_depth` (gatekeeper; `0` = unlimited) |

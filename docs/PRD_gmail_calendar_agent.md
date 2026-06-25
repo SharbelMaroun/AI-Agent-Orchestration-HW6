@@ -26,6 +26,13 @@ the JSON result and calls `send_email` to deliver it. The read/extract/calendar 
 Google competency demonstrated on real inbox data. The game and the email/calendar agent share **one
 Google credential** and **one recipient mailbox**; they are otherwise independent capabilities.
 
+> **Status (2026-06-25):** §1.1 describes **planned wiring**. Today the Gmail/Calendar tools
+> (`read_emails`, `extract_meeting`, `add_calendar_event`, `send_email`) and the JSON report builders
+> (`services/reporting.py`) are implemented and tested in isolation (dependency-injected fakes), but **no
+> orchestrator/SDK path calls `send_email`**, and nothing reads `reporting.recipient_email` /
+> `reporting.send_real_email` yet. End-of-match report-email wiring is pending (README R.0: "real OAuth
+> send pending").
+
 ### 1.2 Autonomy boundary (interactive setup vs autonomous runs)
 The "fully autonomous, zero manual intervention" requirement (PRD G1/NFR-1) applies to the **match
 runs**. OAuth has a **one-time interactive first run**: a browser opens (`run_local_server(port=0)`)
@@ -36,17 +43,22 @@ refreshed and the full pipeline (game → report email) runs with no human in th
 ## 2. Tools (Inputs / Outputs)
 | Tool | Input | Output | Notes |
 |------|-------|--------|-------|
-| `read_emails(query, max_results)` | optional Gmail query, count | `list[EmailMessage]` | Scans inbox; needs read scope |
-| `extract_meeting(email)` | one `EmailMessage` | `Meeting{title, start, end, location}` or `None` | LLM-assisted parse **via gatekeeper** |
-| `add_calendar_event(meeting)` | `Meeting` | `(event_id, html_link)` | Creates event on `primary` calendar |
-| `send_email(to, subject, body)` | recipient, subject, body | `message_id` | Real **send** (not draft); used for the report email |
+| `read_emails(gmail_service, query, max_results)` | injected Gmail service, optional query, count | `list[dict]` of `{'id','snippet'}` | Scans inbox; needs read scope |
+| `extract_meeting(llm, email_text)` | `LLMClient`, raw email text | `Meeting{title, start, end, location?}` or `None` | LLM-assisted parse (gatekeeper routing _planned_; LLM client injected directly today) |
+| `add_calendar_event(calendar_service, meeting)` | injected Calendar service, `Meeting` | `dict {'id','htmlLink'}` | Creates event on `primary` calendar |
+| `send_email(gmail_service, to, subject, body)` | injected Gmail service, recipient, subject, body | `message_id` (str) | Real **send** (not draft); used for the report email |
 
-`EmailMessage(id, sender, subject, body, received_at)` · `Meeting(title, start_dt, end_dt, location?)`.
+`Meeting(title: str, start: str, end: str, location: str | None = None)` — `start`/`end` are ISO-8601
+**strings** (not datetime objects). There is no `EmailMessage` domain model: `read_emails` yields plain
+dicts and `send_email` uses Python's stdlib `email.message.EmailMessage` internally only.
 
-**Timezone:** `start_dt`/`end_dt` are timezone-aware; use the configured timezone (`Asia/Jerusalem`,
-matching the report JSON) and emit ISO-8601 datetimes. Build services as
-`build("gmail","v1",credentials=creds)` and `build("calendar","v3",credentials=creds)` (via the
-gatekeeper). If extraction yields a start but no end, default `end_dt = start_dt + 1 hour`.
+**Datetimes (as-built):** `start`/`end` pass straight to the Calendar event body as
+`{'dateTime': meeting.start}` / `{'dateTime': meeting.end}` with **no `timeZone` field** (the API infers
+the calendar default), and `Meeting.location` is written into the event **description**. `extract_meeting`
+returns `None` if the LLM omits title, start, **or** end — there is no auto end default. Build services as
+`build("gmail","v1",credentials=creds)` and `build("calendar","v3",credentials=creds)`. _Planned:_ make
+`start`/`end` timezone-aware (`Asia/Jerusalem`, matching the report JSON), emit an explicit `timeZone`,
+gatekeeper-route the Google calls, and default a missing end to `start + 1 hour`.
 
 ## 3. Setup, Scopes & Configuration
 - **Google Cloud (per the install guide):** OAuth **Desktop** client; enable **Gmail API** *and*
@@ -75,7 +87,9 @@ gatekeeper). If extraction yields a start but no end, default `end_dt = start_dt
 - `.gitignore` must exclude `client_secret.json`, `token.json`, `credentials.json`, `.env`.
 - **Token expiry / recovery (the deadline trap):** tokens expire. Build the recovery path in from the
   start — `if token missing/expired/invalid → delete token.json → re-run → browser re-consent → new token`.
-- All Gmail/Calendar API calls route through the **gatekeeper** ([`PRD_gatekeeper.md`](PRD_gatekeeper.md)).
+- **Planned:** Gmail/Calendar API calls will route through the **gatekeeper**
+  ([`PRD_gatekeeper.md`](PRD_gatekeeper.md)) once OAuth is wired (the LLM path is gatekept today; see
+  README R.9). They are **not gatekept yet** — the injected service is called directly.
 
 ## 5. Performance Metrics
 - `read_emails` returns within the gatekeeper's latency/retry budget; pagination bounded by `max_results`.
@@ -98,7 +112,9 @@ gatekeeper). If extraction yields a start but no end, default `end_dt = start_dt
 - **S1:** `read_emails` returns inbox messages for a known query (Gmail mocked in unit tests).
 - **S2:** `extract_meeting` returns the correct `Meeting` for an invite email; returns `None` (no crash) for a non-invite.
 - **S3:** `add_calendar_event` creates an event whose start matches the extracted time (Calendar mocked in unit tests).
-- **S4:** `send_email` performs a real send to `reporting.recipient_email`; in dev that is `sharbelma3@gmail.com`.
+- **S4 (planned wiring):** `send_email` performs a real send to `reporting.recipient_email`; in dev that
+  is `sharbelma3@gmail.com`. *Not yet wired — no orchestrator/SDK path calls `send_email` and nothing
+  reads `reporting.recipient_email`/`send_real_email` today (README R.0: "real OAuth send pending").*
 - **S5:** Switching `recipient_email` to `rmisegal+uoh26b@gmail.com` requires **no code change**.
 - **S6:** Expired/missing token triggers the documented re-consent path without leaking secrets to logs.
 - **S7:** Module files ≤150 lines; external APIs mocked; ≥85% coverage of all four tools' branches.

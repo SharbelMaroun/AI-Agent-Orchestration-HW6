@@ -8,7 +8,7 @@
 > **Status:** ⬜ Not Started · 🟦 In Progress · ✅ Completed — **Priority:** P0–P3. Owner: `<TBD>`.  
 > Update statuses continuously; add a README Work-Log row + evidence (graph/screenshot) per task.
 
-> **Implementation status (code, 2026-06-25):** Phase 0 ✅ · Phase 1 ✅ · Phase 2 🟦 (tool layer + 2 FastMCP servers done; MCP transport/auth pending) · Phase 3 ✅ · Phase 5 ✅ (NL agents, runnable via --nl) · Phase 6 🟦 (GUI renderer + **NL match animation with message overlay** via --gui; --simple --gui for heuristic/smart) · Phase 8 🟦 (report builder + Gmail/Calendar agent tools done; real OAuth send pending) · Phase 4 ✅ (greedy + **cornering "smart" cop**, config-selectable, 100% capture on 3×3–7×7) · Phase 9 🟦 (**full API gatekeeper done** — config-driven rate limiting + FIFO queue + backpressure + drain + retries/backoff + concurrency + `get_queue_status`; research/submission tasks pending) — all green (ruff clean, pytest 154 passing, 100% coverage). Phases 7/10 mostly pending.
+> **Implementation status (code, 2026-06-25):** Phase 0 ✅ · Phase 1 ✅ · Phase 2 🟦 (tool layer + 2 FastMCP servers done; MCP transport/auth pending) · Phase 3 ✅ · Phase 5 ✅ (NL agents; the default `cop-thief` run) · Phase 6 🟦 (GUI renderer + **NL match animation with message overlay** via --gui; --simple --gui for heuristic/smart) · Phase 8 🟦 (report builder + Gmail/Calendar agent tools done; real OAuth send pending) · Phase 4 ✅ (greedy + **cornering "smart" cop**, config-selectable, 100% capture on 3×3–7×7) · Phase 9 🟦 (**full API gatekeeper done** — config-driven rate limiting + FIFO queue + backpressure + drain + retries/backoff + concurrency + `get_queue_status`; research/submission tasks pending) — all green (ruff clean, pytest 154 passing, 100% coverage). Phases 7/10 mostly pending.
 
 ---
 
@@ -347,7 +347,7 @@ _Heuristic policies + optional tabular Q-learning. See PRD_decision_strategy.md.
 | T4.53 | Ruff clean `services/strategy/q_table.py` | P3 | ⬜ | `<TBD>` | 0 ruff violations |
 | T4.54 | Mock external deps in `services/strategy/q_table.py` tests | P3 | ⬜ | `<TBD>` | No live external calls |
 | T4.55 | Coverage ≥85% for `services/strategy/q_table.py` + add README Work Log row | P3 | ⬜ | `<TBD>` | ≥85% coverage; Work Log updated |
-| T4.56 | Strategy selection via config (heuristic\|smart\|q_table) | P1 | ✅ | `<TBD>` | `Orchestrator._select_cop_policy` switches with no code change |
+| T4.56 | Strategy selection via config (heuristic\|smart\|q_table) | P1 | ✅ | `<TBD>` | `select_cop_policy` (via `COP_POLICIES` registry) switches with no code change |
 | T4.57 | Heuristic beats random baseline | P1 | ⬜ | `<TBD>` | Win-rate > 50% |
 | T4.58 | Chebyshev/distance utilities | P1 | ✅ | `<TBD>` | `services/strategy/geometry.py`, unit-tested |
 | T4.59 | (Opt) Q-state encoding compact for 5x5 | P3 | ⬜ | `<TBD>` | State space bounded |
@@ -431,31 +431,36 @@ _Free-text protocol + belief update; robust to ambiguity/deception. See PRD_nl_c
 
 ## Phase 6 — GUI & CLI (Milestone: M6)
 _Real-time visualization and CLI logs (read state from SDK only)._
+> **As-built (2026-06-25):** the GUI shipped as `gui/board_renderer.py` (`render_state` + `save_state_png`)
+> and `gui/match_animator.py` (`animate_match` / `animate_nl_match` → animated GIF, with NL message overlay
+> for the NL match), **not** `gui/gui_renderer.py` / `gui/gui_realtime.py`. T6.1–T6.22 are re-mapped to
+> those two modules. A **live interactive window** is still pending (README R.0 / PLAN.md); the per-turn
+> **GIF animation** stands in for it today.
 
 | ID | Task | Pri | Status | Owner | DoD |
 |----|------|-----|--------|-------|-----|
-| T6.1 | Spec & single-concern interface for `gui/gui_renderer.py` — draw grid/agents/barriers | P1 | ✅ | `<TBD>` | Interface + docstring agreed; ≤150-LOC plan |
-| T6.2 | Define typed models/signatures for `gui/gui_renderer.py` | P1 | ✅ | `<TBD>` | Typed inputs/outputs defined |
-| T6.3 | RED: write failing unit tests for `gui/gui_renderer.py` (happy path) | P1 | ✅ | `<TBD>` | Failing tests committed |
-| T6.4 | GREEN: implement `gui/gui_renderer.py` | P1 | ✅ | `<TBD>` | Happy-path tests pass |
-| T6.5 | Edge-case & boundary tests for `gui/gui_renderer.py` | P1 | ✅ | `<TBD>` | Empty/invalid/limit inputs covered |
-| T6.6 | Defensive error handling in `gui/gui_renderer.py` | P1 | ✅ | `<TBD>` | Graceful failure + clear message |
-| T6.7 | Refactor `gui/gui_renderer.py`: DRY, ≤150 lines, single responsibility | P1 | ✅ | `<TBD>` | No duplication; ≤150 LOC |
-| T6.8 | Docstrings + why-comments for `gui/gui_renderer.py` | P1 | ✅ | `<TBD>` | Module/functions documented |
-| T6.9 | Ruff clean `gui/gui_renderer.py` | P1 | ✅ | `<TBD>` | 0 ruff violations |
-| T6.10 | Mock external deps in `gui/gui_renderer.py` tests | P1 | ✅ | `<TBD>` | No live external calls |
-| T6.11 | Coverage ≥85% for `gui/gui_renderer.py` + add README Work Log row | P1 | ✅ | `<TBD>` | ≥85% coverage; Work Log updated |
-| T6.12 | Spec & single-concern interface for `gui/gui_realtime.py` — live updates per turn | P1 | ✅ | `<TBD>` | Interface + docstring agreed; ≤150-LOC plan |
-| T6.13 | Define typed models/signatures for `gui/gui_realtime.py` | P1 | ✅ | `<TBD>` | Typed inputs/outputs defined |
-| T6.14 | RED: write failing unit tests for `gui/gui_realtime.py` (happy path) | P1 | ✅ | `<TBD>` | Failing tests committed |
-| T6.15 | GREEN: implement `gui/gui_realtime.py` | P1 | ✅ | `<TBD>` | Happy-path tests pass |
-| T6.16 | Edge-case & boundary tests for `gui/gui_realtime.py` | P1 | ✅ | `<TBD>` | Empty/invalid/limit inputs covered |
-| T6.17 | Defensive error handling in `gui/gui_realtime.py` | P1 | ✅ | `<TBD>` | Graceful failure + clear message |
-| T6.18 | Refactor `gui/gui_realtime.py`: DRY, ≤150 lines, single responsibility | P1 | ✅ | `<TBD>` | No duplication; ≤150 LOC |
-| T6.19 | Docstrings + why-comments for `gui/gui_realtime.py` | P1 | ✅ | `<TBD>` | Module/functions documented |
-| T6.20 | Ruff clean `gui/gui_realtime.py` | P1 | ✅ | `<TBD>` | 0 ruff violations |
-| T6.21 | Mock external deps in `gui/gui_realtime.py` tests | P1 | ✅ | `<TBD>` | No live external calls |
-| T6.22 | Coverage ≥85% for `gui/gui_realtime.py` + add README Work Log row | P1 | ✅ | `<TBD>` | ≥85% coverage; Work Log updated |
+| T6.1 | Spec & single-concern interface for `gui/board_renderer.py` — draw grid/agents/barriers | P1 | ✅ | `<TBD>` | Interface + docstring agreed; ≤150-LOC plan |
+| T6.2 | Define typed models/signatures for `gui/board_renderer.py` | P1 | ✅ | `<TBD>` | Typed inputs/outputs defined |
+| T6.3 | RED: write failing unit tests for `gui/board_renderer.py` (happy path) | P1 | ✅ | `<TBD>` | Failing tests committed |
+| T6.4 | GREEN: implement `gui/board_renderer.py` | P1 | ✅ | `<TBD>` | Happy-path tests pass |
+| T6.5 | Edge-case & boundary tests for `gui/board_renderer.py` | P1 | ✅ | `<TBD>` | Empty/invalid/limit inputs covered |
+| T6.6 | Defensive error handling in `gui/board_renderer.py` | P1 | ✅ | `<TBD>` | Graceful failure + clear message |
+| T6.7 | Refactor `gui/board_renderer.py`: DRY, ≤150 lines, single responsibility | P1 | ✅ | `<TBD>` | No duplication; ≤150 LOC |
+| T6.8 | Docstrings + why-comments for `gui/board_renderer.py` | P1 | ✅ | `<TBD>` | Module/functions documented |
+| T6.9 | Ruff clean `gui/board_renderer.py` | P1 | ✅ | `<TBD>` | 0 ruff violations |
+| T6.10 | Mock external deps in `gui/board_renderer.py` tests | P1 | ✅ | `<TBD>` | No live external calls |
+| T6.11 | Coverage ≥85% for `gui/board_renderer.py` + add README Work Log row | P1 | ✅ | `<TBD>` | ≥85% coverage; Work Log updated |
+| T6.12 | Spec & single-concern interface for `gui/match_animator.py` — animated GIF of each turn (live interactive window pending) | P1 | ✅ | `<TBD>` | Interface + docstring agreed; ≤150-LOC plan |
+| T6.13 | Define typed models/signatures for `gui/match_animator.py` | P1 | ✅ | `<TBD>` | Typed inputs/outputs defined |
+| T6.14 | RED: write failing unit tests for `gui/match_animator.py` (happy path) | P1 | ✅ | `<TBD>` | Failing tests committed |
+| T6.15 | GREEN: implement `gui/match_animator.py` | P1 | ✅ | `<TBD>` | Happy-path tests pass |
+| T6.16 | Edge-case & boundary tests for `gui/match_animator.py` | P1 | ✅ | `<TBD>` | Empty/invalid/limit inputs covered |
+| T6.17 | Defensive error handling in `gui/match_animator.py` | P1 | ✅ | `<TBD>` | Graceful failure + clear message |
+| T6.18 | Refactor `gui/match_animator.py`: DRY, ≤150 lines, single responsibility | P1 | ✅ | `<TBD>` | No duplication; ≤150 LOC |
+| T6.19 | Docstrings + why-comments for `gui/match_animator.py` | P1 | ✅ | `<TBD>` | Module/functions documented |
+| T6.20 | Ruff clean `gui/match_animator.py` | P1 | ✅ | `<TBD>` | 0 ruff violations |
+| T6.21 | Mock external deps in `gui/match_animator.py` tests | P1 | ✅ | `<TBD>` | No live external calls |
+| T6.22 | Coverage ≥85% for `gui/match_animator.py` + add README Work Log row | P1 | ✅ | `<TBD>` | ≥85% coverage; Work Log updated |
 | T6.23 | Spec & single-concern interface for `cli/cli_runner.py` — CLI match runner + structured logs | P1 | ⬜ | `<TBD>` | Interface + docstring agreed; ≤150-LOC plan |
 | T6.24 | Define typed models/signatures for `cli/cli_runner.py` | P1 | ⬜ | `<TBD>` | Typed inputs/outputs defined |
 | T6.25 | RED: write failing unit tests for `cli/cli_runner.py` (happy path) | P1 | ⬜ | `<TBD>` | Failing tests committed |
