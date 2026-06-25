@@ -197,6 +197,15 @@ assets/    graphs, board screenshots, match.gif        results/  run logs
 > matplotlib to an interactive backend at runtime (config `gui.live_backend`, default `TkAgg`) and draws
 > each frame the instant it streams off the engine — so an NL match visibly advances as each LLM call
 > returns. The GUI stays render-only; all game logic is in the SDK-exposed services (SDK-only).
+>
+> **Live-viewer threading (responsiveness).** A turn can block for seconds (the NL match makes an LLM call
+> per turn), so producing frames on the GUI thread would freeze the window ("not responding"). The live
+> viewer therefore runs the frame **generator on a daemon worker thread** that pushes `(state, caption)`
+> onto a thread-safe `queue.Queue` (plus a sentinel when done), while the **Matplotlib/Tk event loop owns
+> the main thread**. A `fig.canvas.new_timer` fires every `gui.poll_interval_ms` (default 150 ms), draining
+> one frame per tick via `_render_tick` and stopping on the sentinel. The event loop never blocks, so the
+> window stays responsive while turns compute in the background. `_produce`/`_render_tick` are pure helpers
+> (no matplotlib), unit-tested directly; the threading/queue is a presentation concern, kept in `gui/`.
 
 ---
 
