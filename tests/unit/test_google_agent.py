@@ -147,6 +147,16 @@ def test_add_calendar_event_no_location_uses_empty_description():
     assert cal.events().body["description"] == ""
 
 
+def test_add_calendar_event_includes_timezone_when_given():
+    # the Calendar API rejects offset-less datetimes without a timeZone (real-run fix)
+    cal = _FakeCalendar({"id": "e", "htmlLink": "l"})
+    add_calendar_event(cal, Meeting(title="T", start="2026-07-01T14:00:00",
+                                    end="2026-07-01T15:00:00"), timezone="Asia/Jerusalem")
+    body = cal.events().body
+    assert body["start"] == {"dateTime": "2026-07-01T14:00:00", "timeZone": "Asia/Jerusalem"}
+    assert body["end"] == {"dateTime": "2026-07-01T15:00:00", "timeZone": "Asia/Jerusalem"}
+
+
 def test_send_email_returns_message_id():
     gmail = _FakeGmail(sends={"id": "msg-99"})
     msg_id = send_email(gmail, "to@example.com", "Hi", "Body text")

@@ -71,7 +71,8 @@ def main() -> None:
 
     print("\n[3/4] add_calendar_event:")
     if meeting is not None:
-        event = _step("add_calendar_event", lambda: add_calendar_event(calendar, meeting))
+        tz = cfg.get("reporting", {}).get("timezone")
+        event = _step("add_calendar_event", lambda: add_calendar_event(calendar, meeting, timezone=tz))
         if event:
             print(f"     -> {event.get('htmlLink')}")
 

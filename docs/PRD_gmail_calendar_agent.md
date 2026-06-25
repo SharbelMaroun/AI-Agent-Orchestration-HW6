@@ -52,13 +52,14 @@ refreshed and the full pipeline (game → report email) runs with no human in th
 **strings** (not datetime objects). There is no `EmailMessage` domain model: `read_emails` yields plain
 dicts and `send_email` uses Python's stdlib `email.message.EmailMessage` internally only.
 
-**Datetimes (as-built):** `start`/`end` pass straight to the Calendar event body as
-`{'dateTime': meeting.start}` / `{'dateTime': meeting.end}` with **no `timeZone` field** (the API infers
-the calendar default), and `Meeting.location` is written into the event **description**. `extract_meeting`
-returns `None` if the LLM omits title, start, **or** end — there is no auto end default. Build services as
-`build("gmail","v1",credentials=creds)` and `build("calendar","v3",credentials=creds)`. _Planned:_ make
-`start`/`end` timezone-aware (`Asia/Jerusalem`, matching the report JSON), emit an explicit `timeZone`,
-gatekeeper-route the Google calls, and default a missing end to `start + 1 hour`.
+**Datetimes (as-built):** `add_calendar_event(service, meeting, timezone=...)` sends
+`{'dateTime': meeting.start, 'timeZone': tz}` for start/end. A **`timeZone` is required** — a real run
+proved the API rejects offset-less datetimes with *"Missing time zone definition"* (audit C12), so the
+caller passes `reporting.timezone` (`Asia/Jerusalem`); when no timezone is given the field is omitted (the
+datetime must then carry its own offset). `Meeting.location` is written into the event **description**.
+`extract_meeting` returns `None` if the LLM omits title, start, **or** end — there is no auto end default.
+Build services as `build("gmail","v1",credentials=creds)` / `build("calendar","v3",credentials=creds)`.
+_Planned:_ gatekeeper-route the Google calls and default a missing end to `start + 1 hour`.
 
 ## 3. Setup, Scopes & Configuration
 - **Google Cloud (per the install guide):** OAuth **Desktop** client; enable **Gmail API** *and*
