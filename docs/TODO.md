@@ -508,27 +508,27 @@ _Deploy both MCP servers with token auth (deployment tasks, not modules)._
 
 | ID | Task | Pri | Status | Owner | DoD |
 |----|------|-----|--------|-------|-----|
-| T7.1 | Choose cloud platform (Prefect Cloud / similar) | P0 | ⬜ | `<TBD>` | Decision recorded |
-| T7.2 | Package/containerize cop MCP server | P0 | ⬜ | `<TBD>` | Deployable artifact |
-| T7.3 | Package/containerize thief MCP server | P0 | ⬜ | `<TBD>` | Deployable artifact |
-| T7.4 | Deploy cop MCP server | P0 | ⬜ | `<TBD>` | Running in cloud |
-| T7.5 | Deploy thief MCP server | P0 | ⬜ | `<TBD>` | Running in cloud |
-| T7.6 | Obtain public HTTPS URL for cop | P0 | ⬜ | `<TBD>` | URL reachable |
-| T7.7 | Obtain public HTTPS URL for thief | P0 | ⬜ | `<TBD>` | URL reachable |
-| T7.8 | Token-based auth on cop URL | P0 | ⬜ | `<TBD>` | Unauthorized rejected |
-| T7.9 | Token-based auth on thief URL | P0 | ⬜ | `<TBD>` | Unauthorized rejected |
-| T7.10 | Token revocation mechanism | P1 | ⬜ | `<TBD>` | Revoke works |
-| T7.11 | Verify URLs not firewalled / not public-blocked | P0 | ⬜ | `<TBD>` | Reachable as required |
-| T7.12 | Hybrid: client+LLM local, outbound-only requests | P1 | ⬜ | `<TBD>` | No inbound ports |
-| T7.13 | Document ngrok Traffic Policy option | P2 | ⬜ | `<TBD>` | In README |
+| T7.1 | Choose cloud platform (Prefect Cloud / similar) | P0 | ✅ | `<TBD>` | Render chosen (stable URL); ngrok as live-match alt (README §4.1) |
+| T7.2 | Package/containerize cop MCP server | P0 | ✅ | `<TBD>` | `Dockerfile` + `run_mcp_server.py` (MCP_ROLE=cop) |
+| T7.3 | Package/containerize thief MCP server | P0 | ✅ | `<TBD>` | Same image; MCP_ROLE=thief (`render.yaml`) |
+| T7.4 | Deploy cop MCP server | P0 | 🟦 | `<TBD>` | Blueprint ready; user runs Render deploy |
+| T7.5 | Deploy thief MCP server | P0 | 🟦 | `<TBD>` | Blueprint ready; user runs Render deploy |
+| T7.6 | Obtain public HTTPS URL for cop | P0 | 🟦 | `<TBD>` | After deploy → COP_MCP_URL |
+| T7.7 | Obtain public HTTPS URL for thief | P0 | 🟦 | `<TBD>` | After deploy → THIEF_MCP_URL |
+| T7.8 | Token-based auth on cop URL | P0 | ✅ | `<TBD>` | `TokenAuth`+FastMCP `TokenVerifier`; unauthorized rejected (verified) |
+| T7.9 | Token-based auth on thief URL | P0 | ✅ | `<TBD>` | Same auth bridge on the thief server |
+| T7.10 | Token revocation mechanism | P1 | ✅ | `<TBD>` | `TokenAuth.revoke` (tested) |
+| T7.11 | Verify URLs not firewalled / not public-blocked | P0 | 🟦 | `<TBD>` | Runtime check after deploy |
+| T7.12 | Hybrid: client+LLM local, outbound-only requests | P1 | ✅ | `<TBD>` | Servers tools-only (no LLM/secrets); client local (ADR-002) |
+| T7.13 | Document ngrok option | P2 | ✅ | `<TBD>` | README §4.1 option B |
 | T7.14 | Document Localtonet option | P2 | ⬜ | `<TBD>` | In README |
 | T7.15 | Document Nginx reverse proxy + SSL (Certbot) | P2 | ⬜ | `<TBD>` | In README |
-| T7.16 | Store URLs/tokens in `.env` (git-ignored) | P0 | ⬜ | `<TBD>` | Not committed |
-| T7.17 | Latency check intra-region (<200ms round-trip) | P2 | ⬜ | `<TBD>` | Within budget |
-| T7.18 | Retry/backoff on cloud calls via gatekeeper | P1 | ⬜ | `<TBD>` | Transient retried |
-| T7.19 | End-to-end cloud match (6 games) | P0 | ⬜ | `<TBD>` | Completes autonomously |
-| T7.20 | README deployment section + screenshots | P1 | ⬜ | `<TBD>` | Documented |
-| T7.21 | Firewall/non-standard-port caveat documented | P1 | ⬜ | `<TBD>` | In README |
+| T7.16 | Store URLs/tokens in `.env` (git-ignored) | P0 | ✅ | `<TBD>` | `.env-example`: COP/THIEF_MCP_URL + MCP_AUTH_SECRET |
+| T7.17 | Latency check intra-region (<200ms round-trip) | P2 | ⬜ | `<TBD>` | After deploy |
+| T7.18 | Retry/backoff on cloud calls via gatekeeper | P1 | ✅ | `<TBD>` | `McpClient` routes every call through the gatekeeper |
+| T7.19 | End-to-end cloud match (6 games) | P0 | 🟦 | `<TBD>` | After deploy + opponent |
+| T7.20 | README deployment section | P1 | ✅ | `<TBD>` | README §4.1 (Render + ngrok step-by-step) |
+| T7.21 | Firewall/non-standard-port caveat documented | P1 | ✅ | `<TBD>` | README §2.5 + PLAN §3 |
 | T7.22 | Rotate tokens before submission | P2 | ⬜ | `<TBD>` | Rotated |
 | T7.23 | Monitor usage / minimal permissions | P2 | ⬜ | `<TBD>` | Least privilege |
 | T7.24 | Health checks on cloud URLs | P1 | ⬜ | `<TBD>` | Monitored |

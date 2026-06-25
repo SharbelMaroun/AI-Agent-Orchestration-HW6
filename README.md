@@ -99,6 +99,21 @@ Summary in [`docs/PLAN.md`](docs/PLAN.md) (C4 model, ADRs, module layout). Diagr
 **Standards alignment:** ISO/IEC 25010 (quality), MIT SQA, Google/Microsoft API guidelines, and
 Nielsen's 10 usability heuristics (GUI/CLI) — see [`docs/PLAN.md`](docs/PLAN.md) and `docs/PRD.md` §4.
 
+## 4.1 Deploying the MCP servers (cloud)
+The two MCP servers run over HTTP via [`scripts/run_mcp_server.py`](scripts/run_mcp_server.py)
+(binds `0.0.0.0:$PORT`, gated by `MCP_AUTH_SECRET` → `TokenAuth`). Two options:
+
+**A. Render (recommended — stable URL, runs without your PC):** push to GitHub → on Render pick
+**Blueprint** ([`render.yaml`](render.yaml) deploys `cop-mcp` + `thief-mcp` from the [`Dockerfile`](Dockerfile))
+→ set `MCP_AUTH_SECRET` (same value for both) in the dashboard → copy the two `*.onrender.com` URLs into
+`.env` as `COP_MCP_URL` / `THIEF_MCP_URL`. (Free tier cold-starts after ~15 min idle.)
+
+**B. ngrok (fastest, for a live match):** run locally —
+`uv run python scripts/run_mcp_server.py --role cop --port 8001` and `--role thief --port 8002` — then
+`ngrok http 8001` / `ngrok http 8002` for two public URLs. (URLs change per restart; needs your PC on.)
+
+Either way the server prints a valid bearer token on startup; the client carries it via `McpClient`.
+
 ---
 
 # 📊 Project Report / Results
@@ -119,7 +134,8 @@ Nielsen's 10 usability heuristics (GUI/CLI) — see [`docs/PLAN.md`](docs/PLAN.m
 | 6 | GUI | ✅ done | **modern-dark themed** board (glow cop/thief tokens, barrier slabs, movement trails, capture flash, HUD scoreboard, speech bubbles) · GIF (`--gui`) + **live real-time window** (`--live`, auto-closes when done) |
 | 8 | Report builder + Gmail/Calendar agent | ✅ done* | JSON builders + tools + **report-email wiring** (`match_reporter`→SDK→CLI, gated by `send_real_email`); **real OAuth verified** on live Google (consent + read + extract + calendar + **real email sent**). *Inter-group bonus arithmetic + cloud series pending |
 | 9 | API gatekeeper | ✅ done | config-driven rate limit + FIFO queue + backpressure + drain + retries/backoff + concurrency + `get_queue_status` (see R.9) |
-| 7, 10 | Cloud, research/submission | ⬜ pending | — |
+| 7 | Cloud deploy | 🟦 partial | **deploy scaffolding ready** — `run_mcp_server.py` (HTTP + token auth), `Dockerfile`, `render.yaml` (cop+thief); running it to get the 2 public URLs is the user step (§4.1) |
+| 10 | Research/submission | 🟦 partial | audit closure batches 1–2 done; final submission steps pending |
 
 Whole suite: **189 tests, 100% coverage, Ruff zero-violation.** Every `uv run pytest` emits an automated
 **JUnit + coverage report** to `results/` (pass/fail per test); expected results and how to regenerate are
@@ -134,6 +150,7 @@ Newest first.
 
 | Date | What we did | Why | Evidence |
 |------|-------------|-----|----------|
+| 2026-06-25 | **Cloud deploy scaffolding (Render + ngrok)** — `scripts/run_mcp_server.py` runs the cop/thief FastMCP server over HTTP (`0.0.0.0:$PORT`) gated by `TokenAuth` (FastMCP `TokenVerifier` bridge); `Dockerfile` + `render.yaml` (two services from one image); README §4.1 step-by-step. Verified offline: authed server builds + exposes all 6 tools, verifier accepts/rejects tokens | Enable the 2 public MCP URLs (assignment Phase 2/7) | `scripts/run_mcp_server.py`, `Dockerfile`, `render.yaml`; 213 tests, 100% cov |
 | 2026-06-25 | **MCP transport + token auth (cloud prerequisite)** — `shared/mcp_auth.TokenAuth` mints HMAC-signed, tamper-evident bearer tokens with `verify`/`revoke` (`MCP_AUTH_SECRET`); `shared/mcp_transport.McpClient` makes gatekeeper-routed, token-authenticated remote tool calls (low-level `invoke` injected → offline-testable). Unblocks any cloud deploy (Prefect/ngrok/web host) | Assignment §6 token auth+revocation (C18) + Phase 2/7 transport (T2.34–55) | `shared/{mcp_auth,mcp_transport}.py`; 213 tests, 100% cov; PRD_mcp_server §2.2/§6 |
 | 2026-06-25 | **Auto report-email wiring (init→report autonomy)** — `services/match_reporter.send_match_report` turns a finished match summary into the JSON report and emails it via an injected sender, **gated by `reporting.send_real_email`** (default off). Exposed as `Sdk.send_match_report`; the CLI builds the real Gmail service and sends after a full match. Added `reporting.report_meta` config | Close the "fully autonomous init → report email" goal (G1/G6, T8.101) | `services/match_reporter.py`; 203 tests, 100% cov; PRD_email_reporting status updated |
 | 2026-06-25 | **Real Google run verified + Calendar timeZone fix** — ran `google_smoke.py` on live Google: OAuth consent ✓, `token.json` ✓, `read_emails` ✓, `extract_meeting` ✓, **real email sent** ✓. `add_calendar_event` failed with *"Missing time zone definition"* → fixed: `add_calendar_event(timezone=...)` now sends `timeZone` from `reporting.timezone` (audit C12). Also fixed a Hebrew **RTL path bug** in the user's secrets path (switched to ASCII `C:\cop-thief-secrets`) | First real end-to-end Google verification surfaced a genuine API bug | `calendar_writer.py`; 198 tests, 100% cov; PRD_gmail_calendar §2; TODO T8.92/94/99/100/102, T10.45/46/48 done |
