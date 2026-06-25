@@ -8,6 +8,8 @@ from __future__ import annotations
 from collections.abc import Callable, Iterator
 from typing import Any
 
+from ..services.match_reporter import Sender
+from ..services.match_reporter import send_match_report as _send_match_report
 from ..services.match_stream import Frame, heuristic_subgame_stream
 from ..services.nl_match import nl_subgame_stream, run_nl_match
 from ..services.orchestrator import Orchestrator
@@ -33,6 +35,12 @@ class Sdk:
     ) -> dict[str, Any]:
         """Run a natural-language match and return the serializable summary."""
         return run_nl_match(self.config, backend, gatekeeper, creative)
+
+    def send_match_report(
+        self, summary: dict[str, Any], sender: Sender, meta: dict[str, Any] | None = None
+    ) -> str | None:
+        """Email the JSON match report via ``sender`` (only if reporting.send_real_email)."""
+        return _send_match_report(self.config, summary, sender, meta)
 
     def stream_simple_frames(self) -> Iterator[Frame]:
         """Stream the heuristic/smart sub-game turn-by-turn for the live GUI."""

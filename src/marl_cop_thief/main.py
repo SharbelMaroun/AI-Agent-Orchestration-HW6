@@ -48,7 +48,22 @@ def _run_simple(sdk: Sdk, gui: bool, live: bool) -> None:
 
         print(f"GUI animation saved to {animate_match(sdk.config)}")
     else:
-        print(json.dumps(sdk.run_match(), indent=2))
+        summary = sdk.run_match()
+        print(json.dumps(summary, indent=2))
+        _maybe_send_report(sdk, summary)
+
+
+def _maybe_send_report(sdk: Sdk, summary: dict) -> None:
+    """Email the JSON match report via real Gmail when reporting.send_real_email is set."""
+    if not sdk.config.get("reporting", {}).get("send_real_email", False):
+        return
+    from .shared.gmail_client import send_email
+    from .shared.google_auth import build_services
+
+    sd = os.environ.get("MARL_GOOGLE_SECRETS_DIR") or sdk.config.get("google", {}).get("secrets_dir", "")
+    gmail, _ = build_services(sd, sdk.config["google"]["scopes"])
+    mid = sdk.send_match_report(summary, lambda to, subj, body: send_email(gmail, to, subj, body))
+    print(f"Report email sent: id={mid}")
 
 
 def _run_nl(sdk: Sdk, gui: bool, live: bool) -> None:
@@ -70,7 +85,13 @@ def _run_nl(sdk: Sdk, gui: bool, live: bool) -> None:
         path = animate_nl_match(sdk.config, backend, gatekeeper, creative=creative)
         print(f"GUI animation saved to {path}")
     else:
-        print(json.dumps(sdk.run_nl_match(backend, gatekeeper), indent=2))
+        summary = sdk.run_nl_match(backend, gatekeeper)
+        print(json.dumps(summary, indent=2))
+        print(f"LLM calls via gatekeeper: {gatekeeper.calls}")
+        if real:
+            _report_budget(sdk.config, gatekeeper.calls)
+        _maybe_send_report(sdk, summary)
+        return
     print(f"LLM calls via gatekeeper: {gatekeeper.calls}")
     if real:
         _report_budget(sdk.config, gatekeeper.calls)

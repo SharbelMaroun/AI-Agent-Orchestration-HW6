@@ -641,7 +641,7 @@ _Google setup + read/extract/calendar/send agent + JSON report. See PRD_gmail_ca
 | T8.98 | Email body is JSON-only (no free text) | P0 | ✅ | `<TBD>` | Machine-parseable |
 | T8.99 | Recipient from config (dev sharbelma3@gmail.com) | P0 | ✅ | `<TBD>` | Smoke read recipient from `reporting.recipient_email` |
 | T8.100 | send_email performs real SEND (not draft) | P0 | ✅ | `<TBD>` | Real email delivered to sharbelma3@gmail.com (msg id returned) |
-| T8.101 | End-to-end: 6 games -> report email sent | P0 | 🟦 | `<TBD>` | send_email verified; orchestrator->report-email wiring pending |
+| T8.101 | End-to-end: 6 games -> report email sent | P0 | ✅ | `<TBD>` | `match_reporter.send_match_report` + SDK + CLI wired (gated by `send_real_email`); send verified on live Gmail |
 | T8.102 | Demo read_emails -> extract_meeting -> add_calendar_event | P0 | ✅ | `<TBD>` | Real run: read+extract OK; calendar fixed (timeZone) + tested |
 | T8.103 | Technical-loss requeue reflected in totals | P1 | ⬜ | `<TBD>` | 6 completed games |
 | T8.104 | Flip recipient to rmisegal+uoh26b@gmail.com (verbatim) at submission | P0 | ⬜ | `<TBD>` | Config-only; tag kept |
