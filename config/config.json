@@ -12,6 +12,12 @@
     "cop_loss": 5,
     "thief_loss": 5
   },
+  "bonus": {
+    "win": 10,
+    "lose": 5,
+    "tie": 5,
+    "void": 0
+  },
   "strategy": {
     "type": "heuristic",
     "thief_type": "smart"

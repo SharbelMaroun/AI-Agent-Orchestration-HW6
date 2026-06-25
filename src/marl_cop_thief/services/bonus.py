@@ -11,7 +11,11 @@ stays confirmable with course staff (audit C5). Pure arithmetic — fully testab
 from __future__ import annotations
 
 from dataclasses import dataclass
+from typing import Any
 
+# Spec defaults (§12.2). The canonical, tunable values live in config (the ``bonus``
+# block); :func:`points_from_config` feeds them in, so these serve only as fallbacks
+# and parameter defaults (which the guidelines explicitly permit in code).
 WIN_POINTS = 10.0
 LOSE_POINTS = 5.0
 TIE_POINTS = 5.0
@@ -53,3 +57,8 @@ def final_bonus(group: str, series_list: list[SeriesResult], **pts: float) -> fl
         return 0.0
     awards = [series_awards(s, **pts).get(group, 0.0) for s in series_list]
     return round(sum(awards) / len(awards), 2)
+
+
+def points_from_config(config: dict[str, Any]) -> dict[str, float]:
+    """Award values from the config ``bonus`` block (empty mapping → spec defaults)."""
+    return {key: float(value) for key, value in config.get("bonus", {}).items()}

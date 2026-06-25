@@ -41,3 +41,10 @@ def test_award_values_are_parameterizable():
     # the spec's 8.5 worked example (win 10, "lose" 7) is reproducible via overrides
     series = [SeriesResult({"A": 90, "B": 40}), SeriesResult({"A": 40, "B": 90})]
     assert final_bonus("A", series, win=10.0, lose=7.0) == 8.5
+
+
+def test_points_from_config_reads_bonus_block():
+    from marl_cop_thief.services.bonus import points_from_config
+
+    assert points_from_config({"bonus": {"win": 12, "lose": 6}}) == {"win": 12.0, "lose": 6.0}
+    assert points_from_config({}) == {}  # no bonus block -> spec defaults apply

@@ -67,3 +67,11 @@ def test_run_series_and_send_report_via_sdk():
     assert rep["report_type"] == "bonus_game" and len(rep["sub_games"]) == 6
     # send_report disabled by default -> None
     assert Sdk(cfg).send_report(rep, lambda *a: "id") is None
+
+
+def test_bonus_award_values_come_from_config():
+    from marl_cop_thief.services.bonus import SeriesResult
+
+    cfg = {**CONFIG, "bonus": {"win": 12, "lose": 6, "tie": 6, "void": 0}}
+    awards = Sdk(cfg).bonus_awards(SeriesResult({"A": 90, "B": 40}))
+    assert awards == {"A": 12.0, "B": 6.0}  # config values override the spec defaults
