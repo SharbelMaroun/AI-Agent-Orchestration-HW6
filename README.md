@@ -289,8 +289,11 @@ without a network.
 ## R.7 Token-Cost Analysis
 Per **full match** (6 sub-games, 5×5), measured by [`scripts/token_report.py`](scripts/token_report.py)
 (`uv run python scripts/token_report.py` → [`results/token_cost.txt`](results/token_cost.txt)). The LLM
-is consulted **once per turn** for `interpret_prompt` (parsing the opponent's message); the agent's own
-speech is a deterministic template (no tokens). Counts are an **offline estimate** (~4 chars/token, the
+is consulted **once per turn** for `interpret_prompt` (parsing the opponent's message); with the default
+deterministic speech the agent's own line costs no tokens. **Enabling creative speech**
+(`llm.creative_speech`, real key) adds a second `speak_prompt` call per turn, roughly **doubling** the
+figures below (a real keyed `--live` sub-game measured ~60 calls vs ~28 interpret-only). Counts below are
+the default mode — an **offline estimate** (~4 chars/token, the
 OpenAI rule of thumb — no tokenizer download); prices are gpt-4o-mini **list price**, config-driven in
 `config.json → llm.pricing`. Exact billing should be read from the API `usage` field on a keyed run.
 
