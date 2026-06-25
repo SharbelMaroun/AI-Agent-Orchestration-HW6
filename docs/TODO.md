@@ -759,7 +759,7 @@ _Close every gap from the 2026-06-25 multi-agent audit (see docs/AUDIT-2026-06-2
 | T10.15 | Capture fault screenshots for edge cases once code exists [gap11,C10] | P2 | 🟦 | `<TBD>` | Fault reports in README R.3/R.4 (freeze, always-left); more pending |
 | T10.16 | __init__.py in every sub-package (services/mcp/shared/strategy/google_agent/nl_protocol/gui/tests) [gap16] | P1 | ✅ | `<TBD>` | All src sub-pkgs + tests/ dirs have `__init__.py` |
 | T10.17 | pyproject [project]: name,version,description,authors,license,deps (6 fields) [gap52] | P1 | ✅ | `<TBD>` | All 6 fields present |
-| T10.18 | Relative file I/O for in-repo paths; secrets_dir sole external [gap53,C21] | P1 | ⬜ | `<TBD>` | No absolute in-repo paths |
+| T10.18 | Relative file I/O for in-repo paths; secrets_dir sole external [gap53,C21] | P1 | ✅ | `<TBD>` | PRD §1.6 note; `config.py` anchors paths on `__file__` |
 | T10.19 | Per-environment config templates (.env.dev/.env.prod) [gap60] | P2 | ⬜ | `<TBD>` | Templates shipped |
 | T10.20 | Pin Google client lib versions in pyproject (version churn) [C26] | P2 | ⬜ | `<TBD>` | Versions pinned |
 | T10.21 | Thread-safety: deadlock avoidance + context managers + queue.Queue [gap17] | P1 | ✅ | `<TBD>` | Single `RLock` (consistent order ⇒ no deadlock) + `with` blocks + `deque` FIFO; noted in PRD_gatekeeper §6 |
@@ -775,14 +775,14 @@ _Close every gap from the 2026-06-25 multi-agent audit (see docs/AUDIT-2026-06-2
 | T10.31 | Extension points/plugin architecture + lifecycle hooks + worked example [gap48,49,58,C11] | P2 | ✅ | `<TBD>` | PLAN §4.1 extension-points table + examples |
 | T10.32 | C4 Level-4 (Code) view + labeled deployment diagram [C22] | P2 | ⬜ | `<TBD>` | Diagrams in assets/ |
 | T10.33 | Building-block contract: Input/Output/Setup + DI testability [C9] | P2 | ⬜ | `<TBD>` | Contract documented |
-| T10.34 | Production secret-management note (Vault/Secrets Manager) [gap37] | P3 | ⬜ | `<TBD>` | PLAN section 3 note |
+| T10.34 | Production secret-management note (Vault/Secrets Manager) [gap37] | P3 | ✅ | `<TBD>` | PLAN §3 (Vault/Secrets Manager for prod) |
 | T10.35 | Adopt PR-based review + feature branches + version tags [gap38,39,40,C23] | P2 | 🟦 | `<TBD>` | CLAUDE git workflow; practice it |
 | T10.36 | Match role structure: 3 cop + 3 thief per internal match; per-subgame role config [C1] CONFIRM w/ staff | P0 | 🟦 | `<TBD>` | PRD note added; engine support + confirm |
-| T10.37 | Non-square sanity grids 3x2 and 4x3 [gap61,C6] | P1 | ⬜ | `<TBD>` | Sweeps include non-square |
+| T10.37 | Non-square sanity grids 3x2 and 4x3 [gap61,C6] | P1 | ✅ | `<TBD>` | `test_match_runs_on_non_square_boards` (3x2, 4x3) |
 | T10.38 | Sanity-stage goals (msg-transmission/coordination/ambiguity/analysis) [C7] | P2 | ⬜ | `<TBD>` | Per-stage objective |
 | T10.39 | Strategic (non-random) start-position option [C16] | P3 | ⬜ | `<TBD>` | Config/strategy choice |
-| T10.40 | Clarify special-action generality vs barrier [C14] | P3 | ⬜ | `<TBD>` | Documented |
-| T10.41 | Local-phase MCP transport avoids stdio pipe errors (use HTTP ports) [C15] | P2 | ⬜ | `<TBD>` | No pipe errors |
+| T10.40 | Clarify special-action generality vs barrier [C14] | P3 | ✅ | `<TBD>` | PRD_game_engine §1 rule 4 note |
+| T10.41 | Local-phase MCP transport avoids stdio pipe errors (use HTTP ports) [C15] | P2 | ✅ | `<TBD>` | PLAN §3 local-transport note (HTTP ports, not stdio) |
 | T10.42 | Bonus scoring math: 10/5/5 + average across series + multi-group [gap62,63,C5] | P3 | ⬜ | `<TBD>` | PRD_email_reporting section 4 |
 | T10.43 | Google: one project + two work areas + new Auth Platform + OAuth-client-id-not-API-key [gap27,28,64,65,66,C2] | P1 | ✅ | `<TBD>` | PRD note added |
 | T10.44 | OAuth combined troubleshooting gate (test user+scopes+both APIs) [gap31,C3] | P1 | ✅ | `<TBD>` | PRD note added |
@@ -790,10 +790,10 @@ _Close every gap from the 2026-06-25 multi-agent audit (see docs/AUDIT-2026-06-2
 | T10.46 | End-to-end real-run check: consent no-error, real draft, real event, token.json [gap29,C13] | P1 | ⬜ | `<TBD>` | 4 checks pass |
 | T10.47 | Interactive first-run vs autonomous runs reconciled [C4] | P0 | ✅ | `<TBD>` | PRD section 1.2 added |
 | T10.48 | Calendar timezone Asia/Jerusalem populated + config-driven [C12,C19] | P1 | 🟦 | `<TBD>` | PRD note; implement |
-| T10.49 | MCP token encryption + revocation (not just auth) [C18] | P2 | ⬜ | `<TBD>` | Encrypt + revoke |
+| T10.49 | MCP token encryption + revocation (not just auth) [C18] | P2 | 🟦 | `<TBD>` | Requirement noted in PLAN §3; implementation pending with cloud (Phase 7) |
 | T10.50 | Tunneling specifics: ngrok ollama.yaml+Authz, Localtonet, Nginx htpasswd+SSL [C17] | P3 | ⬜ | `<TBD>` | Documented |
 | T10.51 | Test-users 100 cap + unverified-mode short token TTL note [C25] | P3 | ⬜ | `<TBD>` | Documented |
 | T10.52 | Google snake_case naming (project/app/client, unique number) [C24] | P3 | ✅ | `<TBD>` | PRD note added |
 | T10.53 | Optional Gmail test label 0-bio [gap76] | P3 | ⬜ | `<TBD>` | Optional note |
-| T10.54 | PRD section 1.5 Market/landscape analysis [gap10,18] | P2 | ⬜ | `<TBD>` | Subsection added |
+| T10.54 | PRD section 1.5 Market/landscape analysis [gap10,18] | P2 | ✅ | `<TBD>` | PRD §1.5 market/landscape subsection |
 

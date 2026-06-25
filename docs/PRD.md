@@ -44,6 +44,21 @@ to **distributed multi-agent orchestration** under uncertainty.
 The success metric is **communication & orchestration quality**, not winning strategy or RL
 sophistication. Reinforcement learning is **optional enrichment**, not a requirement.
 
+### 1.5 Market / Landscape analysis
+Non-commercial academic project; positioned against comparable approaches:
+- **Single-agent, fully-observed RL demos** (classic grid pursuit) — solve *control*, not the hard part
+  here: **decentralized** decisions under **partial observation** with no shared state.
+- **Fixed-protocol multi-agent systems** (agents exchange structured coordinates/JSON) — robust but
+  brittle and not the goal; this project deliberately uses **free-text NL** so coordination *emerges*.
+- **LLM tool-calling / MCP agents** (the emerging standard) — applied here to a **two-server, two-agent
+  adversarial** game, uncommon vs typical single-assistant MCP demos.
+- **Target audience:** course staff (evaluation), peer groups (inter-group bonus), future maintainers.
+
+### 1.6 Package organization (NFR note)
+In-repo file I/O is resolved **relative to the package** (`config.py` anchors `config/` on `__file__`);
+the only intentional absolute path is the external `google.secrets_dir`. No hard-coded absolute in-repo
+paths; relative imports throughout. (Audit C21/gap53.)
+
 ---
 
 ## 2. Goals, KPIs & Acceptance Criteria
