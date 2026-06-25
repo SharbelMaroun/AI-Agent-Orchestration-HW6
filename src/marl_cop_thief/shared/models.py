@@ -78,3 +78,11 @@ class SubGameResult:
     moves_used: int
     cop_score: int
     thief_score: int
+
+
+@dataclass(frozen=True)
+class Message:
+    """A free-text natural-language message from one agent to the other."""
+
+    sender: Role
+    text: str

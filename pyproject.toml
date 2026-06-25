@@ -6,7 +6,9 @@ readme = "README.md"
 requires-python = ">=3.10"
 license = { text = "MIT" }
 authors = [{ name = "Sharbel Maroun" }]
-dependencies = []
+dependencies = [
+    "fastmcp>=3.4.2",
+]
 
 [dependency-groups]
 dev = ["pytest>=8", "pytest-cov>=5", "ruff>=0.6"]
@@ -36,6 +38,7 @@ branch = true
 omit = [
     "src/marl_cop_thief/main.py",
     "src/marl_cop_thief/__main__.py",
+    "src/marl_cop_thief/services/mcp/servers.py",
     "*/tests/*",
     "src/marl_cop_thief/**/gui/*",
 ]

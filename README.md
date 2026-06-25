@@ -95,11 +95,28 @@ Nielsen's 10 usability heuristics (GUI/CLI) — see [`docs/PLAN.md`](docs/PLAN.m
 > decision — with **graphs and screenshots whenever possible**. Images live in `assets/`, generated
 > plots and run outputs in `results/`. Updated continuously, not only at submission.
 
+## R.0 Implementation status (code)
+| Phase | Component | Status | Evidence |
+|---|---|---|---|
+| 0 | Scaffolding (uv, config, version/constants, loader) | ✅ done | ruff clean · 100% cov |
+| 1 | Game engine (board, models, engine, scoring, barriers) | ✅ done | 100% cov |
+| 2 | MCP tool layer + 2 FastMCP servers | 🟦 partial | tools/observation/bus/servers done; transport/auth pending |
+| 3 | Orchestrator + SDK + CLI (full local match) | ✅ done | `python -m marl_cop_thief` runs |
+| 4 | Decision strategy | 🟦 minimal | heuristic decider only; belief/Q-table pending |
+| 5 | Natural-language + LLM | ✅ done | NL encode/decode, ambiguity handler, NL decider; LLM via gatekeeper |
+| 9 | API gatekeeper | 🟦 minimal | retry + per-call logging; FIFO queue/backpressure pending |
+| 6–8, 10 | GUI, cloud, Gmail agent, research | ⬜ pending | — |
+
+Whole suite: **86 tests, 100% coverage, Ruff zero-violation.** The LLM client routes every call through
+the (minimal) gatekeeper; the full FIFO-queue gatekeeper lands in Phase 9.
+
 ## R.1 Work Log (running changelog)
 Newest first.
 
 | Date | What we did | Why | Evidence |
 |------|-------------|-----|----------|
+| 2026-06-25 | **Phase 5**: NL encode/decode + ambiguity handler + NL decider; **minimal gatekeeper** + LLM client; agents coordinate in free text via the LLM-through-gatekeeper | The graded core: NL coordination under partial obs | 86 tests, 100% cov; NL sub-game runs offline |
+| 2026-06-25 | **Phase 2**: MCP tool layer (observation, message bus, tool service w/ turn-ownership) + 2 FastMCP servers exposing 6 tools each | Build the agent communication infra | 72 tests, 100% cov, ruff clean |
 | 2026-06-25 | **Phase 3**: orchestrator + turn pipeline + accumulator + SDK + CLI; full autonomous 6-sub-game match runs (heuristic decider) | Wire the end-to-end local match | `uv run python -m marl_cop_thief` works; 55 tests, 100% cov |
 | 2026-06-25 | **Phase 1**: game engine — board, models, engine (state machine/legality/capture), scoring, barriers | Build the authoritative rules | 42 tests pass, 100% coverage, ruff clean |
 | 2026-06-25 | **Phase 0**: `uv` project, config (versioned), version/constants, config loader | Start the build | 14 tests, 100% cov (commit 3428a02) |

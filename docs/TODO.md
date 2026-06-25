@@ -8,6 +8,8 @@
 > **Status:** ⬜ Not Started · 🟦 In Progress · ✅ Completed — **Priority:** P0–P3. Owner: `<TBD>`.  
 > Update statuses continuously; add a README Work-Log row + evidence (graph/screenshot) per task.
 
+> **Implementation status (code, 2026-06-25):** Phase 0 ✅ · Phase 1 ✅ · Phase 2 🟦 (tool layer + 2 FastMCP servers done; MCP transport/auth pending) · Phase 3 ✅ · Phase 5 ✅ (NL agents + minimal gatekeeper) · Phase 4 🟦 (heuristic only) — all green (ruff clean, pytest 86 passing, 100% coverage). Phases 6–10 mostly pending; the gatekeeper is minimal (retry+log) pending full FIFO queue.
+
 ---
 
 ## Phase & milestone overview
@@ -35,25 +37,25 @@ _Foundations: uv project, package skeleton, config, quality tooling, docs approv
 | ID | Task | Pri | Status | Owner | DoD |
 |----|------|-----|--------|-------|-----|
 | T0.1 | Install `uv` (Windows PowerShell / macOS / Linux) | P0 | ✅ | `<TBD>` | `uv --version` works |
-| T0.2 | `uv init` the project | P0 | ⬜ | `<TBD>` | Project initialized |
-| T0.3 | Author `pyproject.toml` (name, version 0.1.0, requires-python >=3.10) | P0 | ⬜ | `<TBD>` | Valid pyproject |
+| T0.2 | `uv init` the project | P0 | ✅ | `<TBD>` | Project initialized |
+| T0.3 | Author `pyproject.toml` (name, version 0.1.0, requires-python >=3.10) | P0 | ✅ | `<TBD>` | Valid pyproject |
 | T0.4 | Declare deps (fastmcp, google-api-python-client, google-auth-oauthlib, google-auth-httplib2, llm sdk) | P0 | ⬜ | `<TBD>` | `uv sync` resolves |
-| T0.5 | Generate & commit `uv.lock` | P0 | ⬜ | `<TBD>` | Lockfile under VCS |
-| T0.6 | Create `src/marl_cop_thief/` package | P0 | ⬜ | `<TBD>` | Importable package |
-| T0.7 | Add `__init__.py` with `__all__` + `__version__` | P0 | ⬜ | `<TBD>` | Exports defined |
-| T0.8 | Create `shared/version.py` = `1.00` | P0 | ⬜ | `<TBD>` | Version constant present |
-| T0.9 | Create `shared/constants.py` (enums, no magic numbers) | P0 | ⬜ | `<TBD>` | Constants centralized |
-| T0.10 | Create `config/` directory | P0 | ⬜ | `<TBD>` | Exists |
-| T0.11 | Author `config/config.json` (game + reporting + google) version 1.00 | P0 | ⬜ | `<TBD>` | Loads at runtime |
-| T0.12 | Author `config/rate_limits.json` version 1.00 | P0 | ⬜ | `<TBD>` | Loads at runtime |
-| T0.13 | Author `config/logging_config.json` | P0 | ⬜ | `<TBD>` | Logging configured |
-| T0.14 | Add `.gitignore` (.env, client_secret.json, token.json, *.key, *.pem) | P0 | ⬜ | `<TBD>` | Secrets ignored |
-| T0.15 | Add `.env-example` with dummy values | P0 | ⬜ | `<TBD>` | Committed; no real secrets |
-| T0.16 | Configure Ruff in pyproject (line-length 100; E,F,W,I,N,UP,B,C4,SIM) | P0 | ⬜ | `<TBD>` | Ruff configured |
-| T0.17 | Configure coverage (`fail_under = 85`, omit gui/main) | P0 | ⬜ | `<TBD>` | Gate set |
-| T0.18 | Configure pytest (testpaths, addopts) | P0 | ⬜ | `<TBD>` | pytest runs |
-| T0.19 | Create `tests/unit/` + `tests/integration/` | P0 | ⬜ | `<TBD>` | Mirrors src/ |
-| T0.20 | Add `tests/conftest.py` shared fixtures | P0 | ⬜ | `<TBD>` | Fixtures importable |
+| T0.5 | Generate & commit `uv.lock` | P0 | ✅ | `<TBD>` | Lockfile under VCS |
+| T0.6 | Create `src/marl_cop_thief/` package | P0 | ✅ | `<TBD>` | Importable package |
+| T0.7 | Add `__init__.py` with `__all__` + `__version__` | P0 | ✅ | `<TBD>` | Exports defined |
+| T0.8 | Create `shared/version.py` = `1.00` | P0 | ✅ | `<TBD>` | Version constant present |
+| T0.9 | Create `shared/constants.py` (enums, no magic numbers) | P0 | ✅ | `<TBD>` | Constants centralized |
+| T0.10 | Create `config/` directory | P0 | ✅ | `<TBD>` | Exists |
+| T0.11 | Author `config/config.json` (game + reporting + google) version 1.00 | P0 | ✅ | `<TBD>` | Loads at runtime |
+| T0.12 | Author `config/rate_limits.json` version 1.00 | P0 | ✅ | `<TBD>` | Loads at runtime |
+| T0.13 | Author `config/logging_config.json` | P0 | ✅ | `<TBD>` | Logging configured |
+| T0.14 | Add `.gitignore` (.env, client_secret.json, token.json, *.key, *.pem) | P0 | ✅ | `<TBD>` | Secrets ignored |
+| T0.15 | Add `.env-example` with dummy values | P0 | ✅ | `<TBD>` | Committed; no real secrets |
+| T0.16 | Configure Ruff in pyproject (line-length 100; E,F,W,I,N,UP,B,C4,SIM) | P0 | ✅ | `<TBD>` | Ruff configured |
+| T0.17 | Configure coverage (`fail_under = 85`, omit gui/main) | P0 | ✅ | `<TBD>` | Gate set |
+| T0.18 | Configure pytest (testpaths, addopts) | P0 | ✅ | `<TBD>` | pytest runs |
+| T0.19 | Create `tests/unit/` + `tests/integration/` | P0 | ✅ | `<TBD>` | Mirrors src/ |
+| T0.20 | Add `tests/conftest.py` shared fixtures | P0 | ✅ | `<TBD>` | Fixtures importable |
 | T0.21 | Choose LLM access approach (Cloud API / Ollama / Hybrid) | P0 | ⬜ | `<TBD>` | Recorded in PLAN |
 | T0.22 | Store LLM API key in `.env` (git-ignored) | P0 | ⬜ | `<TBD>` | Key not committed |
 | T0.23 | Approve `docs/PRD.md` | P0 | ⬜ | `<TBD>` | Sign-off recorded |
@@ -76,61 +78,61 @@ _Authoritative deterministic state machine. See PRD_game_engine.md._
 
 | ID | Task | Pri | Status | Owner | DoD |
 |----|------|-----|--------|-------|-----|
-| T1.1 | Spec & single-concern interface for `services/board.py` — grid, cells, 8-dir neighbours, bounds, barriers | P0 | ⬜ | `<TBD>` | Interface + docstring agreed; ≤150-LOC plan |
-| T1.2 | Define typed models/signatures for `services/board.py` | P0 | ⬜ | `<TBD>` | Typed inputs/outputs defined |
-| T1.3 | RED: write failing unit tests for `services/board.py` (happy path) | P0 | ⬜ | `<TBD>` | Failing tests committed |
-| T1.4 | GREEN: implement `services/board.py` | P0 | ⬜ | `<TBD>` | Happy-path tests pass |
-| T1.5 | Edge-case & boundary tests for `services/board.py` | P0 | ⬜ | `<TBD>` | Empty/invalid/limit inputs covered |
-| T1.6 | Defensive error handling in `services/board.py` | P0 | ⬜ | `<TBD>` | Graceful failure + clear message |
-| T1.7 | Refactor `services/board.py`: DRY, ≤150 lines, single responsibility | P0 | ⬜ | `<TBD>` | No duplication; ≤150 LOC |
-| T1.8 | Docstrings + why-comments for `services/board.py` | P0 | ⬜ | `<TBD>` | Module/functions documented |
-| T1.9 | Ruff clean `services/board.py` | P0 | ⬜ | `<TBD>` | 0 ruff violations |
-| T1.10 | Mock external deps in `services/board.py` tests | P0 | ⬜ | `<TBD>` | No live external calls |
-| T1.11 | Coverage ≥85% for `services/board.py` + add README Work Log row | P0 | ⬜ | `<TBD>` | ≥85% coverage; Work Log updated |
-| T1.12 | Spec & single-concern interface for `shared/models.py` — Position/Action/Message/GameState/results | P0 | ⬜ | `<TBD>` | Interface + docstring agreed; ≤150-LOC plan |
-| T1.13 | Define typed models/signatures for `shared/models.py` | P0 | ⬜ | `<TBD>` | Typed inputs/outputs defined |
-| T1.14 | RED: write failing unit tests for `shared/models.py` (happy path) | P0 | ⬜ | `<TBD>` | Failing tests committed |
-| T1.15 | GREEN: implement `shared/models.py` | P0 | ⬜ | `<TBD>` | Happy-path tests pass |
-| T1.16 | Edge-case & boundary tests for `shared/models.py` | P0 | ⬜ | `<TBD>` | Empty/invalid/limit inputs covered |
-| T1.17 | Defensive error handling in `shared/models.py` | P0 | ⬜ | `<TBD>` | Graceful failure + clear message |
-| T1.18 | Refactor `shared/models.py`: DRY, ≤150 lines, single responsibility | P0 | ⬜ | `<TBD>` | No duplication; ≤150 LOC |
-| T1.19 | Docstrings + why-comments for `shared/models.py` | P0 | ⬜ | `<TBD>` | Module/functions documented |
-| T1.20 | Ruff clean `shared/models.py` | P0 | ⬜ | `<TBD>` | 0 ruff violations |
-| T1.21 | Mock external deps in `shared/models.py` tests | P0 | ⬜ | `<TBD>` | No live external calls |
-| T1.22 | Coverage ≥85% for `shared/models.py` + add README Work Log row | P0 | ⬜ | `<TBD>` | ≥85% coverage; Work Log updated |
-| T1.23 | Spec & single-concern interface for `services/game_engine.py` — state machine, apply(), legality, capture | P0 | ⬜ | `<TBD>` | Interface + docstring agreed; ≤150-LOC plan |
-| T1.24 | Define typed models/signatures for `services/game_engine.py` | P0 | ⬜ | `<TBD>` | Typed inputs/outputs defined |
-| T1.25 | RED: write failing unit tests for `services/game_engine.py` (happy path) | P0 | ⬜ | `<TBD>` | Failing tests committed |
-| T1.26 | GREEN: implement `services/game_engine.py` | P0 | ⬜ | `<TBD>` | Happy-path tests pass |
-| T1.27 | Edge-case & boundary tests for `services/game_engine.py` | P0 | ⬜ | `<TBD>` | Empty/invalid/limit inputs covered |
-| T1.28 | Defensive error handling in `services/game_engine.py` | P0 | ⬜ | `<TBD>` | Graceful failure + clear message |
-| T1.29 | Refactor `services/game_engine.py`: DRY, ≤150 lines, single responsibility | P0 | ⬜ | `<TBD>` | No duplication; ≤150 LOC |
-| T1.30 | Docstrings + why-comments for `services/game_engine.py` | P0 | ⬜ | `<TBD>` | Module/functions documented |
-| T1.31 | Ruff clean `services/game_engine.py` | P0 | ⬜ | `<TBD>` | 0 ruff violations |
-| T1.32 | Mock external deps in `services/game_engine.py` tests | P0 | ⬜ | `<TBD>` | No live external calls |
-| T1.33 | Coverage ≥85% for `services/game_engine.py` + add README Work Log row | P0 | ⬜ | `<TBD>` | ≥85% coverage; Work Log updated |
-| T1.34 | Spec & single-concern interface for `services/scoring.py` — per-subgame + match accumulation (config-driven) | P0 | ⬜ | `<TBD>` | Interface + docstring agreed; ≤150-LOC plan |
-| T1.35 | Define typed models/signatures for `services/scoring.py` | P0 | ⬜ | `<TBD>` | Typed inputs/outputs defined |
-| T1.36 | RED: write failing unit tests for `services/scoring.py` (happy path) | P0 | ⬜ | `<TBD>` | Failing tests committed |
-| T1.37 | GREEN: implement `services/scoring.py` | P0 | ⬜ | `<TBD>` | Happy-path tests pass |
-| T1.38 | Edge-case & boundary tests for `services/scoring.py` | P0 | ⬜ | `<TBD>` | Empty/invalid/limit inputs covered |
-| T1.39 | Defensive error handling in `services/scoring.py` | P0 | ⬜ | `<TBD>` | Graceful failure + clear message |
-| T1.40 | Refactor `services/scoring.py`: DRY, ≤150 lines, single responsibility | P0 | ⬜ | `<TBD>` | No duplication; ≤150 LOC |
-| T1.41 | Docstrings + why-comments for `services/scoring.py` | P0 | ⬜ | `<TBD>` | Module/functions documented |
-| T1.42 | Ruff clean `services/scoring.py` | P0 | ⬜ | `<TBD>` | 0 ruff violations |
-| T1.43 | Mock external deps in `services/scoring.py` tests | P0 | ⬜ | `<TBD>` | No live external calls |
-| T1.44 | Coverage ≥85% for `services/scoring.py` + add README Work Log row | P0 | ⬜ | `<TBD>` | ≥85% coverage; Work Log updated |
-| T1.45 | Spec & single-concern interface for `services/barriers.py` — cop barrier placement, <=max, impassable | P0 | ⬜ | `<TBD>` | Interface + docstring agreed; ≤150-LOC plan |
-| T1.46 | Define typed models/signatures for `services/barriers.py` | P0 | ⬜ | `<TBD>` | Typed inputs/outputs defined |
-| T1.47 | RED: write failing unit tests for `services/barriers.py` (happy path) | P0 | ⬜ | `<TBD>` | Failing tests committed |
-| T1.48 | GREEN: implement `services/barriers.py` | P0 | ⬜ | `<TBD>` | Happy-path tests pass |
-| T1.49 | Edge-case & boundary tests for `services/barriers.py` | P0 | ⬜ | `<TBD>` | Empty/invalid/limit inputs covered |
-| T1.50 | Defensive error handling in `services/barriers.py` | P0 | ⬜ | `<TBD>` | Graceful failure + clear message |
-| T1.51 | Refactor `services/barriers.py`: DRY, ≤150 lines, single responsibility | P0 | ⬜ | `<TBD>` | No duplication; ≤150 LOC |
-| T1.52 | Docstrings + why-comments for `services/barriers.py` | P0 | ⬜ | `<TBD>` | Module/functions documented |
-| T1.53 | Ruff clean `services/barriers.py` | P0 | ⬜ | `<TBD>` | 0 ruff violations |
-| T1.54 | Mock external deps in `services/barriers.py` tests | P0 | ⬜ | `<TBD>` | No live external calls |
-| T1.55 | Coverage ≥85% for `services/barriers.py` + add README Work Log row | P0 | ⬜ | `<TBD>` | ≥85% coverage; Work Log updated |
+| T1.1 | Spec & single-concern interface for `services/board.py` — grid, cells, 8-dir neighbours, bounds, barriers | P0 | ✅ | `<TBD>` | Interface + docstring agreed; ≤150-LOC plan |
+| T1.2 | Define typed models/signatures for `services/board.py` | P0 | ✅ | `<TBD>` | Typed inputs/outputs defined |
+| T1.3 | RED: write failing unit tests for `services/board.py` (happy path) | P0 | ✅ | `<TBD>` | Failing tests committed |
+| T1.4 | GREEN: implement `services/board.py` | P0 | ✅ | `<TBD>` | Happy-path tests pass |
+| T1.5 | Edge-case & boundary tests for `services/board.py` | P0 | ✅ | `<TBD>` | Empty/invalid/limit inputs covered |
+| T1.6 | Defensive error handling in `services/board.py` | P0 | ✅ | `<TBD>` | Graceful failure + clear message |
+| T1.7 | Refactor `services/board.py`: DRY, ≤150 lines, single responsibility | P0 | ✅ | `<TBD>` | No duplication; ≤150 LOC |
+| T1.8 | Docstrings + why-comments for `services/board.py` | P0 | ✅ | `<TBD>` | Module/functions documented |
+| T1.9 | Ruff clean `services/board.py` | P0 | ✅ | `<TBD>` | 0 ruff violations |
+| T1.10 | Mock external deps in `services/board.py` tests | P0 | ✅ | `<TBD>` | No live external calls |
+| T1.11 | Coverage ≥85% for `services/board.py` + add README Work Log row | P0 | ✅ | `<TBD>` | ≥85% coverage; Work Log updated |
+| T1.12 | Spec & single-concern interface for `shared/models.py` — Position/Action/Message/GameState/results | P0 | ✅ | `<TBD>` | Interface + docstring agreed; ≤150-LOC plan |
+| T1.13 | Define typed models/signatures for `shared/models.py` | P0 | ✅ | `<TBD>` | Typed inputs/outputs defined |
+| T1.14 | RED: write failing unit tests for `shared/models.py` (happy path) | P0 | ✅ | `<TBD>` | Failing tests committed |
+| T1.15 | GREEN: implement `shared/models.py` | P0 | ✅ | `<TBD>` | Happy-path tests pass |
+| T1.16 | Edge-case & boundary tests for `shared/models.py` | P0 | ✅ | `<TBD>` | Empty/invalid/limit inputs covered |
+| T1.17 | Defensive error handling in `shared/models.py` | P0 | ✅ | `<TBD>` | Graceful failure + clear message |
+| T1.18 | Refactor `shared/models.py`: DRY, ≤150 lines, single responsibility | P0 | ✅ | `<TBD>` | No duplication; ≤150 LOC |
+| T1.19 | Docstrings + why-comments for `shared/models.py` | P0 | ✅ | `<TBD>` | Module/functions documented |
+| T1.20 | Ruff clean `shared/models.py` | P0 | ✅ | `<TBD>` | 0 ruff violations |
+| T1.21 | Mock external deps in `shared/models.py` tests | P0 | ✅ | `<TBD>` | No live external calls |
+| T1.22 | Coverage ≥85% for `shared/models.py` + add README Work Log row | P0 | ✅ | `<TBD>` | ≥85% coverage; Work Log updated |
+| T1.23 | Spec & single-concern interface for `services/game_engine.py` — state machine, apply(), legality, capture | P0 | ✅ | `<TBD>` | Interface + docstring agreed; ≤150-LOC plan |
+| T1.24 | Define typed models/signatures for `services/game_engine.py` | P0 | ✅ | `<TBD>` | Typed inputs/outputs defined |
+| T1.25 | RED: write failing unit tests for `services/game_engine.py` (happy path) | P0 | ✅ | `<TBD>` | Failing tests committed |
+| T1.26 | GREEN: implement `services/game_engine.py` | P0 | ✅ | `<TBD>` | Happy-path tests pass |
+| T1.27 | Edge-case & boundary tests for `services/game_engine.py` | P0 | ✅ | `<TBD>` | Empty/invalid/limit inputs covered |
+| T1.28 | Defensive error handling in `services/game_engine.py` | P0 | ✅ | `<TBD>` | Graceful failure + clear message |
+| T1.29 | Refactor `services/game_engine.py`: DRY, ≤150 lines, single responsibility | P0 | ✅ | `<TBD>` | No duplication; ≤150 LOC |
+| T1.30 | Docstrings + why-comments for `services/game_engine.py` | P0 | ✅ | `<TBD>` | Module/functions documented |
+| T1.31 | Ruff clean `services/game_engine.py` | P0 | ✅ | `<TBD>` | 0 ruff violations |
+| T1.32 | Mock external deps in `services/game_engine.py` tests | P0 | ✅ | `<TBD>` | No live external calls |
+| T1.33 | Coverage ≥85% for `services/game_engine.py` + add README Work Log row | P0 | ✅ | `<TBD>` | ≥85% coverage; Work Log updated |
+| T1.34 | Spec & single-concern interface for `services/scoring.py` — per-subgame + match accumulation (config-driven) | P0 | ✅ | `<TBD>` | Interface + docstring agreed; ≤150-LOC plan |
+| T1.35 | Define typed models/signatures for `services/scoring.py` | P0 | ✅ | `<TBD>` | Typed inputs/outputs defined |
+| T1.36 | RED: write failing unit tests for `services/scoring.py` (happy path) | P0 | ✅ | `<TBD>` | Failing tests committed |
+| T1.37 | GREEN: implement `services/scoring.py` | P0 | ✅ | `<TBD>` | Happy-path tests pass |
+| T1.38 | Edge-case & boundary tests for `services/scoring.py` | P0 | ✅ | `<TBD>` | Empty/invalid/limit inputs covered |
+| T1.39 | Defensive error handling in `services/scoring.py` | P0 | ✅ | `<TBD>` | Graceful failure + clear message |
+| T1.40 | Refactor `services/scoring.py`: DRY, ≤150 lines, single responsibility | P0 | ✅ | `<TBD>` | No duplication; ≤150 LOC |
+| T1.41 | Docstrings + why-comments for `services/scoring.py` | P0 | ✅ | `<TBD>` | Module/functions documented |
+| T1.42 | Ruff clean `services/scoring.py` | P0 | ✅ | `<TBD>` | 0 ruff violations |
+| T1.43 | Mock external deps in `services/scoring.py` tests | P0 | ✅ | `<TBD>` | No live external calls |
+| T1.44 | Coverage ≥85% for `services/scoring.py` + add README Work Log row | P0 | ✅ | `<TBD>` | ≥85% coverage; Work Log updated |
+| T1.45 | Spec & single-concern interface for `services/barriers.py` — cop barrier placement, <=max, impassable | P0 | ✅ | `<TBD>` | Interface + docstring agreed; ≤150-LOC plan |
+| T1.46 | Define typed models/signatures for `services/barriers.py` | P0 | ✅ | `<TBD>` | Typed inputs/outputs defined |
+| T1.47 | RED: write failing unit tests for `services/barriers.py` (happy path) | P0 | ✅ | `<TBD>` | Failing tests committed |
+| T1.48 | GREEN: implement `services/barriers.py` | P0 | ✅ | `<TBD>` | Happy-path tests pass |
+| T1.49 | Edge-case & boundary tests for `services/barriers.py` | P0 | ✅ | `<TBD>` | Empty/invalid/limit inputs covered |
+| T1.50 | Defensive error handling in `services/barriers.py` | P0 | ✅ | `<TBD>` | Graceful failure + clear message |
+| T1.51 | Refactor `services/barriers.py`: DRY, ≤150 lines, single responsibility | P0 | ✅ | `<TBD>` | No duplication; ≤150 LOC |
+| T1.52 | Docstrings + why-comments for `services/barriers.py` | P0 | ✅ | `<TBD>` | Module/functions documented |
+| T1.53 | Ruff clean `services/barriers.py` | P0 | ✅ | `<TBD>` | 0 ruff violations |
+| T1.54 | Mock external deps in `services/barriers.py` tests | P0 | ✅ | `<TBD>` | No live external calls |
+| T1.55 | Coverage ≥85% for `services/barriers.py` + add README Work Log row | P0 | ✅ | `<TBD>` | ≥85% coverage; Work Log updated |
 | T1.56 | Seeded RNG for reproducible start positions | P1 | ⬜ | `<TBD>` | Deterministic with fixed seed |
 | T1.57 | Turn order (thief first, then cop, alternating) | P0 | ⬜ | `<TBD>` | Alternation verified |
 | T1.58 | Diagonal + orthogonal movement only | P0 | ⬜ | `<TBD>` | 8-dir legal moves |
@@ -150,39 +152,39 @@ _Two FastMCP servers exposing tools (no LLM in server). See PRD_mcp_server.md._
 
 | ID | Task | Pri | Status | Owner | DoD |
 |----|------|-----|--------|-------|-----|
-| T2.1 | Spec & single-concern interface for `mcp/mcp_tools.py` — tool contracts: observe/send/recv/action/verify/status | P0 | ⬜ | `<TBD>` | Interface + docstring agreed; ≤150-LOC plan |
-| T2.2 | Define typed models/signatures for `mcp/mcp_tools.py` | P0 | ⬜ | `<TBD>` | Typed inputs/outputs defined |
-| T2.3 | RED: write failing unit tests for `mcp/mcp_tools.py` (happy path) | P0 | ⬜ | `<TBD>` | Failing tests committed |
-| T2.4 | GREEN: implement `mcp/mcp_tools.py` | P0 | ⬜ | `<TBD>` | Happy-path tests pass |
-| T2.5 | Edge-case & boundary tests for `mcp/mcp_tools.py` | P0 | ⬜ | `<TBD>` | Empty/invalid/limit inputs covered |
-| T2.6 | Defensive error handling in `mcp/mcp_tools.py` | P0 | ⬜ | `<TBD>` | Graceful failure + clear message |
-| T2.7 | Refactor `mcp/mcp_tools.py`: DRY, ≤150 lines, single responsibility | P0 | ⬜ | `<TBD>` | No duplication; ≤150 LOC |
-| T2.8 | Docstrings + why-comments for `mcp/mcp_tools.py` | P0 | ⬜ | `<TBD>` | Module/functions documented |
-| T2.9 | Ruff clean `mcp/mcp_tools.py` | P0 | ⬜ | `<TBD>` | 0 ruff violations |
-| T2.10 | Mock external deps in `mcp/mcp_tools.py` tests | P0 | ⬜ | `<TBD>` | No live external calls |
-| T2.11 | Coverage ≥85% for `mcp/mcp_tools.py` + add README Work Log row | P0 | ⬜ | `<TBD>` | ≥85% coverage; Work Log updated |
-| T2.12 | Spec & single-concern interface for `mcp/cop_server.py` — FastMCP cop server | P0 | ⬜ | `<TBD>` | Interface + docstring agreed; ≤150-LOC plan |
-| T2.13 | Define typed models/signatures for `mcp/cop_server.py` | P0 | ⬜ | `<TBD>` | Typed inputs/outputs defined |
-| T2.14 | RED: write failing unit tests for `mcp/cop_server.py` (happy path) | P0 | ⬜ | `<TBD>` | Failing tests committed |
-| T2.15 | GREEN: implement `mcp/cop_server.py` | P0 | ⬜ | `<TBD>` | Happy-path tests pass |
-| T2.16 | Edge-case & boundary tests for `mcp/cop_server.py` | P0 | ⬜ | `<TBD>` | Empty/invalid/limit inputs covered |
-| T2.17 | Defensive error handling in `mcp/cop_server.py` | P0 | ⬜ | `<TBD>` | Graceful failure + clear message |
-| T2.18 | Refactor `mcp/cop_server.py`: DRY, ≤150 lines, single responsibility | P0 | ⬜ | `<TBD>` | No duplication; ≤150 LOC |
-| T2.19 | Docstrings + why-comments for `mcp/cop_server.py` | P0 | ⬜ | `<TBD>` | Module/functions documented |
-| T2.20 | Ruff clean `mcp/cop_server.py` | P0 | ⬜ | `<TBD>` | 0 ruff violations |
-| T2.21 | Mock external deps in `mcp/cop_server.py` tests | P0 | ⬜ | `<TBD>` | No live external calls |
-| T2.22 | Coverage ≥85% for `mcp/cop_server.py` + add README Work Log row | P0 | ⬜ | `<TBD>` | ≥85% coverage; Work Log updated |
-| T2.23 | Spec & single-concern interface for `mcp/thief_server.py` — FastMCP thief server | P0 | ⬜ | `<TBD>` | Interface + docstring agreed; ≤150-LOC plan |
-| T2.24 | Define typed models/signatures for `mcp/thief_server.py` | P0 | ⬜ | `<TBD>` | Typed inputs/outputs defined |
-| T2.25 | RED: write failing unit tests for `mcp/thief_server.py` (happy path) | P0 | ⬜ | `<TBD>` | Failing tests committed |
-| T2.26 | GREEN: implement `mcp/thief_server.py` | P0 | ⬜ | `<TBD>` | Happy-path tests pass |
-| T2.27 | Edge-case & boundary tests for `mcp/thief_server.py` | P0 | ⬜ | `<TBD>` | Empty/invalid/limit inputs covered |
-| T2.28 | Defensive error handling in `mcp/thief_server.py` | P0 | ⬜ | `<TBD>` | Graceful failure + clear message |
-| T2.29 | Refactor `mcp/thief_server.py`: DRY, ≤150 lines, single responsibility | P0 | ⬜ | `<TBD>` | No duplication; ≤150 LOC |
-| T2.30 | Docstrings + why-comments for `mcp/thief_server.py` | P0 | ⬜ | `<TBD>` | Module/functions documented |
-| T2.31 | Ruff clean `mcp/thief_server.py` | P0 | ⬜ | `<TBD>` | 0 ruff violations |
-| T2.32 | Mock external deps in `mcp/thief_server.py` tests | P0 | ⬜ | `<TBD>` | No live external calls |
-| T2.33 | Coverage ≥85% for `mcp/thief_server.py` + add README Work Log row | P0 | ⬜ | `<TBD>` | ≥85% coverage; Work Log updated |
+| T2.1 | Spec & single-concern interface for `mcp/mcp_tools.py` — tool contracts: observe/send/recv/action/verify/status | P0 | ✅ | `<TBD>` | Interface + docstring agreed; ≤150-LOC plan |
+| T2.2 | Define typed models/signatures for `mcp/mcp_tools.py` | P0 | ✅ | `<TBD>` | Typed inputs/outputs defined |
+| T2.3 | RED: write failing unit tests for `mcp/mcp_tools.py` (happy path) | P0 | ✅ | `<TBD>` | Failing tests committed |
+| T2.4 | GREEN: implement `mcp/mcp_tools.py` | P0 | ✅ | `<TBD>` | Happy-path tests pass |
+| T2.5 | Edge-case & boundary tests for `mcp/mcp_tools.py` | P0 | ✅ | `<TBD>` | Empty/invalid/limit inputs covered |
+| T2.6 | Defensive error handling in `mcp/mcp_tools.py` | P0 | ✅ | `<TBD>` | Graceful failure + clear message |
+| T2.7 | Refactor `mcp/mcp_tools.py`: DRY, ≤150 lines, single responsibility | P0 | ✅ | `<TBD>` | No duplication; ≤150 LOC |
+| T2.8 | Docstrings + why-comments for `mcp/mcp_tools.py` | P0 | ✅ | `<TBD>` | Module/functions documented |
+| T2.9 | Ruff clean `mcp/mcp_tools.py` | P0 | ✅ | `<TBD>` | 0 ruff violations |
+| T2.10 | Mock external deps in `mcp/mcp_tools.py` tests | P0 | ✅ | `<TBD>` | No live external calls |
+| T2.11 | Coverage ≥85% for `mcp/mcp_tools.py` + add README Work Log row | P0 | ✅ | `<TBD>` | ≥85% coverage; Work Log updated |
+| T2.12 | Spec & single-concern interface for `mcp/cop_server.py` — FastMCP cop server | P0 | ✅ | `<TBD>` | Interface + docstring agreed; ≤150-LOC plan |
+| T2.13 | Define typed models/signatures for `mcp/cop_server.py` | P0 | ✅ | `<TBD>` | Typed inputs/outputs defined |
+| T2.14 | RED: write failing unit tests for `mcp/cop_server.py` (happy path) | P0 | ✅ | `<TBD>` | Failing tests committed |
+| T2.15 | GREEN: implement `mcp/cop_server.py` | P0 | ✅ | `<TBD>` | Happy-path tests pass |
+| T2.16 | Edge-case & boundary tests for `mcp/cop_server.py` | P0 | ✅ | `<TBD>` | Empty/invalid/limit inputs covered |
+| T2.17 | Defensive error handling in `mcp/cop_server.py` | P0 | ✅ | `<TBD>` | Graceful failure + clear message |
+| T2.18 | Refactor `mcp/cop_server.py`: DRY, ≤150 lines, single responsibility | P0 | ✅ | `<TBD>` | No duplication; ≤150 LOC |
+| T2.19 | Docstrings + why-comments for `mcp/cop_server.py` | P0 | ✅ | `<TBD>` | Module/functions documented |
+| T2.20 | Ruff clean `mcp/cop_server.py` | P0 | ✅ | `<TBD>` | 0 ruff violations |
+| T2.21 | Mock external deps in `mcp/cop_server.py` tests | P0 | ✅ | `<TBD>` | No live external calls |
+| T2.22 | Coverage ≥85% for `mcp/cop_server.py` + add README Work Log row | P0 | ✅ | `<TBD>` | ≥85% coverage; Work Log updated |
+| T2.23 | Spec & single-concern interface for `mcp/thief_server.py` — FastMCP thief server | P0 | ✅ | `<TBD>` | Interface + docstring agreed; ≤150-LOC plan |
+| T2.24 | Define typed models/signatures for `mcp/thief_server.py` | P0 | ✅ | `<TBD>` | Typed inputs/outputs defined |
+| T2.25 | RED: write failing unit tests for `mcp/thief_server.py` (happy path) | P0 | ✅ | `<TBD>` | Failing tests committed |
+| T2.26 | GREEN: implement `mcp/thief_server.py` | P0 | ✅ | `<TBD>` | Happy-path tests pass |
+| T2.27 | Edge-case & boundary tests for `mcp/thief_server.py` | P0 | ✅ | `<TBD>` | Empty/invalid/limit inputs covered |
+| T2.28 | Defensive error handling in `mcp/thief_server.py` | P0 | ✅ | `<TBD>` | Graceful failure + clear message |
+| T2.29 | Refactor `mcp/thief_server.py`: DRY, ≤150 lines, single responsibility | P0 | ✅ | `<TBD>` | No duplication; ≤150 LOC |
+| T2.30 | Docstrings + why-comments for `mcp/thief_server.py` | P0 | ✅ | `<TBD>` | Module/functions documented |
+| T2.31 | Ruff clean `mcp/thief_server.py` | P0 | ✅ | `<TBD>` | 0 ruff violations |
+| T2.32 | Mock external deps in `mcp/thief_server.py` tests | P0 | ✅ | `<TBD>` | No live external calls |
+| T2.33 | Coverage ≥85% for `mcp/thief_server.py` + add README Work Log row | P0 | ✅ | `<TBD>` | ≥85% coverage; Work Log updated |
 | T2.34 | Spec & single-concern interface for `shared/mcp_transport.py` — HTTP(S) client transport (via gatekeeper) | P0 | ⬜ | `<TBD>` | Interface + docstring agreed; ≤150-LOC plan |
 | T2.35 | Define typed models/signatures for `shared/mcp_transport.py` | P0 | ⬜ | `<TBD>` | Typed inputs/outputs defined |
 | T2.36 | RED: write failing unit tests for `shared/mcp_transport.py` (happy path) | P0 | ⬜ | `<TBD>` | Failing tests committed |
@@ -219,61 +221,61 @@ _Match/sub-game loop and single SDK entry point._
 
 | ID | Task | Pri | Status | Owner | DoD |
 |----|------|-----|--------|-------|-----|
-| T3.1 | Spec & single-concern interface for `services/orchestrator.py` — match & sub-game loop | P0 | ⬜ | `<TBD>` | Interface + docstring agreed; ≤150-LOC plan |
-| T3.2 | Define typed models/signatures for `services/orchestrator.py` | P0 | ⬜ | `<TBD>` | Typed inputs/outputs defined |
-| T3.3 | RED: write failing unit tests for `services/orchestrator.py` (happy path) | P0 | ⬜ | `<TBD>` | Failing tests committed |
-| T3.4 | GREEN: implement `services/orchestrator.py` | P0 | ⬜ | `<TBD>` | Happy-path tests pass |
-| T3.5 | Edge-case & boundary tests for `services/orchestrator.py` | P0 | ⬜ | `<TBD>` | Empty/invalid/limit inputs covered |
-| T3.6 | Defensive error handling in `services/orchestrator.py` | P0 | ⬜ | `<TBD>` | Graceful failure + clear message |
-| T3.7 | Refactor `services/orchestrator.py`: DRY, ≤150 lines, single responsibility | P0 | ⬜ | `<TBD>` | No duplication; ≤150 LOC |
-| T3.8 | Docstrings + why-comments for `services/orchestrator.py` | P0 | ⬜ | `<TBD>` | Module/functions documented |
-| T3.9 | Ruff clean `services/orchestrator.py` | P0 | ⬜ | `<TBD>` | 0 ruff violations |
-| T3.10 | Mock external deps in `services/orchestrator.py` tests | P0 | ⬜ | `<TBD>` | No live external calls |
-| T3.11 | Coverage ≥85% for `services/orchestrator.py` + add README Work Log row | P0 | ⬜ | `<TBD>` | ≥85% coverage; Work Log updated |
-| T3.12 | Spec & single-concern interface for `services/turn_pipeline.py` — observe->decide->tool->apply->score | P0 | ⬜ | `<TBD>` | Interface + docstring agreed; ≤150-LOC plan |
-| T3.13 | Define typed models/signatures for `services/turn_pipeline.py` | P0 | ⬜ | `<TBD>` | Typed inputs/outputs defined |
-| T3.14 | RED: write failing unit tests for `services/turn_pipeline.py` (happy path) | P0 | ⬜ | `<TBD>` | Failing tests committed |
-| T3.15 | GREEN: implement `services/turn_pipeline.py` | P0 | ⬜ | `<TBD>` | Happy-path tests pass |
-| T3.16 | Edge-case & boundary tests for `services/turn_pipeline.py` | P0 | ⬜ | `<TBD>` | Empty/invalid/limit inputs covered |
-| T3.17 | Defensive error handling in `services/turn_pipeline.py` | P0 | ⬜ | `<TBD>` | Graceful failure + clear message |
-| T3.18 | Refactor `services/turn_pipeline.py`: DRY, ≤150 lines, single responsibility | P0 | ⬜ | `<TBD>` | No duplication; ≤150 LOC |
-| T3.19 | Docstrings + why-comments for `services/turn_pipeline.py` | P0 | ⬜ | `<TBD>` | Module/functions documented |
-| T3.20 | Ruff clean `services/turn_pipeline.py` | P0 | ⬜ | `<TBD>` | 0 ruff violations |
-| T3.21 | Mock external deps in `services/turn_pipeline.py` tests | P0 | ⬜ | `<TBD>` | No live external calls |
-| T3.22 | Coverage ≥85% for `services/turn_pipeline.py` + add README Work Log row | P0 | ⬜ | `<TBD>` | ≥85% coverage; Work Log updated |
-| T3.23 | Spec & single-concern interface for `services/accumulator.py` — accumulate sub-game results | P0 | ⬜ | `<TBD>` | Interface + docstring agreed; ≤150-LOC plan |
-| T3.24 | Define typed models/signatures for `services/accumulator.py` | P0 | ⬜ | `<TBD>` | Typed inputs/outputs defined |
-| T3.25 | RED: write failing unit tests for `services/accumulator.py` (happy path) | P0 | ⬜ | `<TBD>` | Failing tests committed |
-| T3.26 | GREEN: implement `services/accumulator.py` | P0 | ⬜ | `<TBD>` | Happy-path tests pass |
-| T3.27 | Edge-case & boundary tests for `services/accumulator.py` | P0 | ⬜ | `<TBD>` | Empty/invalid/limit inputs covered |
-| T3.28 | Defensive error handling in `services/accumulator.py` | P0 | ⬜ | `<TBD>` | Graceful failure + clear message |
-| T3.29 | Refactor `services/accumulator.py`: DRY, ≤150 lines, single responsibility | P0 | ⬜ | `<TBD>` | No duplication; ≤150 LOC |
-| T3.30 | Docstrings + why-comments for `services/accumulator.py` | P0 | ⬜ | `<TBD>` | Module/functions documented |
-| T3.31 | Ruff clean `services/accumulator.py` | P0 | ⬜ | `<TBD>` | 0 ruff violations |
-| T3.32 | Mock external deps in `services/accumulator.py` tests | P0 | ⬜ | `<TBD>` | No live external calls |
-| T3.33 | Coverage ≥85% for `services/accumulator.py` + add README Work Log row | P0 | ⬜ | `<TBD>` | ≥85% coverage; Work Log updated |
-| T3.34 | Spec & single-concern interface for `sdk/sdk.py` — single public entry point for all logic | P0 | ⬜ | `<TBD>` | Interface + docstring agreed; ≤150-LOC plan |
-| T3.35 | Define typed models/signatures for `sdk/sdk.py` | P0 | ⬜ | `<TBD>` | Typed inputs/outputs defined |
-| T3.36 | RED: write failing unit tests for `sdk/sdk.py` (happy path) | P0 | ⬜ | `<TBD>` | Failing tests committed |
-| T3.37 | GREEN: implement `sdk/sdk.py` | P0 | ⬜ | `<TBD>` | Happy-path tests pass |
-| T3.38 | Edge-case & boundary tests for `sdk/sdk.py` | P0 | ⬜ | `<TBD>` | Empty/invalid/limit inputs covered |
-| T3.39 | Defensive error handling in `sdk/sdk.py` | P0 | ⬜ | `<TBD>` | Graceful failure + clear message |
-| T3.40 | Refactor `sdk/sdk.py`: DRY, ≤150 lines, single responsibility | P0 | ⬜ | `<TBD>` | No duplication; ≤150 LOC |
-| T3.41 | Docstrings + why-comments for `sdk/sdk.py` | P0 | ⬜ | `<TBD>` | Module/functions documented |
-| T3.42 | Ruff clean `sdk/sdk.py` | P0 | ⬜ | `<TBD>` | 0 ruff violations |
-| T3.43 | Mock external deps in `sdk/sdk.py` tests | P0 | ⬜ | `<TBD>` | No live external calls |
-| T3.44 | Coverage ≥85% for `sdk/sdk.py` + add README Work Log row | P0 | ⬜ | `<TBD>` | ≥85% coverage; Work Log updated |
-| T3.45 | Spec & single-concern interface for `main.py` — thin entrypoint -> sdk | P0 | ⬜ | `<TBD>` | Interface + docstring agreed; ≤150-LOC plan |
-| T3.46 | Define typed models/signatures for `main.py` | P0 | ⬜ | `<TBD>` | Typed inputs/outputs defined |
-| T3.47 | RED: write failing unit tests for `main.py` (happy path) | P0 | ⬜ | `<TBD>` | Failing tests committed |
-| T3.48 | GREEN: implement `main.py` | P0 | ⬜ | `<TBD>` | Happy-path tests pass |
-| T3.49 | Edge-case & boundary tests for `main.py` | P0 | ⬜ | `<TBD>` | Empty/invalid/limit inputs covered |
-| T3.50 | Defensive error handling in `main.py` | P0 | ⬜ | `<TBD>` | Graceful failure + clear message |
-| T3.51 | Refactor `main.py`: DRY, ≤150 lines, single responsibility | P0 | ⬜ | `<TBD>` | No duplication; ≤150 LOC |
-| T3.52 | Docstrings + why-comments for `main.py` | P0 | ⬜ | `<TBD>` | Module/functions documented |
-| T3.53 | Ruff clean `main.py` | P0 | ⬜ | `<TBD>` | 0 ruff violations |
-| T3.54 | Mock external deps in `main.py` tests | P0 | ⬜ | `<TBD>` | No live external calls |
-| T3.55 | Coverage ≥85% for `main.py` + add README Work Log row | P0 | ⬜ | `<TBD>` | ≥85% coverage; Work Log updated |
+| T3.1 | Spec & single-concern interface for `services/orchestrator.py` — match & sub-game loop | P0 | ✅ | `<TBD>` | Interface + docstring agreed; ≤150-LOC plan |
+| T3.2 | Define typed models/signatures for `services/orchestrator.py` | P0 | ✅ | `<TBD>` | Typed inputs/outputs defined |
+| T3.3 | RED: write failing unit tests for `services/orchestrator.py` (happy path) | P0 | ✅ | `<TBD>` | Failing tests committed |
+| T3.4 | GREEN: implement `services/orchestrator.py` | P0 | ✅ | `<TBD>` | Happy-path tests pass |
+| T3.5 | Edge-case & boundary tests for `services/orchestrator.py` | P0 | ✅ | `<TBD>` | Empty/invalid/limit inputs covered |
+| T3.6 | Defensive error handling in `services/orchestrator.py` | P0 | ✅ | `<TBD>` | Graceful failure + clear message |
+| T3.7 | Refactor `services/orchestrator.py`: DRY, ≤150 lines, single responsibility | P0 | ✅ | `<TBD>` | No duplication; ≤150 LOC |
+| T3.8 | Docstrings + why-comments for `services/orchestrator.py` | P0 | ✅ | `<TBD>` | Module/functions documented |
+| T3.9 | Ruff clean `services/orchestrator.py` | P0 | ✅ | `<TBD>` | 0 ruff violations |
+| T3.10 | Mock external deps in `services/orchestrator.py` tests | P0 | ✅ | `<TBD>` | No live external calls |
+| T3.11 | Coverage ≥85% for `services/orchestrator.py` + add README Work Log row | P0 | ✅ | `<TBD>` | ≥85% coverage; Work Log updated |
+| T3.12 | Spec & single-concern interface for `services/turn_pipeline.py` — observe->decide->tool->apply->score | P0 | ✅ | `<TBD>` | Interface + docstring agreed; ≤150-LOC plan |
+| T3.13 | Define typed models/signatures for `services/turn_pipeline.py` | P0 | ✅ | `<TBD>` | Typed inputs/outputs defined |
+| T3.14 | RED: write failing unit tests for `services/turn_pipeline.py` (happy path) | P0 | ✅ | `<TBD>` | Failing tests committed |
+| T3.15 | GREEN: implement `services/turn_pipeline.py` | P0 | ✅ | `<TBD>` | Happy-path tests pass |
+| T3.16 | Edge-case & boundary tests for `services/turn_pipeline.py` | P0 | ✅ | `<TBD>` | Empty/invalid/limit inputs covered |
+| T3.17 | Defensive error handling in `services/turn_pipeline.py` | P0 | ✅ | `<TBD>` | Graceful failure + clear message |
+| T3.18 | Refactor `services/turn_pipeline.py`: DRY, ≤150 lines, single responsibility | P0 | ✅ | `<TBD>` | No duplication; ≤150 LOC |
+| T3.19 | Docstrings + why-comments for `services/turn_pipeline.py` | P0 | ✅ | `<TBD>` | Module/functions documented |
+| T3.20 | Ruff clean `services/turn_pipeline.py` | P0 | ✅ | `<TBD>` | 0 ruff violations |
+| T3.21 | Mock external deps in `services/turn_pipeline.py` tests | P0 | ✅ | `<TBD>` | No live external calls |
+| T3.22 | Coverage ≥85% for `services/turn_pipeline.py` + add README Work Log row | P0 | ✅ | `<TBD>` | ≥85% coverage; Work Log updated |
+| T3.23 | Spec & single-concern interface for `services/accumulator.py` — accumulate sub-game results | P0 | ✅ | `<TBD>` | Interface + docstring agreed; ≤150-LOC plan |
+| T3.24 | Define typed models/signatures for `services/accumulator.py` | P0 | ✅ | `<TBD>` | Typed inputs/outputs defined |
+| T3.25 | RED: write failing unit tests for `services/accumulator.py` (happy path) | P0 | ✅ | `<TBD>` | Failing tests committed |
+| T3.26 | GREEN: implement `services/accumulator.py` | P0 | ✅ | `<TBD>` | Happy-path tests pass |
+| T3.27 | Edge-case & boundary tests for `services/accumulator.py` | P0 | ✅ | `<TBD>` | Empty/invalid/limit inputs covered |
+| T3.28 | Defensive error handling in `services/accumulator.py` | P0 | ✅ | `<TBD>` | Graceful failure + clear message |
+| T3.29 | Refactor `services/accumulator.py`: DRY, ≤150 lines, single responsibility | P0 | ✅ | `<TBD>` | No duplication; ≤150 LOC |
+| T3.30 | Docstrings + why-comments for `services/accumulator.py` | P0 | ✅ | `<TBD>` | Module/functions documented |
+| T3.31 | Ruff clean `services/accumulator.py` | P0 | ✅ | `<TBD>` | 0 ruff violations |
+| T3.32 | Mock external deps in `services/accumulator.py` tests | P0 | ✅ | `<TBD>` | No live external calls |
+| T3.33 | Coverage ≥85% for `services/accumulator.py` + add README Work Log row | P0 | ✅ | `<TBD>` | ≥85% coverage; Work Log updated |
+| T3.34 | Spec & single-concern interface for `sdk/sdk.py` — single public entry point for all logic | P0 | ✅ | `<TBD>` | Interface + docstring agreed; ≤150-LOC plan |
+| T3.35 | Define typed models/signatures for `sdk/sdk.py` | P0 | ✅ | `<TBD>` | Typed inputs/outputs defined |
+| T3.36 | RED: write failing unit tests for `sdk/sdk.py` (happy path) | P0 | ✅ | `<TBD>` | Failing tests committed |
+| T3.37 | GREEN: implement `sdk/sdk.py` | P0 | ✅ | `<TBD>` | Happy-path tests pass |
+| T3.38 | Edge-case & boundary tests for `sdk/sdk.py` | P0 | ✅ | `<TBD>` | Empty/invalid/limit inputs covered |
+| T3.39 | Defensive error handling in `sdk/sdk.py` | P0 | ✅ | `<TBD>` | Graceful failure + clear message |
+| T3.40 | Refactor `sdk/sdk.py`: DRY, ≤150 lines, single responsibility | P0 | ✅ | `<TBD>` | No duplication; ≤150 LOC |
+| T3.41 | Docstrings + why-comments for `sdk/sdk.py` | P0 | ✅ | `<TBD>` | Module/functions documented |
+| T3.42 | Ruff clean `sdk/sdk.py` | P0 | ✅ | `<TBD>` | 0 ruff violations |
+| T3.43 | Mock external deps in `sdk/sdk.py` tests | P0 | ✅ | `<TBD>` | No live external calls |
+| T3.44 | Coverage ≥85% for `sdk/sdk.py` + add README Work Log row | P0 | ✅ | `<TBD>` | ≥85% coverage; Work Log updated |
+| T3.45 | Spec & single-concern interface for `main.py` — thin entrypoint -> sdk | P0 | ✅ | `<TBD>` | Interface + docstring agreed; ≤150-LOC plan |
+| T3.46 | Define typed models/signatures for `main.py` | P0 | ✅ | `<TBD>` | Typed inputs/outputs defined |
+| T3.47 | RED: write failing unit tests for `main.py` (happy path) | P0 | ✅ | `<TBD>` | Failing tests committed |
+| T3.48 | GREEN: implement `main.py` | P0 | ✅ | `<TBD>` | Happy-path tests pass |
+| T3.49 | Edge-case & boundary tests for `main.py` | P0 | ✅ | `<TBD>` | Empty/invalid/limit inputs covered |
+| T3.50 | Defensive error handling in `main.py` | P0 | ✅ | `<TBD>` | Graceful failure + clear message |
+| T3.51 | Refactor `main.py`: DRY, ≤150 lines, single responsibility | P0 | ✅ | `<TBD>` | No duplication; ≤150 LOC |
+| T3.52 | Docstrings + why-comments for `main.py` | P0 | ✅ | `<TBD>` | Module/functions documented |
+| T3.53 | Ruff clean `main.py` | P0 | ✅ | `<TBD>` | 0 ruff violations |
+| T3.54 | Mock external deps in `main.py` tests | P0 | ✅ | `<TBD>` | No live external calls |
+| T3.55 | Coverage ≥85% for `main.py` + add README Work Log row | P0 | ✅ | `<TBD>` | ≥85% coverage; Work Log updated |
 | T3.56 | Run 6 consecutive sub-games (<=25 moves each) | P0 | ⬜ | `<TBD>` | Full match runs |
 | T3.57 | Technical-loss detection + re-run to fill quota of 6 | P1 | ⬜ | `<TBD>` | Failed game re-run |
 | T3.58 | CLI/GUI/tests call SDK only | P0 | ⬜ | `<TBD>` | No business logic outside |
@@ -285,39 +287,39 @@ _Heuristic policies + optional tabular Q-learning. See PRD_decision_strategy.md.
 
 | ID | Task | Pri | Status | Owner | DoD |
 |----|------|-----|--------|-------|-----|
-| T4.1 | Spec & single-concern interface for `services/strategy/strategy_base.py` — Strategy interface (Template Method) | P0 | ⬜ | `<TBD>` | Interface + docstring agreed; ≤150-LOC plan |
-| T4.2 | Define typed models/signatures for `services/strategy/strategy_base.py` | P0 | ⬜ | `<TBD>` | Typed inputs/outputs defined |
-| T4.3 | RED: write failing unit tests for `services/strategy/strategy_base.py` (happy path) | P0 | ⬜ | `<TBD>` | Failing tests committed |
-| T4.4 | GREEN: implement `services/strategy/strategy_base.py` | P0 | ⬜ | `<TBD>` | Happy-path tests pass |
-| T4.5 | Edge-case & boundary tests for `services/strategy/strategy_base.py` | P0 | ⬜ | `<TBD>` | Empty/invalid/limit inputs covered |
-| T4.6 | Defensive error handling in `services/strategy/strategy_base.py` | P0 | ⬜ | `<TBD>` | Graceful failure + clear message |
-| T4.7 | Refactor `services/strategy/strategy_base.py`: DRY, ≤150 lines, single responsibility | P0 | ⬜ | `<TBD>` | No duplication; ≤150 LOC |
-| T4.8 | Docstrings + why-comments for `services/strategy/strategy_base.py` | P0 | ⬜ | `<TBD>` | Module/functions documented |
-| T4.9 | Ruff clean `services/strategy/strategy_base.py` | P0 | ⬜ | `<TBD>` | 0 ruff violations |
-| T4.10 | Mock external deps in `services/strategy/strategy_base.py` tests | P0 | ⬜ | `<TBD>` | No live external calls |
-| T4.11 | Coverage ≥85% for `services/strategy/strategy_base.py` + add README Work Log row | P0 | ⬜ | `<TBD>` | ≥85% coverage; Work Log updated |
-| T4.12 | Spec & single-concern interface for `services/strategy/heuristic_cop.py` — cop pursuit policy | P0 | ⬜ | `<TBD>` | Interface + docstring agreed; ≤150-LOC plan |
-| T4.13 | Define typed models/signatures for `services/strategy/heuristic_cop.py` | P0 | ⬜ | `<TBD>` | Typed inputs/outputs defined |
-| T4.14 | RED: write failing unit tests for `services/strategy/heuristic_cop.py` (happy path) | P0 | ⬜ | `<TBD>` | Failing tests committed |
-| T4.15 | GREEN: implement `services/strategy/heuristic_cop.py` | P0 | ⬜ | `<TBD>` | Happy-path tests pass |
-| T4.16 | Edge-case & boundary tests for `services/strategy/heuristic_cop.py` | P0 | ⬜ | `<TBD>` | Empty/invalid/limit inputs covered |
-| T4.17 | Defensive error handling in `services/strategy/heuristic_cop.py` | P0 | ⬜ | `<TBD>` | Graceful failure + clear message |
-| T4.18 | Refactor `services/strategy/heuristic_cop.py`: DRY, ≤150 lines, single responsibility | P0 | ⬜ | `<TBD>` | No duplication; ≤150 LOC |
-| T4.19 | Docstrings + why-comments for `services/strategy/heuristic_cop.py` | P0 | ⬜ | `<TBD>` | Module/functions documented |
-| T4.20 | Ruff clean `services/strategy/heuristic_cop.py` | P0 | ⬜ | `<TBD>` | 0 ruff violations |
-| T4.21 | Mock external deps in `services/strategy/heuristic_cop.py` tests | P0 | ⬜ | `<TBD>` | No live external calls |
-| T4.22 | Coverage ≥85% for `services/strategy/heuristic_cop.py` + add README Work Log row | P0 | ⬜ | `<TBD>` | ≥85% coverage; Work Log updated |
-| T4.23 | Spec & single-concern interface for `services/strategy/heuristic_thief.py` — thief evasion policy | P0 | ⬜ | `<TBD>` | Interface + docstring agreed; ≤150-LOC plan |
-| T4.24 | Define typed models/signatures for `services/strategy/heuristic_thief.py` | P0 | ⬜ | `<TBD>` | Typed inputs/outputs defined |
-| T4.25 | RED: write failing unit tests for `services/strategy/heuristic_thief.py` (happy path) | P0 | ⬜ | `<TBD>` | Failing tests committed |
-| T4.26 | GREEN: implement `services/strategy/heuristic_thief.py` | P0 | ⬜ | `<TBD>` | Happy-path tests pass |
-| T4.27 | Edge-case & boundary tests for `services/strategy/heuristic_thief.py` | P0 | ⬜ | `<TBD>` | Empty/invalid/limit inputs covered |
-| T4.28 | Defensive error handling in `services/strategy/heuristic_thief.py` | P0 | ⬜ | `<TBD>` | Graceful failure + clear message |
-| T4.29 | Refactor `services/strategy/heuristic_thief.py`: DRY, ≤150 lines, single responsibility | P0 | ⬜ | `<TBD>` | No duplication; ≤150 LOC |
-| T4.30 | Docstrings + why-comments for `services/strategy/heuristic_thief.py` | P0 | ⬜ | `<TBD>` | Module/functions documented |
-| T4.31 | Ruff clean `services/strategy/heuristic_thief.py` | P0 | ⬜ | `<TBD>` | 0 ruff violations |
-| T4.32 | Mock external deps in `services/strategy/heuristic_thief.py` tests | P0 | ⬜ | `<TBD>` | No live external calls |
-| T4.33 | Coverage ≥85% for `services/strategy/heuristic_thief.py` + add README Work Log row | P0 | ⬜ | `<TBD>` | ≥85% coverage; Work Log updated |
+| T4.1 | Spec & single-concern interface for `services/strategy/strategy_base.py` — Strategy interface (Template Method) | P0 | 🟦 | `<TBD>` | Interface + docstring agreed; ≤150-LOC plan |
+| T4.2 | Define typed models/signatures for `services/strategy/strategy_base.py` | P0 | 🟦 | `<TBD>` | Typed inputs/outputs defined |
+| T4.3 | RED: write failing unit tests for `services/strategy/strategy_base.py` (happy path) | P0 | 🟦 | `<TBD>` | Failing tests committed |
+| T4.4 | GREEN: implement `services/strategy/strategy_base.py` | P0 | 🟦 | `<TBD>` | Happy-path tests pass |
+| T4.5 | Edge-case & boundary tests for `services/strategy/strategy_base.py` | P0 | 🟦 | `<TBD>` | Empty/invalid/limit inputs covered |
+| T4.6 | Defensive error handling in `services/strategy/strategy_base.py` | P0 | 🟦 | `<TBD>` | Graceful failure + clear message |
+| T4.7 | Refactor `services/strategy/strategy_base.py`: DRY, ≤150 lines, single responsibility | P0 | 🟦 | `<TBD>` | No duplication; ≤150 LOC |
+| T4.8 | Docstrings + why-comments for `services/strategy/strategy_base.py` | P0 | 🟦 | `<TBD>` | Module/functions documented |
+| T4.9 | Ruff clean `services/strategy/strategy_base.py` | P0 | 🟦 | `<TBD>` | 0 ruff violations |
+| T4.10 | Mock external deps in `services/strategy/strategy_base.py` tests | P0 | 🟦 | `<TBD>` | No live external calls |
+| T4.11 | Coverage ≥85% for `services/strategy/strategy_base.py` + add README Work Log row | P0 | 🟦 | `<TBD>` | ≥85% coverage; Work Log updated |
+| T4.12 | Spec & single-concern interface for `services/strategy/heuristic_cop.py` — cop pursuit policy | P0 | 🟦 | `<TBD>` | Interface + docstring agreed; ≤150-LOC plan |
+| T4.13 | Define typed models/signatures for `services/strategy/heuristic_cop.py` | P0 | 🟦 | `<TBD>` | Typed inputs/outputs defined |
+| T4.14 | RED: write failing unit tests for `services/strategy/heuristic_cop.py` (happy path) | P0 | 🟦 | `<TBD>` | Failing tests committed |
+| T4.15 | GREEN: implement `services/strategy/heuristic_cop.py` | P0 | 🟦 | `<TBD>` | Happy-path tests pass |
+| T4.16 | Edge-case & boundary tests for `services/strategy/heuristic_cop.py` | P0 | 🟦 | `<TBD>` | Empty/invalid/limit inputs covered |
+| T4.17 | Defensive error handling in `services/strategy/heuristic_cop.py` | P0 | 🟦 | `<TBD>` | Graceful failure + clear message |
+| T4.18 | Refactor `services/strategy/heuristic_cop.py`: DRY, ≤150 lines, single responsibility | P0 | 🟦 | `<TBD>` | No duplication; ≤150 LOC |
+| T4.19 | Docstrings + why-comments for `services/strategy/heuristic_cop.py` | P0 | 🟦 | `<TBD>` | Module/functions documented |
+| T4.20 | Ruff clean `services/strategy/heuristic_cop.py` | P0 | 🟦 | `<TBD>` | 0 ruff violations |
+| T4.21 | Mock external deps in `services/strategy/heuristic_cop.py` tests | P0 | 🟦 | `<TBD>` | No live external calls |
+| T4.22 | Coverage ≥85% for `services/strategy/heuristic_cop.py` + add README Work Log row | P0 | 🟦 | `<TBD>` | ≥85% coverage; Work Log updated |
+| T4.23 | Spec & single-concern interface for `services/strategy/heuristic_thief.py` — thief evasion policy | P0 | 🟦 | `<TBD>` | Interface + docstring agreed; ≤150-LOC plan |
+| T4.24 | Define typed models/signatures for `services/strategy/heuristic_thief.py` | P0 | 🟦 | `<TBD>` | Typed inputs/outputs defined |
+| T4.25 | RED: write failing unit tests for `services/strategy/heuristic_thief.py` (happy path) | P0 | 🟦 | `<TBD>` | Failing tests committed |
+| T4.26 | GREEN: implement `services/strategy/heuristic_thief.py` | P0 | 🟦 | `<TBD>` | Happy-path tests pass |
+| T4.27 | Edge-case & boundary tests for `services/strategy/heuristic_thief.py` | P0 | 🟦 | `<TBD>` | Empty/invalid/limit inputs covered |
+| T4.28 | Defensive error handling in `services/strategy/heuristic_thief.py` | P0 | 🟦 | `<TBD>` | Graceful failure + clear message |
+| T4.29 | Refactor `services/strategy/heuristic_thief.py`: DRY, ≤150 lines, single responsibility | P0 | 🟦 | `<TBD>` | No duplication; ≤150 LOC |
+| T4.30 | Docstrings + why-comments for `services/strategy/heuristic_thief.py` | P0 | 🟦 | `<TBD>` | Module/functions documented |
+| T4.31 | Ruff clean `services/strategy/heuristic_thief.py` | P0 | 🟦 | `<TBD>` | 0 ruff violations |
+| T4.32 | Mock external deps in `services/strategy/heuristic_thief.py` tests | P0 | 🟦 | `<TBD>` | No live external calls |
+| T4.33 | Coverage ≥85% for `services/strategy/heuristic_thief.py` + add README Work Log row | P0 | 🟦 | `<TBD>` | ≥85% coverage; Work Log updated |
 | T4.34 | Spec & single-concern interface for `services/strategy/belief_model.py` — belief over opponent cell (partial obs) | P1 | ⬜ | `<TBD>` | Interface + docstring agreed; ≤150-LOC plan |
 | T4.35 | Define typed models/signatures for `services/strategy/belief_model.py` | P1 | ⬜ | `<TBD>` | Typed inputs/outputs defined |
 | T4.36 | RED: write failing unit tests for `services/strategy/belief_model.py` (happy path) | P1 | ⬜ | `<TBD>` | Failing tests committed |
@@ -354,66 +356,66 @@ _Free-text protocol + belief update; robust to ambiguity/deception. See PRD_nl_c
 
 | ID | Task | Pri | Status | Owner | DoD |
 |----|------|-----|--------|-------|-----|
-| T5.1 | Spec & single-concern interface for `services/nl_protocol/nl_encode.py` — intent -> free text | P0 | ⬜ | `<TBD>` | Interface + docstring agreed; ≤150-LOC plan |
-| T5.2 | Define typed models/signatures for `services/nl_protocol/nl_encode.py` | P0 | ⬜ | `<TBD>` | Typed inputs/outputs defined |
-| T5.3 | RED: write failing unit tests for `services/nl_protocol/nl_encode.py` (happy path) | P0 | ⬜ | `<TBD>` | Failing tests committed |
-| T5.4 | GREEN: implement `services/nl_protocol/nl_encode.py` | P0 | ⬜ | `<TBD>` | Happy-path tests pass |
-| T5.5 | Edge-case & boundary tests for `services/nl_protocol/nl_encode.py` | P0 | ⬜ | `<TBD>` | Empty/invalid/limit inputs covered |
-| T5.6 | Defensive error handling in `services/nl_protocol/nl_encode.py` | P0 | ⬜ | `<TBD>` | Graceful failure + clear message |
-| T5.7 | Refactor `services/nl_protocol/nl_encode.py`: DRY, ≤150 lines, single responsibility | P0 | ⬜ | `<TBD>` | No duplication; ≤150 LOC |
-| T5.8 | Docstrings + why-comments for `services/nl_protocol/nl_encode.py` | P0 | ⬜ | `<TBD>` | Module/functions documented |
-| T5.9 | Ruff clean `services/nl_protocol/nl_encode.py` | P0 | ⬜ | `<TBD>` | 0 ruff violations |
-| T5.10 | Mock external deps in `services/nl_protocol/nl_encode.py` tests | P0 | ⬜ | `<TBD>` | No live external calls |
-| T5.11 | Coverage ≥85% for `services/nl_protocol/nl_encode.py` + add README Work Log row | P0 | ⬜ | `<TBD>` | ≥85% coverage; Work Log updated |
-| T5.12 | Spec & single-concern interface for `services/nl_protocol/nl_decode.py` — free text -> belief update | P0 | ⬜ | `<TBD>` | Interface + docstring agreed; ≤150-LOC plan |
-| T5.13 | Define typed models/signatures for `services/nl_protocol/nl_decode.py` | P0 | ⬜ | `<TBD>` | Typed inputs/outputs defined |
-| T5.14 | RED: write failing unit tests for `services/nl_protocol/nl_decode.py` (happy path) | P0 | ⬜ | `<TBD>` | Failing tests committed |
-| T5.15 | GREEN: implement `services/nl_protocol/nl_decode.py` | P0 | ⬜ | `<TBD>` | Happy-path tests pass |
-| T5.16 | Edge-case & boundary tests for `services/nl_protocol/nl_decode.py` | P0 | ⬜ | `<TBD>` | Empty/invalid/limit inputs covered |
-| T5.17 | Defensive error handling in `services/nl_protocol/nl_decode.py` | P0 | ⬜ | `<TBD>` | Graceful failure + clear message |
-| T5.18 | Refactor `services/nl_protocol/nl_decode.py`: DRY, ≤150 lines, single responsibility | P0 | ⬜ | `<TBD>` | No duplication; ≤150 LOC |
-| T5.19 | Docstrings + why-comments for `services/nl_protocol/nl_decode.py` | P0 | ⬜ | `<TBD>` | Module/functions documented |
-| T5.20 | Ruff clean `services/nl_protocol/nl_decode.py` | P0 | ⬜ | `<TBD>` | 0 ruff violations |
-| T5.21 | Mock external deps in `services/nl_protocol/nl_decode.py` tests | P0 | ⬜ | `<TBD>` | No live external calls |
-| T5.22 | Coverage ≥85% for `services/nl_protocol/nl_decode.py` + add README Work Log row | P0 | ⬜ | `<TBD>` | ≥85% coverage; Work Log updated |
-| T5.23 | Spec & single-concern interface for `services/nl_protocol/prompt_templates.py` — system/cop/thief prompts | P0 | ⬜ | `<TBD>` | Interface + docstring agreed; ≤150-LOC plan |
-| T5.24 | Define typed models/signatures for `services/nl_protocol/prompt_templates.py` | P0 | ⬜ | `<TBD>` | Typed inputs/outputs defined |
-| T5.25 | RED: write failing unit tests for `services/nl_protocol/prompt_templates.py` (happy path) | P0 | ⬜ | `<TBD>` | Failing tests committed |
-| T5.26 | GREEN: implement `services/nl_protocol/prompt_templates.py` | P0 | ⬜ | `<TBD>` | Happy-path tests pass |
-| T5.27 | Edge-case & boundary tests for `services/nl_protocol/prompt_templates.py` | P0 | ⬜ | `<TBD>` | Empty/invalid/limit inputs covered |
-| T5.28 | Defensive error handling in `services/nl_protocol/prompt_templates.py` | P0 | ⬜ | `<TBD>` | Graceful failure + clear message |
-| T5.29 | Refactor `services/nl_protocol/prompt_templates.py`: DRY, ≤150 lines, single responsibility | P0 | ⬜ | `<TBD>` | No duplication; ≤150 LOC |
-| T5.30 | Docstrings + why-comments for `services/nl_protocol/prompt_templates.py` | P0 | ⬜ | `<TBD>` | Module/functions documented |
-| T5.31 | Ruff clean `services/nl_protocol/prompt_templates.py` | P0 | ⬜ | `<TBD>` | 0 ruff violations |
-| T5.32 | Mock external deps in `services/nl_protocol/prompt_templates.py` tests | P0 | ⬜ | `<TBD>` | No live external calls |
-| T5.33 | Coverage ≥85% for `services/nl_protocol/prompt_templates.py` + add README Work Log row | P0 | ⬜ | `<TBD>` | ≥85% coverage; Work Log updated |
-| T5.34 | Spec & single-concern interface for `shared/llm_client.py` — LLM transport via gatekeeper | P0 | ⬜ | `<TBD>` | Interface + docstring agreed; ≤150-LOC plan |
-| T5.35 | Define typed models/signatures for `shared/llm_client.py` | P0 | ⬜ | `<TBD>` | Typed inputs/outputs defined |
-| T5.36 | RED: write failing unit tests for `shared/llm_client.py` (happy path) | P0 | ⬜ | `<TBD>` | Failing tests committed |
-| T5.37 | GREEN: implement `shared/llm_client.py` | P0 | ⬜ | `<TBD>` | Happy-path tests pass |
-| T5.38 | Edge-case & boundary tests for `shared/llm_client.py` | P0 | ⬜ | `<TBD>` | Empty/invalid/limit inputs covered |
-| T5.39 | Defensive error handling in `shared/llm_client.py` | P0 | ⬜ | `<TBD>` | Graceful failure + clear message |
-| T5.40 | Refactor `shared/llm_client.py`: DRY, ≤150 lines, single responsibility | P0 | ⬜ | `<TBD>` | No duplication; ≤150 LOC |
-| T5.41 | Docstrings + why-comments for `shared/llm_client.py` | P0 | ⬜ | `<TBD>` | Module/functions documented |
-| T5.42 | Ruff clean `shared/llm_client.py` | P0 | ⬜ | `<TBD>` | 0 ruff violations |
-| T5.43 | Mock external deps in `shared/llm_client.py` tests | P0 | ⬜ | `<TBD>` | No live external calls |
-| T5.44 | Coverage ≥85% for `shared/llm_client.py` + add README Work Log row | P0 | ⬜ | `<TBD>` | ≥85% coverage; Work Log updated |
-| T5.45 | Spec & single-concern interface for `services/nl_protocol/ambiguity_handler.py` — defensive parse, never crash | P0 | ⬜ | `<TBD>` | Interface + docstring agreed; ≤150-LOC plan |
-| T5.46 | Define typed models/signatures for `services/nl_protocol/ambiguity_handler.py` | P0 | ⬜ | `<TBD>` | Typed inputs/outputs defined |
-| T5.47 | RED: write failing unit tests for `services/nl_protocol/ambiguity_handler.py` (happy path) | P0 | ⬜ | `<TBD>` | Failing tests committed |
-| T5.48 | GREEN: implement `services/nl_protocol/ambiguity_handler.py` | P0 | ⬜ | `<TBD>` | Happy-path tests pass |
-| T5.49 | Edge-case & boundary tests for `services/nl_protocol/ambiguity_handler.py` | P0 | ⬜ | `<TBD>` | Empty/invalid/limit inputs covered |
-| T5.50 | Defensive error handling in `services/nl_protocol/ambiguity_handler.py` | P0 | ⬜ | `<TBD>` | Graceful failure + clear message |
-| T5.51 | Refactor `services/nl_protocol/ambiguity_handler.py`: DRY, ≤150 lines, single responsibility | P0 | ⬜ | `<TBD>` | No duplication; ≤150 LOC |
-| T5.52 | Docstrings + why-comments for `services/nl_protocol/ambiguity_handler.py` | P0 | ⬜ | `<TBD>` | Module/functions documented |
-| T5.53 | Ruff clean `services/nl_protocol/ambiguity_handler.py` | P0 | ⬜ | `<TBD>` | 0 ruff violations |
-| T5.54 | Mock external deps in `services/nl_protocol/ambiguity_handler.py` tests | P0 | ⬜ | `<TBD>` | No live external calls |
-| T5.55 | Coverage ≥85% for `services/nl_protocol/ambiguity_handler.py` + add README Work Log row | P0 | ⬜ | `<TBD>` | ≥85% coverage; Work Log updated |
-| T5.56 | Deception handling: weight observation over message | P1 | ⬜ | `<TBD>` | Obs dominates conflict |
+| T5.1 | Spec & single-concern interface for `services/nl_protocol/nl_encode.py` — intent -> free text | P0 | ✅ | `<TBD>` | Interface + docstring agreed; ≤150-LOC plan |
+| T5.2 | Define typed models/signatures for `services/nl_protocol/nl_encode.py` | P0 | ✅ | `<TBD>` | Typed inputs/outputs defined |
+| T5.3 | RED: write failing unit tests for `services/nl_protocol/nl_encode.py` (happy path) | P0 | ✅ | `<TBD>` | Failing tests committed |
+| T5.4 | GREEN: implement `services/nl_protocol/nl_encode.py` | P0 | ✅ | `<TBD>` | Happy-path tests pass |
+| T5.5 | Edge-case & boundary tests for `services/nl_protocol/nl_encode.py` | P0 | ✅ | `<TBD>` | Empty/invalid/limit inputs covered |
+| T5.6 | Defensive error handling in `services/nl_protocol/nl_encode.py` | P0 | ✅ | `<TBD>` | Graceful failure + clear message |
+| T5.7 | Refactor `services/nl_protocol/nl_encode.py`: DRY, ≤150 lines, single responsibility | P0 | ✅ | `<TBD>` | No duplication; ≤150 LOC |
+| T5.8 | Docstrings + why-comments for `services/nl_protocol/nl_encode.py` | P0 | ✅ | `<TBD>` | Module/functions documented |
+| T5.9 | Ruff clean `services/nl_protocol/nl_encode.py` | P0 | ✅ | `<TBD>` | 0 ruff violations |
+| T5.10 | Mock external deps in `services/nl_protocol/nl_encode.py` tests | P0 | ✅ | `<TBD>` | No live external calls |
+| T5.11 | Coverage ≥85% for `services/nl_protocol/nl_encode.py` + add README Work Log row | P0 | ✅ | `<TBD>` | ≥85% coverage; Work Log updated |
+| T5.12 | Spec & single-concern interface for `services/nl_protocol/nl_decode.py` — free text -> belief update | P0 | ✅ | `<TBD>` | Interface + docstring agreed; ≤150-LOC plan |
+| T5.13 | Define typed models/signatures for `services/nl_protocol/nl_decode.py` | P0 | ✅ | `<TBD>` | Typed inputs/outputs defined |
+| T5.14 | RED: write failing unit tests for `services/nl_protocol/nl_decode.py` (happy path) | P0 | ✅ | `<TBD>` | Failing tests committed |
+| T5.15 | GREEN: implement `services/nl_protocol/nl_decode.py` | P0 | ✅ | `<TBD>` | Happy-path tests pass |
+| T5.16 | Edge-case & boundary tests for `services/nl_protocol/nl_decode.py` | P0 | ✅ | `<TBD>` | Empty/invalid/limit inputs covered |
+| T5.17 | Defensive error handling in `services/nl_protocol/nl_decode.py` | P0 | ✅ | `<TBD>` | Graceful failure + clear message |
+| T5.18 | Refactor `services/nl_protocol/nl_decode.py`: DRY, ≤150 lines, single responsibility | P0 | ✅ | `<TBD>` | No duplication; ≤150 LOC |
+| T5.19 | Docstrings + why-comments for `services/nl_protocol/nl_decode.py` | P0 | ✅ | `<TBD>` | Module/functions documented |
+| T5.20 | Ruff clean `services/nl_protocol/nl_decode.py` | P0 | ✅ | `<TBD>` | 0 ruff violations |
+| T5.21 | Mock external deps in `services/nl_protocol/nl_decode.py` tests | P0 | ✅ | `<TBD>` | No live external calls |
+| T5.22 | Coverage ≥85% for `services/nl_protocol/nl_decode.py` + add README Work Log row | P0 | ✅ | `<TBD>` | ≥85% coverage; Work Log updated |
+| T5.23 | Spec & single-concern interface for `services/nl_protocol/prompt_templates.py` — system/cop/thief prompts | P0 | ✅ | `<TBD>` | Interface + docstring agreed; ≤150-LOC plan |
+| T5.24 | Define typed models/signatures for `services/nl_protocol/prompt_templates.py` | P0 | ✅ | `<TBD>` | Typed inputs/outputs defined |
+| T5.25 | RED: write failing unit tests for `services/nl_protocol/prompt_templates.py` (happy path) | P0 | ✅ | `<TBD>` | Failing tests committed |
+| T5.26 | GREEN: implement `services/nl_protocol/prompt_templates.py` | P0 | ✅ | `<TBD>` | Happy-path tests pass |
+| T5.27 | Edge-case & boundary tests for `services/nl_protocol/prompt_templates.py` | P0 | ✅ | `<TBD>` | Empty/invalid/limit inputs covered |
+| T5.28 | Defensive error handling in `services/nl_protocol/prompt_templates.py` | P0 | ✅ | `<TBD>` | Graceful failure + clear message |
+| T5.29 | Refactor `services/nl_protocol/prompt_templates.py`: DRY, ≤150 lines, single responsibility | P0 | ✅ | `<TBD>` | No duplication; ≤150 LOC |
+| T5.30 | Docstrings + why-comments for `services/nl_protocol/prompt_templates.py` | P0 | ✅ | `<TBD>` | Module/functions documented |
+| T5.31 | Ruff clean `services/nl_protocol/prompt_templates.py` | P0 | ✅ | `<TBD>` | 0 ruff violations |
+| T5.32 | Mock external deps in `services/nl_protocol/prompt_templates.py` tests | P0 | ✅ | `<TBD>` | No live external calls |
+| T5.33 | Coverage ≥85% for `services/nl_protocol/prompt_templates.py` + add README Work Log row | P0 | ✅ | `<TBD>` | ≥85% coverage; Work Log updated |
+| T5.34 | Spec & single-concern interface for `shared/llm_client.py` — LLM transport via gatekeeper | P0 | ✅ | `<TBD>` | Interface + docstring agreed; ≤150-LOC plan |
+| T5.35 | Define typed models/signatures for `shared/llm_client.py` | P0 | ✅ | `<TBD>` | Typed inputs/outputs defined |
+| T5.36 | RED: write failing unit tests for `shared/llm_client.py` (happy path) | P0 | ✅ | `<TBD>` | Failing tests committed |
+| T5.37 | GREEN: implement `shared/llm_client.py` | P0 | ✅ | `<TBD>` | Happy-path tests pass |
+| T5.38 | Edge-case & boundary tests for `shared/llm_client.py` | P0 | ✅ | `<TBD>` | Empty/invalid/limit inputs covered |
+| T5.39 | Defensive error handling in `shared/llm_client.py` | P0 | ✅ | `<TBD>` | Graceful failure + clear message |
+| T5.40 | Refactor `shared/llm_client.py`: DRY, ≤150 lines, single responsibility | P0 | ✅ | `<TBD>` | No duplication; ≤150 LOC |
+| T5.41 | Docstrings + why-comments for `shared/llm_client.py` | P0 | ✅ | `<TBD>` | Module/functions documented |
+| T5.42 | Ruff clean `shared/llm_client.py` | P0 | ✅ | `<TBD>` | 0 ruff violations |
+| T5.43 | Mock external deps in `shared/llm_client.py` tests | P0 | ✅ | `<TBD>` | No live external calls |
+| T5.44 | Coverage ≥85% for `shared/llm_client.py` + add README Work Log row | P0 | ✅ | `<TBD>` | ≥85% coverage; Work Log updated |
+| T5.45 | Spec & single-concern interface for `services/nl_protocol/ambiguity_handler.py` — defensive parse, never crash | P0 | ✅ | `<TBD>` | Interface + docstring agreed; ≤150-LOC plan |
+| T5.46 | Define typed models/signatures for `services/nl_protocol/ambiguity_handler.py` | P0 | ✅ | `<TBD>` | Typed inputs/outputs defined |
+| T5.47 | RED: write failing unit tests for `services/nl_protocol/ambiguity_handler.py` (happy path) | P0 | ✅ | `<TBD>` | Failing tests committed |
+| T5.48 | GREEN: implement `services/nl_protocol/ambiguity_handler.py` | P0 | ✅ | `<TBD>` | Happy-path tests pass |
+| T5.49 | Edge-case & boundary tests for `services/nl_protocol/ambiguity_handler.py` | P0 | ✅ | `<TBD>` | Empty/invalid/limit inputs covered |
+| T5.50 | Defensive error handling in `services/nl_protocol/ambiguity_handler.py` | P0 | ✅ | `<TBD>` | Graceful failure + clear message |
+| T5.51 | Refactor `services/nl_protocol/ambiguity_handler.py`: DRY, ≤150 lines, single responsibility | P0 | ✅ | `<TBD>` | No duplication; ≤150 LOC |
+| T5.52 | Docstrings + why-comments for `services/nl_protocol/ambiguity_handler.py` | P0 | ✅ | `<TBD>` | Module/functions documented |
+| T5.53 | Ruff clean `services/nl_protocol/ambiguity_handler.py` | P0 | ✅ | `<TBD>` | 0 ruff violations |
+| T5.54 | Mock external deps in `services/nl_protocol/ambiguity_handler.py` tests | P0 | ✅ | `<TBD>` | No live external calls |
+| T5.55 | Coverage ≥85% for `services/nl_protocol/ambiguity_handler.py` + add README Work Log row | P0 | ✅ | `<TBD>` | ≥85% coverage; Work Log updated |
+| T5.56 | Deception handling: weight observation over message | P1 | ✅ | `<TBD>` | Obs dominates conflict |
 | T5.57 | Belief convergence over a sub-game | P1 | ⬜ | `<TBD>` | Top cell -> true cell |
-| T5.58 | 100% of inbound messages -> valid belief update | P0 | ⬜ | `<TBD>` | 0 crashes on ambiguity |
+| T5.58 | 100% of inbound messages -> valid belief update | P0 | ✅ | `<TBD>` | 0 crashes on ambiguity |
 | T5.59 | Maintain prompt-engineering log entries | P1 | 🟦 | `<TBD>` | PROMPT_LOG.md updated |
-| T5.60 | Mock LLM in all NL unit tests | P0 | ⬜ | `<TBD>` | No live calls |
+| T5.60 | Mock LLM in all NL unit tests | P0 | ✅ | `<TBD>` | No live calls |
 
 ## Phase 6 — GUI & CLI (Milestone: M6)
 _Real-time visualization and CLI logs (read state from SDK only)._
@@ -607,17 +609,17 @@ _Cross-cutting infra, quality gates, research/visualization, final checklist & s
 
 | ID | Task | Pri | Status | Owner | DoD |
 |----|------|-----|--------|-------|-----|
-| T9.1 | Spec & single-concern interface for `shared/gatekeeper.py` — centralized API gatekeeper (rate-limit/queue/retry/log) | P0 | ⬜ | `<TBD>` | Interface + docstring agreed; ≤150-LOC plan |
-| T9.2 | Define typed models/signatures for `shared/gatekeeper.py` | P0 | ⬜ | `<TBD>` | Typed inputs/outputs defined |
-| T9.3 | RED: write failing unit tests for `shared/gatekeeper.py` (happy path) | P0 | ⬜ | `<TBD>` | Failing tests committed |
-| T9.4 | GREEN: implement `shared/gatekeeper.py` | P0 | ⬜ | `<TBD>` | Happy-path tests pass |
-| T9.5 | Edge-case & boundary tests for `shared/gatekeeper.py` | P0 | ⬜ | `<TBD>` | Empty/invalid/limit inputs covered |
-| T9.6 | Defensive error handling in `shared/gatekeeper.py` | P0 | ⬜ | `<TBD>` | Graceful failure + clear message |
-| T9.7 | Refactor `shared/gatekeeper.py`: DRY, ≤150 lines, single responsibility | P0 | ⬜ | `<TBD>` | No duplication; ≤150 LOC |
-| T9.8 | Docstrings + why-comments for `shared/gatekeeper.py` | P0 | ⬜ | `<TBD>` | Module/functions documented |
-| T9.9 | Ruff clean `shared/gatekeeper.py` | P0 | ⬜ | `<TBD>` | 0 ruff violations |
-| T9.10 | Mock external deps in `shared/gatekeeper.py` tests | P0 | ⬜ | `<TBD>` | No live external calls |
-| T9.11 | Coverage ≥85% for `shared/gatekeeper.py` + add README Work Log row | P0 | ⬜ | `<TBD>` | ≥85% coverage; Work Log updated |
+| T9.1 | Spec & single-concern interface for `shared/gatekeeper.py` — centralized API gatekeeper (rate-limit/queue/retry/log) | P0 | 🟦 | `<TBD>` | Interface + docstring agreed; ≤150-LOC plan |
+| T9.2 | Define typed models/signatures for `shared/gatekeeper.py` | P0 | 🟦 | `<TBD>` | Typed inputs/outputs defined |
+| T9.3 | RED: write failing unit tests for `shared/gatekeeper.py` (happy path) | P0 | 🟦 | `<TBD>` | Failing tests committed |
+| T9.4 | GREEN: implement `shared/gatekeeper.py` | P0 | 🟦 | `<TBD>` | Happy-path tests pass |
+| T9.5 | Edge-case & boundary tests for `shared/gatekeeper.py` | P0 | 🟦 | `<TBD>` | Empty/invalid/limit inputs covered |
+| T9.6 | Defensive error handling in `shared/gatekeeper.py` | P0 | 🟦 | `<TBD>` | Graceful failure + clear message |
+| T9.7 | Refactor `shared/gatekeeper.py`: DRY, ≤150 lines, single responsibility | P0 | 🟦 | `<TBD>` | No duplication; ≤150 LOC |
+| T9.8 | Docstrings + why-comments for `shared/gatekeeper.py` | P0 | 🟦 | `<TBD>` | Module/functions documented |
+| T9.9 | Ruff clean `shared/gatekeeper.py` | P0 | 🟦 | `<TBD>` | 0 ruff violations |
+| T9.10 | Mock external deps in `shared/gatekeeper.py` tests | P0 | 🟦 | `<TBD>` | No live external calls |
+| T9.11 | Coverage ≥85% for `shared/gatekeeper.py` + add README Work Log row | P0 | 🟦 | `<TBD>` | ≥85% coverage; Work Log updated |
 | T9.12 | Spec & single-concern interface for `shared/config.py` — config loader + version validation | P0 | ⬜ | `<TBD>` | Interface + docstring agreed; ≤150-LOC plan |
 | T9.13 | Define typed models/signatures for `shared/config.py` | P0 | ⬜ | `<TBD>` | Typed inputs/outputs defined |
 | T9.14 | RED: write failing unit tests for `shared/config.py` (happy path) | P0 | ⬜ | `<TBD>` | Failing tests committed |
