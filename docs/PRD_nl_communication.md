@@ -19,9 +19,17 @@ over opponent location, and chooses its next action.
 
 ## 2. Inputs / Outputs / Setup
 
-### 2.1 Encode (intent → text)
-- **Input:** actor role, current observation, belief, chosen action/strategy hint.
+### 2.1 Encode / speak (intent → text)
+- **Input:** actor role, current observation, chosen action.
 - **Output:** a short free-text `Message` (may bluff/mislead for the Thief).
+- **Two speakers (pluggable `Speaker = Callable[[Role, Observation, Action], str]`):**
+  - **Deterministic templates** (`nl_encode.encode`) — fixed phrasings; offline-safe, used in tests and
+    when no API key is present (default).
+  - **LLM-generated, in-character** (`nl_speak.llm_speaker`) — each turn the LLM writes a fresh, varied
+    line with a **persona** (cop = determined/heroic and states/implies its cell; thief = sly/taunting and
+    stays cryptic, never revealing exact coordinates). Enabled when a real key is set and
+    `llm.creative_speech` is true; **falls back to the template** on empty/failed output. This adds ~1 LLM
+    call per turn (roughly doubling token cost — see README R.7); the prompt is logged as B5.
 
 ### 2.2 Decode (text → belief update)
 - **Input:** inbound `Message`, own observation, prior belief.

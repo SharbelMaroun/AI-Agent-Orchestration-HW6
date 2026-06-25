@@ -167,7 +167,7 @@ src/marl_cop_thief/
 │   ├── mcp/                    # tools (ToolService, 6 tools), message_bus, servers (FastMCP)
 │   └── strategy/              # heuristic.py (greedy cop+thief), smart_cop.py (cornering 1-ply),
 │                              #   geometry.py (shared chebyshev); belief_model/q_table planned
-├── gui/                        # board_renderer, match_animator (GIF), live_viewer (interactive window); render-only, omitted from coverage
+├── gui/                        # theme, overlays(HUD+speech), board_renderer, match_animator(GIF), live_viewer(window); render-only, omitted from coverage
 └── shared/
     ├── gatekeeper.py           # API gatekeeper (rate limit + FIFO queue + backpressure + retries + concurrency)
     ├── rate_limit.py           # RateLimitConfig, QueueStatus, SlidingWindowLimiter (config-driven)
@@ -206,6 +206,13 @@ assets/    graphs, board screenshots, match.gif        results/  run logs
 > one frame per tick via `_render_tick` and stopping on the sentinel. The event loop never blocks, so the
 > window stays responsive while turns compute in the background. `_produce`/`_render_tick` are pure helpers
 > (no matplotlib), unit-tested directly; the threading/queue is a presentation concern, kept in `gui/`.
+>
+> **Visual style (modern dark).** `gui/theme.py` is the single source of the dark palette + a `glow()`
+> helper (layered-scatter halo); `gui/overlays.py` draws the HUD (turn/winner banner, move counter, legend)
+> and a rounded **speech bubble** anchored on the speaker. `board_renderer.render_state` composes them:
+> dark board, faded **movement trails**, glowing cop (blue disc) / thief (amber star) tokens, barrier slabs,
+> and a **capture flash** on a cop win. Trails + `max_moves` are passed in by the caller so the renderer
+> stays stateless. (Matplotlib can't draw colour emoji, so agents are distinct glowing tokens, not emoji.)
 
 ---
 

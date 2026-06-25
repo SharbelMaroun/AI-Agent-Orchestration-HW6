@@ -104,3 +104,14 @@ def test_nl_subgame_stream_speaks_each_turn():
     frames = list(nl_subgame_stream(CONFIG))
     assert frames[0][1] == ""  # nothing spoken before the first move
     assert any(cap.startswith(("cop:", "thief:")) for _, cap in frames[1:])
+
+
+def test_nl_subgame_stream_creative_uses_llm_written_speech():
+    # creative=True routes speaking through the LLM; this fake writes a fixed line
+    frames = list(nl_subgame_stream(CONFIG, backend=lambda p: "Creative taunt!", creative=True, seed=3))
+    assert any("Creative taunt!" in cap for _, cap in frames[1:])
+
+
+def test_run_nl_match_creative_flag_runs():
+    summary = run_nl_match(CONFIG, backend=lambda p: "x", creative=True)
+    assert len(summary["sub_games"]) == CONFIG["num_games"]

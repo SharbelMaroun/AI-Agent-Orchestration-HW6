@@ -29,9 +29,10 @@ class Sdk:
         self,
         backend: Callable[[str], str] | None = None,
         gatekeeper: ApiGatekeeper | None = None,
+        creative: bool = False,
     ) -> dict[str, Any]:
         """Run a natural-language match and return the serializable summary."""
-        return run_nl_match(self.config, backend, gatekeeper)
+        return run_nl_match(self.config, backend, gatekeeper, creative)
 
     def stream_simple_frames(self) -> Iterator[Frame]:
         """Stream the heuristic/smart sub-game turn-by-turn for the live GUI."""
@@ -42,6 +43,7 @@ class Sdk:
         backend: Callable[[str], str] | None = None,
         gatekeeper: ApiGatekeeper | None = None,
         seed: int | None = None,
+        creative: bool = False,
     ) -> Iterator[Frame]:
         """Stream the natural-language sub-game turn-by-turn for the live GUI."""
-        return nl_subgame_stream(self.config, backend, gatekeeper, seed)
+        return nl_subgame_stream(self.config, backend, gatekeeper, seed, creative)

@@ -96,23 +96,74 @@ def test_play_live_renders_all_frames_off_thread(monkeypatch):
 
     rendered: list = []
     monkeypatch.setattr(live_viewer, "plt", fake)
-    monkeypatch.setattr(live_viewer, "render_state", lambda s, a, c: rendered.append((s, c)))
+    monkeypatch.setattr(live_viewer, "render_state", lambda s, a, c, **k: rendered.append((s, c)))
 
     def fake_show(block=True):  # pump the timer callback like a real event loop
         for _ in range(2000):
             if stopped["v"]:
                 break
-            for cb in callbacks:
+            for cb in list(callbacks):
                 cb()
             time.sleep(0.001)
 
     fake.show.side_effect = fake_show
 
-    frames = [("s0", ""), ("s1", "cop: x"), ("s2", "thief: y")]
-    live_viewer.play_live(iter(frames), {"gui": {"live_backend": "Agg", "poll_interval_ms": 1}})
+    frames = [
+        (GameState(4, 4, Position(0, 0), Position(3, 3)), ""),
+        (GameState(4, 4, Position(1, 0), Position(3, 3)), "cop: x"),
+        (GameState(4, 4, Position(1, 1), Position(2, 3)), "thief: y"),
+    ]
+    cfg = {"gui": {"live_backend": "Agg", "poll_interval_ms": 1, "close_on_finish": False}}
+    live_viewer.play_live(iter(frames), cfg)
     assert rendered == frames  # all frames drawn via the worker -> queue -> tick path
     assert stopped["v"] is True  # timer stopped on the sentinel
     fake.switch_backend.assert_called_once_with("Agg")
+
+
+def test_schedule_close_closes_figure_after_hold(monkeypatch):
+    fake_plt = MagicMock()
+    monkeypatch.setattr(live_viewer, "plt", fake_plt)
+    fig = MagicMock()
+    closer = MagicMock()
+    fig.canvas.new_timer.return_value = closer
+    captured: list = []
+    closer.add_callback.side_effect = captured.append
+
+    result = live_viewer._schedule_close(fig, 0.01)
+
+    assert result is closer and closer.single_shot is True
+    closer.start.assert_called_once()
+    captured[0]()  # fire the one-shot callback
+    fake_plt.close.assert_called_once_with(fig)
+
+
+def test_play_live_auto_closes_when_finished(monkeypatch):
+    fake = MagicMock()
+    fig, ax = MagicMock(), MagicMock()
+    fake.subplots.return_value = (fig, ax)
+    callbacks: list = []
+    timer = MagicMock()
+    timer.add_callback.side_effect = callbacks.append
+    stopped = {"v": False}
+    timer.stop.side_effect = lambda: stopped.__setitem__("v", True)
+    fig.canvas.new_timer.return_value = timer
+    monkeypatch.setattr(live_viewer, "plt", fake)
+    monkeypatch.setattr(live_viewer, "render_state", lambda *a, **k: None)
+    scheduled: list = []
+    monkeypatch.setattr(live_viewer, "_schedule_close", lambda f, h: scheduled.append((f, h)))
+
+    def fake_show(block=True):
+        for _ in range(2000):
+            if stopped["v"]:
+                break
+            for cb in list(callbacks):
+                cb()
+            time.sleep(0.001)
+
+    fake.show.side_effect = fake_show
+    cfg = {"gui": {"live_backend": "Agg", "poll_interval_ms": 1, "close_on_finish": True}}
+    live_viewer.play_live(iter([(GameState(4, 4, Position(0, 0), Position(3, 3)), "")]), cfg)
+    assert scheduled and scheduled[0][0] is fig  # close scheduled on finish
 
 
 def test_play_live_falls_back_to_default_backend(monkeypatch):

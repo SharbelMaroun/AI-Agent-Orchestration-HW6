@@ -56,15 +56,19 @@ def _run_nl(sdk: Sdk, gui: bool, live: bool) -> None:
     gatekeeper = select_gatekeeper(sdk.config)
     model = sdk.config.get("llm", {}).get("model", "gpt-4o-mini")
     real = bool(os.environ.get("OPENAI_API_KEY"))
+    # Creative LLM speech only helps the visual modes (the message is shown) and needs a real key.
+    creative = real and bool(sdk.config.get("llm", {}).get("creative_speech", True))
     print(f"LLM backend: {'OpenAI (' + model + ')' if real else 'offline echo (no OPENAI_API_KEY)'}")
     if live:
         from .gui.live_viewer import play_live
 
-        play_live(sdk.stream_nl_frames(backend, gatekeeper), sdk.config, "Cop & Thief — natural language")
+        frames = sdk.stream_nl_frames(backend, gatekeeper, creative=creative)
+        play_live(frames, sdk.config, "Cop & Thief — natural language")
     elif gui:
         from .gui.match_animator import animate_nl_match
 
-        print(f"GUI animation saved to {animate_nl_match(sdk.config, backend, gatekeeper)}")
+        path = animate_nl_match(sdk.config, backend, gatekeeper, creative=creative)
+        print(f"GUI animation saved to {path}")
     else:
         print(json.dumps(sdk.run_nl_match(backend, gatekeeper), indent=2))
     print(f"LLM calls via gatekeeper: {gatekeeper.calls}")

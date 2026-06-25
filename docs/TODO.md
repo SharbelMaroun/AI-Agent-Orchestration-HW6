@@ -22,12 +22,12 @@
 | 3 | Orchestrator & full local match | M3 | 60 |
 | 4 | Decision strategy | M4 | 70 |
 | 5 | Natural-language integration | M5 | 60 |
-| 6 | GUI & CLI | M6 | 52 |
+| 6 | GUI & CLI | M6 | 57 |
 | 7 | Cloud deployment & security | M7 | 27 |
 | 8 | Gmail/Calendar agent & reporting | M8 | 104 |
 | 9 | Gatekeeper, quality gates, research & submission | M9 | 85 |
 | 10 | Audit closure (requirements coverage gaps) | M10 | 54 |
-| — | **Total** | — | **679** |
+| — | **Total** | — | **684** |
 
 ---
 
@@ -492,6 +492,11 @@ _Real-time visualization and CLI logs (read state from SDK only)._
 | T6.50 | GREEN: run frame generator on a daemon worker thread → `queue.Queue` (no blocking on GUI thread) | P1 | ✅ | `<TBD>` | Producer thread feeds queue + sentinel |
 | T6.51 | GREEN: drain queue on `fig.canvas.new_timer` tick on the main thread; stop on sentinel | P1 | ✅ | `<TBD>` | Event loop never blocks; window responsive |
 | T6.52 | Fix "not responding" freeze during per-turn LLM wait + document threading (PLAN §4, README R.4, PROMPT_LOG A12) | P1 | ✅ | `<TBD>` | Window stays responsive while turns compute |
+| T6.53 | `gui/theme.py` — modern-dark palette (single source) + `glow()` halo helper | P2 | ✅ | `<TBD>` | Central style constants; render-only |
+| T6.54 | `gui/overlays.py` — HUD (turn/winner banner, move counter, legend) + rounded speech bubble | P2 | ✅ | `<TBD>` | Reads GameState + caption only |
+| T6.55 | Rewrite `board_renderer` for dark theme: glow cop/thief tokens, barrier slabs, capture flash | P2 | ✅ | `<TBD>` | Stateless render; smoke tests pass |
+| T6.56 | Movement trails (faded breadcrumbs) — accumulated by caller, passed into `render_state` | P2 | ✅ | `<TBD>` | Renderer stays stateless |
+| T6.57 | Regenerate assets with new theme (`board_state.png`, `match.gif`, `match_nl.gif`) | P2 | ✅ | `<TBD>` | Screenshots refreshed in README R.4 |
 
 ## Phase 7 — Cloud deployment & security (Milestone: M7)
 _Deploy both MCP servers with token auth (deployment tasks, not modules)._

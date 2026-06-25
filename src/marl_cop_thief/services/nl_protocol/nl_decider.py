@@ -14,7 +14,7 @@ from ..game_engine import GameEngine
 from ..mcp.message_bus import MessageBus
 from ..observation import observe
 from .nl_decode import interpret
-from .nl_encode import encode
+from .nl_encode import Speaker, encode
 
 
 def _chebyshev(a: Position, b: Position) -> int:
@@ -25,12 +25,18 @@ class NLDecider:
     """Stateful decider for one agent across a sub-game (holds its belief)."""
 
     def __init__(
-        self, role: Role, bus: MessageBus, llm: LLMClient, visibility_radius: int
+        self,
+        role: Role,
+        bus: MessageBus,
+        llm: LLMClient,
+        visibility_radius: int,
+        speaker: Speaker = encode,
     ) -> None:
         self.role = role
         self.bus = bus
         self.llm = llm
         self.visibility_radius = visibility_radius
+        self.speaker = speaker
         self.belief: Position | None = None
 
     def __call__(self, engine: GameEngine, state: GameState) -> Action:
@@ -41,7 +47,7 @@ class NLDecider:
         if obs.opponent_pos is not None:
             self.belief = obs.opponent_pos
         action = self._choose(engine, state)
-        self.bus.send(self.role, encode(self.role, obs, action))
+        self.bus.send(self.role, self.speaker(self.role, obs, action))
         return action
 
     def _choose(self, engine: GameEngine, state: GameState) -> Action:
