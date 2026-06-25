@@ -1,0 +1,17 @@
+API Gatekeeper demonstration (offline, fake clock)
+========================================================
+Loaded llm limits from rate_limits.json: rpm=20, rph=400, max_queue_depth=100
+
+Rate limiting + FIFO drain: 9 calls under a 3/min cap (no rejections):
+  call 1: admitted at t=0.0 min
+  call 2: admitted at t=0.0 min
+  call 3: admitted at t=0.0 min
+  call 4: admitted at t=1.0 min
+  call 5: admitted at t=1.0 min
+  call 6: admitted at t=1.0 min
+  call 7: admitted at t=2.0 min
+  call 8: admitted at t=2.0 min
+  call 9: admitted at t=2.0 min
+
+Backpressure: 5 callers queued behind a max_queue_depth of 3:
+  QueueStatus(depth=5, max_depth=3, backpressure=True, enqueued=5, drained=0, peak_depth=5)

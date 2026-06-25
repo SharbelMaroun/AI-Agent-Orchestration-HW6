@@ -28,21 +28,32 @@ def _echo(prompt: str) -> str:
     return prompt
 
 
-def run_nl_match(config: dict[str, Any], backend: Callable[[str], str] | None = None) -> dict[str, Any]:
-    """Run ``num_games`` NL sub-games to completion and return the summary."""
+def run_nl_match(
+    config: dict[str, Any],
+    backend: Callable[[str], str] | None = None,
+    gatekeeper: ApiGatekeeper | None = None,
+) -> dict[str, Any]:
+    """Run ``num_games`` NL sub-games to completion and return the summary.
+
+    The LLM routes through one shared ``gatekeeper`` for the whole match, so any
+    configured rate limit spans every sub-game; the default is unlimited, keeping
+    offline runs fast. The CLI injects a config-driven gatekeeper for real runs.
+    """
     if backend is None:
         backend = _echo
+    if gatekeeper is None:
+        gatekeeper = ApiGatekeeper()
     width, height = config["grid_size"]
     engine = GameEngine(width, height, config["max_moves"], config["max_barriers"])
     visibility_radius = config["visibility_radius"]
     scoring = config["scoring"]
     num_games = config["num_games"]
     seed = config.get("seed", 0)
+    llm = GatekeptLLM(backend, gatekeeper)
 
     results = []
     for i in range(num_games):
         bus = MessageBus()
-        llm = GatekeptLLM(backend, ApiGatekeeper())
         deciders = {
             Role.COP: NLDecider(Role.COP, bus, llm, visibility_radius),
             Role.THIEF: NLDecider(Role.THIEF, bus, llm, visibility_radius),

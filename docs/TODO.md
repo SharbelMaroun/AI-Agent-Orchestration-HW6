@@ -8,7 +8,7 @@
 > **Status:** ⬜ Not Started · 🟦 In Progress · ✅ Completed — **Priority:** P0–P3. Owner: `<TBD>`.  
 > Update statuses continuously; add a README Work-Log row + evidence (graph/screenshot) per task.
 
-> **Implementation status (code, 2026-06-25):** Phase 0 ✅ · Phase 1 ✅ · Phase 2 🟦 (tool layer + 2 FastMCP servers done; MCP transport/auth pending) · Phase 3 ✅ · Phase 5 ✅ (NL agents, runnable via --nl) · Phase 6 🟦 (GUI renderer + animated GIF via --gui) · Phase 8 🟦 (report builder + Gmail/Calendar agent tools done; real OAuth send pending) · Phase 4 🟦 (heuristic only) — all green (ruff clean, pytest 108 passing, 100% coverage). Phases 7/9/10 mostly pending; gatekeeper minimal pending full FIFO queue.
+> **Implementation status (code, 2026-06-25):** Phase 0 ✅ · Phase 1 ✅ · Phase 2 🟦 (tool layer + 2 FastMCP servers done; MCP transport/auth pending) · Phase 3 ✅ · Phase 5 ✅ (NL agents, runnable via --nl) · Phase 6 🟦 (GUI renderer + animated GIF via --gui) · Phase 8 🟦 (report builder + Gmail/Calendar agent tools done; real OAuth send pending) · Phase 4 🟦 (heuristic only) · Phase 9 🟦 (**full API gatekeeper done** — config-driven rate limiting + FIFO queue + backpressure + drain + retries/backoff + concurrency + `get_queue_status`; research/submission tasks pending) — all green (ruff clean, pytest 134 passing, 100% coverage). Phases 7/10 mostly pending.
 
 ---
 
@@ -609,17 +609,17 @@ _Cross-cutting infra, quality gates, research/visualization, final checklist & s
 
 | ID | Task | Pri | Status | Owner | DoD |
 |----|------|-----|--------|-------|-----|
-| T9.1 | Spec & single-concern interface for `shared/gatekeeper.py` — centralized API gatekeeper (rate-limit/queue/retry/log) | P0 | 🟦 | `<TBD>` | Interface + docstring agreed; ≤150-LOC plan |
-| T9.2 | Define typed models/signatures for `shared/gatekeeper.py` | P0 | 🟦 | `<TBD>` | Typed inputs/outputs defined |
-| T9.3 | RED: write failing unit tests for `shared/gatekeeper.py` (happy path) | P0 | 🟦 | `<TBD>` | Failing tests committed |
-| T9.4 | GREEN: implement `shared/gatekeeper.py` | P0 | 🟦 | `<TBD>` | Happy-path tests pass |
-| T9.5 | Edge-case & boundary tests for `shared/gatekeeper.py` | P0 | 🟦 | `<TBD>` | Empty/invalid/limit inputs covered |
-| T9.6 | Defensive error handling in `shared/gatekeeper.py` | P0 | 🟦 | `<TBD>` | Graceful failure + clear message |
-| T9.7 | Refactor `shared/gatekeeper.py`: DRY, ≤150 lines, single responsibility | P0 | 🟦 | `<TBD>` | No duplication; ≤150 LOC |
-| T9.8 | Docstrings + why-comments for `shared/gatekeeper.py` | P0 | 🟦 | `<TBD>` | Module/functions documented |
-| T9.9 | Ruff clean `shared/gatekeeper.py` | P0 | 🟦 | `<TBD>` | 0 ruff violations |
-| T9.10 | Mock external deps in `shared/gatekeeper.py` tests | P0 | 🟦 | `<TBD>` | No live external calls |
-| T9.11 | Coverage ≥85% for `shared/gatekeeper.py` + add README Work Log row | P0 | 🟦 | `<TBD>` | ≥85% coverage; Work Log updated |
+| T9.1 | Spec & single-concern interface for `shared/gatekeeper.py` — centralized API gatekeeper (rate-limit/queue/retry/log) | P0 | ✅ | `<TBD>` | Interface + docstring agreed; ≤150-LOC plan |
+| T9.2 | Define typed models/signatures for `shared/gatekeeper.py` | P0 | ✅ | `<TBD>` | Typed inputs/outputs defined (`RateLimitConfig`, `QueueStatus`) |
+| T9.3 | RED: write failing unit tests for `shared/gatekeeper.py` (happy path) | P0 | ✅ | `<TBD>` | Failing tests committed |
+| T9.4 | GREEN: implement `shared/gatekeeper.py` | P0 | ✅ | `<TBD>` | Happy-path tests pass |
+| T9.5 | Edge-case & boundary tests for `shared/gatekeeper.py` | P0 | ✅ | `<TBD>` | Overflow/backpressure/exhausted-retry/concurrency covered |
+| T9.6 | Defensive error handling in `shared/gatekeeper.py` | P0 | ✅ | `<TBD>` | Graceful failure + clear message; never rejects/crashes |
+| T9.7 | Refactor `shared/gatekeeper.py`: DRY, ≤150 lines, single responsibility | P0 | ✅ | `<TBD>` | 137 code LOC; limiter split to `rate_limit.py` |
+| T9.8 | Docstrings + why-comments for `shared/gatekeeper.py` | P0 | ✅ | `<TBD>` | Module/functions documented |
+| T9.9 | Ruff clean `shared/gatekeeper.py` | P0 | ✅ | `<TBD>` | 0 ruff violations |
+| T9.10 | Mock external deps in `shared/gatekeeper.py` tests | P0 | ✅ | `<TBD>` | Injected fake clock/sleep; no live external calls |
+| T9.11 | Coverage ≥85% for `shared/gatekeeper.py` + add README Work Log row | P0 | ✅ | `<TBD>` | 100% coverage; Work Log updated |
 | T9.12 | Spec & single-concern interface for `shared/config.py` — config loader + version validation | P0 | ⬜ | `<TBD>` | Interface + docstring agreed; ≤150-LOC plan |
 | T9.13 | Define typed models/signatures for `shared/config.py` | P0 | ⬜ | `<TBD>` | Typed inputs/outputs defined |
 | T9.14 | RED: write failing unit tests for `shared/config.py` (happy path) | P0 | ⬜ | `<TBD>` | Failing tests committed |
@@ -653,12 +653,12 @@ _Cross-cutting infra, quality gates, research/visualization, final checklist & s
 | T9.42 | Ruff clean `shared/logging_setup.py` | P1 | ⬜ | `<TBD>` | 0 ruff violations |
 | T9.43 | Mock external deps in `shared/logging_setup.py` tests | P1 | ⬜ | `<TBD>` | No live external calls |
 | T9.44 | Coverage ≥85% for `shared/logging_setup.py` + add README Work Log row | P1 | ⬜ | `<TBD>` | ≥85% coverage; Work Log updated |
-| T9.45 | All external calls routed through gatekeeper (audit) | P0 | ⬜ | `<TBD>` | No direct API calls |
-| T9.46 | FIFO queue on overflow (no reject/crash) | P0 | ⬜ | `<TBD>` | Queued, drained on reset |
-| T9.47 | Backpressure alert when queue full | P1 | ⬜ | `<TBD>` | get_queue_status reports |
-| T9.48 | Retry transient failures up to max_retries | P0 | ⬜ | `<TBD>` | Backoff honoured |
-| T9.49 | Enforce concurrent_max + thread-safety (locks) | P1 | ⬜ | `<TBD>` | No race conditions |
-| T9.50 | Rate limits read from rate_limits.json (versioned) | P0 | ⬜ | `<TBD>` | No hardcoded limits |
+| T9.45 | All external calls routed through gatekeeper (audit) | P0 | 🟦 | `<TBD>` | LLM gatekept (`GatekeptLLM`); Gmail/Calendar wrapping ready, wired at OAuth time (Phase 8) |
+| T9.46 | FIFO queue on overflow (no reject/crash) | P0 | ✅ | `<TBD>` | Ticket-gated FIFO; queued + drained on window reset (`test_overflow_is_queued_and_drained_not_rejected`) |
+| T9.47 | Backpressure alert when queue full | P1 | ✅ | `<TBD>` | `get_queue_status().backpressure` + logged event |
+| T9.48 | Retry transient failures up to max_retries | P0 | ✅ | `<TBD>` | Backoff `retry_after_seconds` honoured (`test_backoff_sleeps_retry_after_between_attempts`) |
+| T9.49 | Enforce concurrent_max + thread-safety (locks) | P1 | ✅ | `<TBD>` | `BoundedSemaphore` + single `RLock`; no lost increments under 25-thread load |
+| T9.50 | Rate limits read from rate_limits.json (versioned) | P0 | ✅ | `<TBD>` | `gatekeeper_from_config`; no hardcoded limits |
 | T9.51 | Coverage gate >=85% passes | P0 | ⬜ | `<TBD>` | fail_under met |
 | T9.52 | Ruff zero violations across repo | P0 | ⬜ | `<TBD>` | Clean |
 | T9.53 | File-size <=150 LOC check (all code files) | P1 | ⬜ | `<TBD>` | None exceed |
@@ -720,8 +720,8 @@ _Close every gap from the 2026-06-25 multi-agent audit (see docs/AUDIT-2026-06-2
 | T10.18 | Relative file I/O for in-repo paths; secrets_dir sole external [gap53,C21] | P1 | ⬜ | `<TBD>` | No absolute in-repo paths |
 | T10.19 | Per-environment config templates (.env.dev/.env.prod) [gap60] | P2 | ⬜ | `<TBD>` | Templates shipped |
 | T10.20 | Pin Google client lib versions in pyproject (version churn) [C26] | P2 | ⬜ | `<TBD>` | Versions pinned |
-| T10.21 | Thread-safety: deadlock avoidance + context managers + queue.Queue [gap17] | P1 | ⬜ | `<TBD>` | Documented + implemented |
-| T10.22 | Classify ops I/O vs CPU-bound; threads for I/O, no CPU hot path [gap54,55,56] | P2 | ⬜ | `<TBD>` | Rationale in PRD_gatekeeper |
+| T10.21 | Thread-safety: deadlock avoidance + context managers + queue.Queue [gap17] | P1 | ✅ | `<TBD>` | Single `RLock` (consistent order ⇒ no deadlock) + `with` blocks + `deque` FIFO; noted in PRD_gatekeeper §6 |
+| T10.22 | Classify ops I/O vs CPU-bound; threads for I/O, no CPU hot path [gap54,55,56] | P2 | ✅ | `<TBD>` | Rationale in PRD_gatekeeper §6 (LLM/Gmail are I/O-bound → threads) |
 | T10.23 | Notebook includes LaTeX + academic references [gap12] | P2 | ⬜ | `<TBD>` | Bibliography present |
 | T10.24 | Graph quality 5-part (labels,legend,colors,caption,>=150dpi) [gap13] | P2 | ⬜ | `<TBD>` | DoD on viz tasks |
 | T10.25 | Name viz stack (Matplotlib/Seaborn/Plotly) + add deps [gap42] | P2 | ⬜ | `<TBD>` | Deps added |

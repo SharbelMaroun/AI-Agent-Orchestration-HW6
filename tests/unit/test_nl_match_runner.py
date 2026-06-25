@@ -6,6 +6,7 @@ services. Covers ``run_nl_match`` and ``Sdk.run_nl_match`` to 100% (incl. branch
 
 from marl_cop_thief.sdk import Sdk
 from marl_cop_thief.services.nl_match import run_nl_match
+from marl_cop_thief.shared.gatekeeper import ApiGatekeeper
 
 CONFIG = {
     "grid_size": [5, 5],
@@ -59,3 +60,15 @@ def test_sdk_run_nl_match_default_backend():
 def test_sdk_run_nl_match_passes_backend():
     summary = Sdk(CONFIG).run_nl_match(backend=lambda prompt: prompt)
     assert len(summary["sub_games"]) == CONFIG["num_games"]
+
+
+def test_run_nl_match_routes_through_injected_gatekeeper():
+    gk = ApiGatekeeper()
+    run_nl_match(CONFIG, gatekeeper=gk)
+    assert gk.calls > 0  # the shared gatekeeper fronted every LLM call across sub-games
+
+
+def test_sdk_run_nl_match_passes_gatekeeper():
+    gk = ApiGatekeeper()
+    Sdk(CONFIG).run_nl_match(gatekeeper=gk)
+    assert gk.calls > 0

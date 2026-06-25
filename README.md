@@ -112,10 +112,10 @@ Nielsen's 10 usability heuristics (GUI/CLI) — see [`docs/PLAN.md`](docs/PLAN.m
 | 5 | Natural-language + LLM | ✅ done | NL encode/decode, ambiguity handler, NL decider; LLM via gatekeeper |
 | 6 | GUI | 🟦 partial | board renderer + animated GIF (`--gui`); live interactive window pending |
 | 8 | Report builder + Gmail/Calendar agent | 🟦 partial | JSON builders + read/extract/calendar/send tools tested; real OAuth send pending |
-| 9 | API gatekeeper | 🟦 minimal | retry + per-call logging; FIFO queue/backpressure pending |
-| 6, 7, 10 | GUI, cloud, research | ⬜ pending | — |
+| 9 | API gatekeeper | ✅ done | config-driven rate limit + FIFO queue + backpressure + drain + retries/backoff + concurrency + `get_queue_status` (see R.9) |
+| 7, 10 | Cloud, research/submission | ⬜ pending | — |
 
-Whole suite: **106 tests, 100% coverage, Ruff zero-violation.** The NL match is runnable via
+Whole suite: **134 tests, 100% coverage, Ruff zero-violation.** The NL match is runnable via
 `uv run python -m marl_cop_thief --nl`. The Gmail/Calendar tools are dependency-injected (tested with
 fakes); `shared/google_auth.py` builds the real services and needs your Google OAuth `client_secret.json`.
 
@@ -124,6 +124,7 @@ Newest first.
 
 | Date | What we did | Why | Evidence |
 |------|-------------|-----|----------|
+| 2026-06-25 | **Phase 9: full API gatekeeper** — config-driven rate limiting (`rate_limits.json`), FIFO overflow queue with backpressure alert + drain-on-reset, retries with backoff, `concurrent_max` semaphore, thread-safe `RLock`, `get_queue_status()`; injected clock/sleep for deterministic offline tests; **adversarial multi-agent review** then fixed 6 confirmed defects (ticket-leak deadlock, retries bypassing the limiter, prod path not loading `rate_limits.json`, backpressure off-by-one, version validation, drain test) | Required centralized chokepoint (CLAUDE §2); close T9.1–11/45–50 | 134 tests, 100% cov; `shared/{gatekeeper,rate_limit}.py`; demo → [R.9](#r9-api-gatekeeper-rate-limiting--queueing) |
 | 2026-06-25 | Made **NL the default** (`cop-thief`; `--simple` for heuristic) + wired a **real OpenAI backend** auto-loaded from `.env` | NL is the assignment; use a real LLM | 111 tests; offline fallback intact |
 | 2026-06-25 | Synced `docs/PLAN.md` to the as-built tree; added a **single-command** runner (`cop-thief` console script + `run.ps1`) | Keep docs accurate; simpler UX | `uv run cop-thief` works |
 | 2026-06-25 | **Phase 6**: GUI board renderer + match animator (`--gui` → animated GIF) + smoke tests | Visualize the game; required screenshots | 108 tests; `assets/match.gif` |
@@ -212,6 +213,38 @@ RESULT: cop wins in 8 moves; LLM calls via gatekeeper=7
 Maintained in [`docs/PROMPT_LOG.md`](docs/PROMPT_LOG.md) — development prompts + runtime agent prompt
 templates, with context/goal, example outputs, and improvements (guidelines §8.3).
 
+## R.9 API Gatekeeper (rate limiting & queueing)
+Every external call (the LLM today; Gmail/Calendar when OAuth is wired) routes through one
+[`ApiGatekeeper`](src/marl_cop_thief/shared/gatekeeper.py) (CLAUDE.md §2). It enforces **config-driven**
+limits from [`config/rate_limits.json`](config/rate_limits.json), **queues** overflow in FIFO order
+(never rejecting), **drains** the queue when the window resets, **retries** transient failures with
+backoff, bounds **concurrency** with a semaphore, and exposes `get_queue_status()` with a
+**backpressure** alert. Time is injected (`clock`/`sleep`) so the behaviour is tested **offline and
+deterministically** — no real waiting. Design: [`docs/PRD_gatekeeper.md`](docs/PRD_gatekeeper.md).
+
+Reproduce: `uv run python scripts/gatekeeper_demo.py` (full log:
+[`results/gatekeeper_demo.txt`](results/gatekeeper_demo.txt)). Under a **3 calls/min** cap, 9 calls are
+admitted 3-per-minute — none rejected — and a queue of 5 behind a `max_queue_depth` of 3 raises
+backpressure:
+
+![Gatekeeper throughput under a 3/min limit](assets/gatekeeper_throughput.png)
+
+```text
+Rate limiting + FIFO drain: 9 calls under a 3/min cap (no rejections):
+  call 1: t=0.0 min   call 2: t=0.0 min   call 3: t=0.0 min
+  call 4: t=1.0 min   call 5: t=1.0 min   call 6: t=1.0 min
+  call 7: t=2.0 min   call 8: t=2.0 min   call 9: t=2.0 min
+Backpressure: 5 callers queued behind a max_queue_depth of 3:
+  QueueStatus(depth=5, max_depth=3, backpressure=True, enqueued=5, drained=0, peak_depth=5)
+```
+
+Thread-safety is a single `RLock` (consistent acquisition order ⇒ no deadlock) with `with`-managed
+critical sections; gatekept calls are **I/O-bound**, so concurrency uses threads, not multiprocessing
+(PRD_gatekeeper §6.1). For local offline runs the default gatekeeper is **unlimited** so the match stays
+snappy; when `OPENAI_API_KEY` is set the CLI auto-selects a config-driven gatekeeper
+(`select_gatekeeper` → `gatekeeper_from_config(rate_limits.json, "llm")`), so editing `rate_limits.json`
+changes real-run throttling with **no code edit** (version-checked on load).
+
 ---
 
 ## 5. Configuration Guide
@@ -229,7 +262,7 @@ All tunables live in `config/` (nothing hard-coded). Full schema in [`docs/PLAN.
 | `reporting.recipient_email` | str | `sharbelma3@gmail.com` | Report recipient (→ `rmisegal+uoh26b@gmail.com` at submission) |
 | `google.secrets_dir` | path | _external_ | Folder (outside repo) holding `client_secret.json`/`token.json` |
 | `google.scopes` | list | gmail.modify, calendar | OAuth scopes |
-| `rate_limits.services.*` | obj | see file | Per-service RPM/RPH/concurrency/retries (gatekeeper) |
+| `rate_limits.services.*` | obj | see file | Per-service `requests_per_minute`/`requests_per_hour`/`concurrent_max`/`retry_after_seconds`/`max_retries`/`max_queue_depth` (gatekeeper; `0` = unlimited) |
 
 ## 6. Contribution Guidelines
 Follow [`CLAUDE.md`](CLAUDE.md) and the submission guidelines: docs-first, SDK-only, files ≤150 lines,

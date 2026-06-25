@@ -12,7 +12,7 @@ import json
 from dotenv import load_dotenv
 
 from .sdk import Sdk
-from .shared.llm_backend import select_backend
+from .shared.llm_backend import select_backend, select_gatekeeper
 
 
 def main() -> None:
@@ -35,7 +35,11 @@ def main() -> None:
 
         print(f"GUI animation saved to {animate_match(sdk.config)}")
         return
-    summary = sdk.run_match() if args.simple else sdk.run_nl_match(select_backend(sdk.config))
+    summary = (
+        sdk.run_match()
+        if args.simple
+        else sdk.run_nl_match(select_backend(sdk.config), select_gatekeeper(sdk.config))
+    )
     print(json.dumps(summary, indent=2))
 
 

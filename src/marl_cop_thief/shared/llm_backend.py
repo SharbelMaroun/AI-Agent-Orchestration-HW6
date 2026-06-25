@@ -11,6 +11,9 @@ import os
 from collections.abc import Callable
 from typing import Any
 
+from .config import load_json
+from .gatekeeper import ApiGatekeeper, gatekeeper_from_config
+
 
 def echo_backend(prompt: str) -> str:
     """Offline fallback: echo the prompt (no network)."""
@@ -25,3 +28,16 @@ def select_backend(config: dict[str, Any]) -> Callable[[str], str]:
         model = config.get("llm", {}).get("model", "gpt-4o-mini")
         return openai_backend(model)
     return echo_backend
+
+
+def select_gatekeeper(config: dict[str, Any]) -> ApiGatekeeper:
+    """Config-driven gatekeeper when a real provider is in use; unlimited offline.
+
+    Keying on the API key (not the match call) keeps offline/test runs fast and
+    unthrottled, while real OpenAI runs honour ``config/rate_limits.json`` — editing
+    that file changes behaviour with no code edit (PRD_gatekeeper S4). ``config`` is
+    accepted for symmetry with :func:`select_backend` and future per-config limits.
+    """
+    if os.environ.get("OPENAI_API_KEY"):
+        return gatekeeper_from_config(load_json("rate_limits.json"), "llm")
+    return ApiGatekeeper()

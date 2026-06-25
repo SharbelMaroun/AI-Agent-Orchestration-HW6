@@ -167,7 +167,8 @@ src/marl_cop_thief/
 │   └── strategy/heuristic.py   # cop_action / thief_action   (belief_model, q_table: planned)
 ├── gui/                        # board_renderer, match_animator (renders state; omitted from coverage)
 └── shared/
-    ├── gatekeeper.py           # API gatekeeper (minimal: retry+log; full FIFO queue planned)
+    ├── gatekeeper.py           # API gatekeeper (rate limit + FIFO queue + backpressure + retries + concurrency)
+    ├── rate_limit.py           # RateLimitConfig, QueueStatus, SlidingWindowLimiter (config-driven)
     ├── llm_client.py           # LLMClient protocol + GatekeptLLM
     ├── llm_backend.py          # select OpenAI vs offline echo backend (by OPENAI_API_KEY)
     ├── openai_backend.py       # real OpenAI Chat Completions (omitted from coverage)
@@ -177,12 +178,12 @@ src/marl_cop_thief/
     └── models.py               # Position, Action, GameState, TurnResult, SubGameResult, Message, Meeting
 config/    config.json · rate_limits.json · logging_config.json   (versioned 1.00)
 tests/     unit/ · integration/ · conftest.py
-scripts/   make_figures.py      # reproducible analysis -> assets/ graphs + results/ log
+scripts/   make_figures.py · gatekeeper_demo.py   # reproducible analysis -> assets/ graphs + results/ logs
 assets/    graphs, board screenshots, match.gif        results/  run logs
 ```
 > Every file targets **≤150 lines of code** (comments/blanks excluded); split when exceeded.
-> Note: the `mcp/` package lives under `services/mcp/` (not the package root). The full FIFO-queue
-> gatekeeper, `belief_model`/`q_table`, and a live interactive GUI window remain planned.
+> Note: the `mcp/` package lives under `services/mcp/` (not the package root). `belief_model`/`q_table`
+> and a live interactive GUI window remain planned.
 
 ---
 

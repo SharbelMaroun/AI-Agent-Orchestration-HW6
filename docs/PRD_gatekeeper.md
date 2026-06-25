@@ -69,6 +69,19 @@ Per-service overrides (e.g., `llm`, `gmail`) may be added under `services`.
 - Limits and queue depth are **config-driven**; defaults allowed in code only as fallback constants.
 - Thread-safety required if the orchestrator parallelizes calls (use locks / `queue.Queue`).
 
+### 6.1 Concurrency model (as built)
+- **Single re-entrant lock** (`threading.RLock`) guards *all* shared state (queue, windows, counters,
+  log). One lock acquired in a consistent order ⇒ **no nested-lock deadlock**; every critical section
+  uses a `with` block (context manager) so the lock is always released, even on exceptions.
+- FIFO ordering uses a monotonic-ticket `deque` (head-gating in `_await_slot`) rather than nested locks
+  — the `queue.Queue`-style discipline the standard recommends, without extra lock layers.
+- `concurrent_max` is enforced with a `threading.BoundedSemaphore`, released in a `finally` on every path.
+- **I/O- vs CPU-bound:** every gatekept call (LLM, Gmail/Calendar HTTPS) is **I/O-bound**, so the right
+  tool is **multithreading** (threads + the lock/semaphore above); there is no CPU-bound hot path, so
+  multiprocessing is deliberately *not* used (guidelines §15.1/§15.3).
+- **Deterministic testing:** the clock and sleep are injected (`clock`/`sleep`), so rate-limiting,
+  backoff, and FIFO drain are tested offline with a fake clock — no real waiting, no flakiness.
+
 ## 7. Alternatives Considered
 - **Per-service ad-hoc rate limiting:** rejected — duplicated logic; violates DRY & the gatekeeper rule.
 - **Reject-on-overflow:** rejected — guidelines require queueing, not crashing/rejecting.
