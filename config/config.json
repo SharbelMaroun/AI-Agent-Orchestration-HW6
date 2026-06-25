@@ -17,7 +17,7 @@
   },
   "gui": {
     "live_backend": "TkAgg",
-    "turn_delay_seconds": 0.6
+    "poll_interval_ms": 150
   },
   "llm": {
     "provider": "openai",

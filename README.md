@@ -128,7 +128,8 @@ Newest first.
 
 | Date | What we did | Why | Evidence |
 |------|-------------|-----|----------|
-| 2026-06-25 | **Live real-time GUI window** — `cop-thief --live` opens an interactive window that draws each turn the instant the engine computes it (so an NL match advances as each LLM call returns). Refactored the game loop into service-layer per-turn *frame streams* (`services/match_stream.py` `stream_subgame`/`heuristic_subgame_stream` + `nl_subgame_stream`); the GIF animator now collects the same stream (DRY); exposed via SDK (`stream_simple_frames`/`stream_nl_frames`); backend/pacing config-driven (`gui.live_backend`, `gui.turn_delay_seconds`) | The GIF was a recording, not real-time — user wanted to watch the game live | `gui/live_viewer.py`; **166 tests, 100% cov**, Ruff clean; docs-first (PLAN §4, PRD FR-11, TODO T6.39–48) |
+| 2026-06-25 | **Live window no longer freezes** — moved frame production (which blocks on the per-turn LLM call) onto a **daemon worker thread** feeding a `queue.Queue`; the Tk event loop keeps the **main thread** and drains one frame per tick via `fig.canvas.new_timer` (`gui.poll_interval_ms`). Extracted pure `_produce`/`_render_tick` helpers (unit-tested). Config key `gui.turn_delay_seconds` → `gui.poll_interval_ms` | Window showed "not responding" while waiting for the next turn (blocking call on the GUI thread) | `gui/live_viewer.py`; PLAN §4 threading note; docs-first |
+| 2026-06-25 | **Live real-time GUI window** — `cop-thief --live` opens an interactive window that draws each turn the instant the engine computes it (so an NL match advances as each LLM call returns). Refactored the game loop into service-layer per-turn *frame streams* (`services/match_stream.py` `stream_subgame`/`heuristic_subgame_stream` + `nl_subgame_stream`); the GIF animator now collects the same stream (DRY); exposed via SDK (`stream_simple_frames`/`stream_nl_frames`); backend config-driven (`gui.live_backend`) | The GIF was a recording, not real-time — user wanted to watch the game live | `gui/live_viewer.py`; **166 tests, 100% cov**, Ruff clean; docs-first (PLAN §4, PRD FR-11, TODO T6.39–48) |
 | 2026-06-25 | **GUI now animates the NL match** — `cop-thief --gui` renders the natural-language sub-game with each turn's NL message overlaid (real OpenAI when keyed, else offline); `--simple --gui` keeps the heuristic/smart GIF | One command to *see* the full NL run, not just text | `assets/match_nl.gif`; 154 tests, 100% cov; `peek_last` bus API + `nl_subgame_frames` |
 | 2026-06-25 | **Token-cost analysis (R.7)** — `token_cost.py` util + `token_report.py` capture real prompts from an offline match; filled the cost table (config-driven gpt-4o-mini pricing) | Required cost analysis now that OpenAI is wired | **66 calls, 3310 tokens, $0.000615/match**; 149 tests, 100% cov; `results/token_cost.txt` |
 | 2026-06-25 | **Phase 4: cornering "smart" cop** — 1-ply look-ahead ranking actions by `(distance, thief escape-options)` after the thief's reply; config-selectable (`strategy.type`); refreshed comparison graphs | Greedy cop fell into limit cycles and let the thief escape (R.3) | **Capture 0.72→1.00** on 5×5; 100% on 3×3–7×7; 144 tests, 100% cov; `smart_cop.py` + `geometry.py`; graphs in `assets/` |
@@ -217,7 +218,19 @@ watch the pursuit unfold move-by-move (add `--simple` for the heuristic/smart ma
 the final board until you close it. Architecture: the game is exposed as a per-turn *frame stream* from
 the SDK (`Sdk.stream_nl_frames` / `stream_simple_frames` → `services/match_stream.py`); the live viewer
 and the GIF animator are two render-only consumers of the same stream (SDK-only; GUI holds no game logic).
-Pacing is config-driven via `gui.turn_delay_seconds`.
+**Responsiveness:** because an NL turn blocks on an LLM call, the frame generator runs on a **daemon
+worker thread** that feeds a `queue.Queue`, while the Matplotlib/Tk event loop owns the **main thread** and
+drains one frame per tick via `fig.canvas.new_timer` (`gui.poll_interval_ms`, default 150 ms) — so the
+window never goes "not responding" while a turn computes.
+
+#### 🐞 Fault report — live window froze while waiting for a turn
+**Symptom (first `--live` build):** clicking the window while it waited for the next turn showed Windows'
+**"(Not Responding)"** state. **Root cause:** frames were produced *on the GUI thread*, and producing an NL
+frame blocks on the per-turn LLM call, so the Tk event loop stalled for the duration of the call.
+**Fix:** moved turn computation to a daemon **worker thread** + `queue.Queue`, leaving the event loop free
+on the main thread (timer-drained) — the responsiveness design above. Captured before the fix:
+
+![Live window "Not Responding" before the threading fix](assets/realtime_GUI_not_handled_correctly.png)
 
 ## R.5 CLI Logs & MCP Communication
 A natural-language sub-game (full log: [`results/nl_match_sample.txt`](results/nl_match_sample.txt)) —
@@ -339,6 +352,7 @@ All tunables live in `config/` (nothing hard-coded). Full schema in [`docs/PLAN.
 | `seed` | int | `42` | RNG seed for deterministic match/figure runs |
 | `scoring.*` | int | `20/10/5/5` | cop_win / thief_win / cop_loss / thief_loss |
 | `strategy.type` | str | `heuristic` | Cop policy for the simple match: `heuristic` (greedy) or `smart` (cornering, ~100% capture) |
+| `gui.live_backend` / `gui.poll_interval_ms` | str / int | `TkAgg` / `150` | Live window (`--live`): interactive matplotlib backend + how often (ms) the GUI drains the frame queue while turns compute on a worker thread |
 | `llm.model` | str | `gpt-4o-mini` | OpenAI model for the NL match (used when `OPENAI_API_KEY` is set) |
 | `llm.pricing.*` | obj | `0.15/0.60` | `$/1M` input & output, `chars_per_token`, `est_output_tokens_per_call` (token-cost report, R.7) |
 | `reporting.recipient_email` | str | `sharbelma3@gmail.com` | Report recipient (→ `rmisegal+uoh26b@gmail.com` at submission) |

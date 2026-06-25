@@ -22,12 +22,12 @@
 | 3 | Orchestrator & full local match | M3 | 60 |
 | 4 | Decision strategy | M4 | 70 |
 | 5 | Natural-language integration | M5 | 60 |
-| 6 | GUI & CLI | M6 | 48 |
+| 6 | GUI & CLI | M6 | 52 |
 | 7 | Cloud deployment & security | M7 | 27 |
 | 8 | Gmail/Calendar agent & reporting | M8 | 104 |
 | 9 | Gatekeeper, quality gates, research & submission | M9 | 85 |
 | 10 | Audit closure (requirements coverage gaps) | M10 | 54 |
-| — | **Total** | — | **675** |
+| — | **Total** | — | **679** |
 
 ---
 
@@ -487,7 +487,11 @@ _Real-time visualization and CLI logs (read state from SDK only)._
 | T6.45 | GREEN: implement `gui/live_viewer.py` (`play_live`, runtime interactive backend) | P1 | ✅ | `<TBD>` | Renders each frame as it streams |
 | T6.46 | Smoke test `gui/live_viewer.py` headlessly (mock matplotlib; no window) | P1 | ✅ | `<TBD>` | No live window in tests |
 | T6.47 | Expose streams via SDK (`stream_simple_frames`, `stream_nl_frames`) + `--live` CLI flag | P0 | ✅ | `<TBD>` | SDK-only; CLI delegates |
-| T6.48 | Config `gui.live_backend` + `gui.turn_delay_seconds` (no hardcoded values) | P1 | ✅ | `<TBD>` | Config-driven; defaults documented |
+| T6.48 | Config `gui.live_backend` + `gui.poll_interval_ms` (no hardcoded values) | P1 | ✅ | `<TBD>` | Config-driven; defaults documented |
+| T6.49 | RED: tests for live-viewer threading helpers (`_produce` enqueue+sentinel, `_render_tick` render/empty/done) | P1 | ✅ | `<TBD>` | Failing tests committed |
+| T6.50 | GREEN: run frame generator on a daemon worker thread → `queue.Queue` (no blocking on GUI thread) | P1 | ✅ | `<TBD>` | Producer thread feeds queue + sentinel |
+| T6.51 | GREEN: drain queue on `fig.canvas.new_timer` tick on the main thread; stop on sentinel | P1 | ✅ | `<TBD>` | Event loop never blocks; window responsive |
+| T6.52 | Fix "not responding" freeze during per-turn LLM wait + document threading (PLAN §4, README R.4, PROMPT_LOG A12) | P1 | ✅ | `<TBD>` | Window stays responsive while turns compute |
 
 ## Phase 7 — Cloud deployment & security (Milestone: M7)
 _Deploy both MCP servers with token auth (deployment tasks, not modules)._

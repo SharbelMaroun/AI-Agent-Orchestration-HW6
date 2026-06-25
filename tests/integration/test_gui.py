@@ -1,5 +1,7 @@
 """Smoke tests for the GUI renderer/animator/live-viewer (gui/ omitted from coverage)."""
 
+import queue
+import time
 from unittest.mock import MagicMock
 
 from marl_cop_thief.gui import live_viewer
@@ -42,28 +44,81 @@ def test_animate_smart_strategy_gif(tmp_path):
     assert out.exists() and out.stat().st_size > 0
 
 
-def _fake_plt(monkeypatch):
-    """Patch the live viewer's matplotlib so nothing opens a real window."""
+# --- live viewer: pure threading helpers (no matplotlib, no window) ---
+
+def test_produce_enqueues_frames_then_sentinel():
+    q: queue.Queue = queue.Queue()
+    sentinel = object()
+    live_viewer._produce(iter([("s0", ""), ("s1", "cop: hi")]), q, sentinel)
+    assert q.get_nowait() == ("s0", "")
+    assert q.get_nowait() == ("s1", "cop: hi")
+    assert q.get_nowait() is sentinel  # done marker last
+
+
+def test_render_tick_renders_one_frame_and_keeps_running():
+    q: queue.Queue = queue.Queue()
+    q.put(("s", "cap"))
+    rendered: list = []
+    running = live_viewer._render_tick(q, object(), rendered.append, lambda: None)
+    assert running is True and rendered == [("s", "cap")]
+
+
+def test_render_tick_empty_queue_does_not_block_or_render():
+    rendered: list = []
+    running = live_viewer._render_tick(queue.Queue(), object(), rendered.append, lambda: None)
+    assert running is True and rendered == []  # responsive: returns immediately
+
+
+def test_render_tick_sentinel_signals_done_without_rendering():
+    q: queue.Queue = queue.Queue()
+    sentinel = object()
+    q.put(sentinel)
+    events: list = []
+    running = live_viewer._render_tick(
+        q, sentinel, lambda f: events.append("render"), lambda: events.append("stop")
+    )
+    assert running is False and events == ["stop"]
+
+
+# --- live viewer: play_live wiring with a simulated (mocked) event loop ---
+
+def test_play_live_renders_all_frames_off_thread(monkeypatch):
     fake = MagicMock()
-    fake.subplots.return_value = (MagicMock(), MagicMock())
+    fig, ax = MagicMock(), MagicMock()
+    fake.subplots.return_value = (fig, ax)
+
+    callbacks: list = []
+    timer = MagicMock()
+    timer.add_callback.side_effect = callbacks.append
+    stopped = {"v": False}
+    timer.stop.side_effect = lambda: stopped.__setitem__("v", True)
+    fig.canvas.new_timer.return_value = timer
+
+    rendered: list = []
     monkeypatch.setattr(live_viewer, "plt", fake)
-    return fake
+    monkeypatch.setattr(live_viewer, "render_state", lambda s, a, c: rendered.append((s, c)))
 
+    def fake_show(block=True):  # pump the timer callback like a real event loop
+        for _ in range(2000):
+            if stopped["v"]:
+                break
+            for cb in callbacks:
+                cb()
+            time.sleep(0.001)
 
-def test_play_live_renders_every_streamed_frame(monkeypatch):
-    fake = _fake_plt(monkeypatch)
-    rendered: list[tuple] = []
-    monkeypatch.setattr(live_viewer, "render_state", lambda s, ax, msg: rendered.append((s, msg)))
-    frames = [("s0", ""), ("s1", "cop: here"), ("s2", "thief: nope")]
-    live_viewer.play_live(iter(frames), {"gui": {"live_backend": "Agg", "turn_delay_seconds": 0}})
-    assert rendered == frames  # every frame drawn, in order
-    fake.switch_backend.assert_called_once_with("Agg")  # config-driven backend
-    assert fake.pause.call_count == len(frames)
-    fake.show.assert_called_once()  # window stays open at the end
+    fake.show.side_effect = fake_show
+
+    frames = [("s0", ""), ("s1", "cop: x"), ("s2", "thief: y")]
+    live_viewer.play_live(iter(frames), {"gui": {"live_backend": "Agg", "poll_interval_ms": 1}})
+    assert rendered == frames  # all frames drawn via the worker -> queue -> tick path
+    assert stopped["v"] is True  # timer stopped on the sentinel
+    fake.switch_backend.assert_called_once_with("Agg")
 
 
 def test_play_live_falls_back_to_default_backend(monkeypatch):
-    fake = _fake_plt(monkeypatch)
-    monkeypatch.setattr(live_viewer, "render_state", lambda *a: None)
+    fake = MagicMock()
+    fake.subplots.return_value = (MagicMock(), MagicMock())
+    fake.show.side_effect = lambda block=True: None  # don't pump; just exercise setup
+    monkeypatch.setattr(live_viewer, "plt", fake)
     live_viewer.play_live(iter([("s", "")]), {})  # no gui config -> defaults
     fake.switch_backend.assert_called_once_with("TkAgg")
