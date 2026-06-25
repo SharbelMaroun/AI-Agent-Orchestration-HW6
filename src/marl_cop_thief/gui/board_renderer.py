@@ -40,6 +40,9 @@ def render_state(
     """Draw the whole board frame (dark theme, glow tokens, trails, HUD, speech)."""
     ax.clear()
     theme.style_axes(ax.figure, ax)
+    # Reserve margin for the title/legend (top) and the speech bubble (bottom) so
+    # they are never clipped; do NOT use tight_layout (it squeezes them off-frame).
+    ax.figure.subplots_adjust(left=0.09, right=0.96, top=0.85, bottom=0.22)
     ax.set_xlim(-0.5, state.width - 0.5)
     ax.set_ylim(-0.5, state.height - 0.5)
     ax.set_xticks(range(state.width))

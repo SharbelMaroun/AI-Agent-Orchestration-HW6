@@ -38,7 +38,6 @@ def _animate(frames: list[Frame], path: str, fps: int, max_moves: int | None = N
     anim = animation.FuncAnimation(
         fig, lambda i: _draw(frames, ax, max_moves, i), frames=len(frames), interval=400
     )
-    fig.tight_layout()
     anim.save(path, writer=animation.PillowWriter(fps=fps))
     plt.close(fig)
     return path

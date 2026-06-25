@@ -87,7 +87,6 @@ def play_live(
         thief_trail.append(state.thief)
         render_state(state, ax, caption, max_moves=max_moves,
                      cop_trail=cop_trail, thief_trail=thief_trail)
-        fig.tight_layout()
         fig.canvas.draw_idle()
 
     timer = fig.canvas.new_timer(interval=poll_ms)
