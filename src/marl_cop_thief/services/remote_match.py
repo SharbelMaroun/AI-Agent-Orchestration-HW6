@@ -94,6 +94,32 @@ def remote_decider(role: str) -> RemoteDecider:
     return decide
 
 
+def build_match_report(
+    config: dict[str, Any], status: dict[str, Any], my_role: str, meta: dict[str, Any] | None = None
+) -> dict[str, Any]:
+    """Build a JSON report of a finished live remote game (winner, scores, role)."""
+    s = config["scoring"]
+    winner = status.get("winner")
+    if winner == Role.COP.value:
+        cop_score, thief_score = s["cop_win"], s["thief_loss"]
+    elif winner == Role.THIEF.value:
+        cop_score, thief_score = s["cop_loss"], s["thief_win"]
+    else:
+        cop_score = thief_score = 0
+    report = {
+        "report_type": "live_match",
+        "my_role": my_role,
+        "winner": winner,
+        "moves_used": status.get("moves_used"),
+        "cop_score": cop_score,
+        "thief_score": thief_score,
+        "timezone": config["reporting"]["timezone"],
+    }
+    if meta:
+        report.update(meta)
+    return report
+
+
 def play_my_turns(
     client: Any,
     my_role: str,

@@ -12,13 +12,16 @@ from __future__ import annotations
 
 import argparse
 import asyncio
+import json
 import os
 
 from dotenv import load_dotenv
 from fastmcp import Client
 from fastmcp.client.auth import BearerAuth
 
-from marl_cop_thief.services.remote_match import play_my_turns, remote_decider
+from marl_cop_thief.services.match_reporter import send_report
+from marl_cop_thief.services.remote_match import build_match_report, play_my_turns, remote_decider
+from marl_cop_thief.shared.config import load_config
 from marl_cop_thief.shared.mcp_transport import McpClient
 
 
@@ -42,10 +45,24 @@ def main() -> None:
     if not url:
         raise SystemExit("Set HOST_MCP_URL (and HOST_MCP_TOKEN) in .env — the agreed host server.")
 
+    cfg = load_config()
     client = McpClient(url, token, _invoke)
     print(f"Playing role '{args.role}' against {url} ...")
     status = play_my_turns(client, args.role, remote_decider(args.role))
     print(f"Final status: {status}")
+
+    report = build_match_report(cfg, status, args.role)
+    print(json.dumps(report, indent=2))
+    if cfg.get("reporting", {}).get("send_real_email", False):
+        from marl_cop_thief.shared.gmail_client import send_email
+        from marl_cop_thief.shared.google_auth import build_services
+
+        sd = os.environ.get("MARL_GOOGLE_SECRETS_DIR") or cfg.get("google", {}).get("secrets_dir", "")
+        gmail, _ = build_services(sd, cfg["google"]["scopes"])
+        mid = send_report(cfg, report, lambda to, subj, body: send_email(gmail, to, subj, body))
+        print(f"Report emailed to {cfg['reporting']['recipient_email']}: id={mid}")
+    else:
+        print("(email off: set reporting.send_real_email=true to email this report)")
 
 
 if __name__ == "__main__":
