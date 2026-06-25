@@ -13,6 +13,9 @@ dependencies = [
     "google-auth-oauthlib>=1.4.0",
 ]
 
+[project.scripts]
+cop-thief = "marl_cop_thief.main:main"
+
 [dependency-groups]
 dev = [
     "matplotlib>=3.10.9",

@@ -141,55 +141,46 @@ See the module layout in §4 and the per-mechanism PRDs.
 
 ---
 
-## 4. Module Layout (target)
+## 4. Module Layout (as-built — 2026-06-25)
+Reflects the actual `src/` tree. `(planned)` marks not-yet-built items.
 ```text
 src/marl_cop_thief/
-├── __init__.py                 # exports __all__, __version__
-├── main.py                     # thin entrypoint -> sdk
-├── sdk/
-│   ├── __init__.py
-│   └── sdk.py                  # single public entry point
+├── __init__.py                 # __all__, __version__
+├── __main__.py                 # enables `python -m marl_cop_thief`
+├── main.py                     # CLI: --nl / --gui flags -> SDK
+├── sdk/sdk.py                  # single public entry point (run_match, run_nl_match)
 ├── services/
-│   ├── orchestrator.py         # match & sub-game loop
+│   ├── orchestrator.py         # heuristic match loop
+│   ├── nl_match.py             # natural-language match loop (run_nl_match)
+│   ├── turn_pipeline.py        # one-turn pipeline (pluggable Decider)
+│   ├── accumulator.py          # match summary builder
 │   ├── game_engine.py          # state machine, legality, capture
-│   ├── board.py                # grid, cells, barriers, neighbours
-│   ├── scoring.py              # per-subgame & match scoring
-│   ├── cop_agent.py            # belief + policy (cop)
-│   ├── thief_agent.py          # belief + policy (thief)
-│   ├── nl_protocol.py          # encode/decode free-text messages
-│   ├── reporting.py            # JSON report builder -> send_email trigger
-│   ├── google_agent/           # Gmail & Calendar agent
-│   │   ├── email_reader.py     # read_emails
-│   │   ├── meeting_extractor.py# extract_meeting (LLM-assisted, via gatekeeper)
-│   │   └── calendar_writer.py  # add_calendar_event
-│   └── strategy/
-│       ├── heuristic.py        # default decision strategy
-│       └── q_table.py          # optional tabular Q-learning
-├── mcp/
-│   ├── cop_server.py           # FastMCP server (cop)
-│   ├── thief_server.py         # FastMCP server (thief)
-│   └── tools.py                # shared tool definitions
+│   ├── board.py                # grid, neighbours, passability
+│   ├── barriers.py             # cop barrier rules
+│   ├── scoring.py              # per-subgame + accumulation
+│   ├── observation.py          # partial-observation snapshot
+│   ├── reporting.py            # JSON report builders (internal + inter-group)
+│   ├── nl_protocol/            # nl_encode, nl_decode, ambiguity_handler,
+│   │                           #   prompt_templates, nl_decider
+│   ├── google_agent/           # email_reader, meeting_extractor, calendar_writer (DI)
+│   ├── mcp/                    # tools (ToolService, 6 tools), message_bus, servers (FastMCP)
+│   └── strategy/heuristic.py   # cop_action / thief_action   (belief_model, q_table: planned)
+├── gui/                        # board_renderer, match_animator (renders state; omitted from coverage)
 └── shared/
-    ├── gatekeeper.py           # centralized API gatekeeper
-    ├── llm_client.py           # LLM transport (via gatekeeper)
-    ├── google_auth.py          # OAuth flow, token load/refresh/recovery (external secret folder)
-    ├── gmail_client.py         # Gmail read/send transport (via gatekeeper)
-    ├── calendar_client.py      # Google Calendar transport (via gatekeeper)
-    ├── config.py               # config loader + version validation
-    ├── version.py              # __code_version__ = "1.00"
-    ├── constants.py            # immutable constants / enums
-    └── models.py               # dataclasses: Position, Move, GameState, Report...
-config/
-├── config.json                 # game params (versioned)
-├── rate_limits.json            # gatekeeper limits (versioned)
-└── logging_config.json
-gui/                            # (no business logic) renders state from SDK
-tests/
-├── unit/                        # mirrors src/
-├── integration/
-└── conftest.py
+    ├── gatekeeper.py           # API gatekeeper (minimal: retry+log; full FIFO queue planned)
+    ├── llm_client.py           # LLMClient protocol + GatekeptLLM
+    ├── google_auth.py          # lazy build_services (real OAuth; omitted from coverage)
+    ├── gmail_client.py         # send_email (DI service)
+    ├── config.py · version.py · constants.py
+    └── models.py               # Position, Action, GameState, TurnResult, SubGameResult, Message, Meeting
+config/    config.json · rate_limits.json · logging_config.json   (versioned 1.00)
+tests/     unit/ · integration/ · conftest.py
+scripts/   make_figures.py      # reproducible analysis -> assets/ graphs + results/ log
+assets/    graphs, board screenshots, match.gif        results/  run logs
 ```
 > Every file targets **≤150 lines of code** (comments/blanks excluded); split when exceeded.
+> Note: the `mcp/` package lives under `services/mcp/` (not the package root). The full FIFO-queue
+> gatekeeper, `belief_model`/`q_table`, and a live interactive GUI window remain planned.
 
 ---
 

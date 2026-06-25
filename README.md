@@ -61,26 +61,28 @@ uv sync          # creates the venv and installs locked dependencies
 
 ## 3. Usage
 
-### 3.1 Run modes _(planned CLI)_
-| Command | Mode |
+### 3.1 Run it — one command
+| Command | What it does |
 |---|---|
-| `uv run python -m marl_cop_thief` | Full local match (6 sub-games) |
-| `uv run python -m marl_cop_thief --subgame` | Single sub-game |
-| `uv run python -m marl_cop_thief --gui` | Real-time GUI |
-| `uv run python -m marl_cop_thief --headless` | CLI-log mode (no GUI) |
-| `--strategy heuristic\|q_table` · `--grid 5x5` · `--seed 42` · `--config path` | Common flags |
+| `uv run cop-thief` | Full local match (heuristic) → prints the JSON summary |
+| `uv run cop-thief --nl` | Natural-language match (agents talk via MCP + LLM) → JSON |
+| `uv run cop-thief --gui` | Renders an animated GIF to `assets/match.gif` |
+| `.\run.ps1 [--nl\|--gui]` | Windows wrapper for the same thing (shorter) |
+
+Long form (equivalent): `uv run python -m marl_cop_thief [--nl\|--gui]`. All parameters
+(grid size, moves, scoring, seed, report recipient) come from `config/config.json` — no flags for them.
 
 ### 3.2 Typical workflow
-Edit `config/config.json` → `uv run python -m marl_cop_thief` → watch the GUI play 6 sub-games →
-read the CLI logs of the natural-language MCP exchange → receive the JSON report email.
+Edit `config/config.json` → `uv run cop-thief --nl` to watch a natural-language match → `uv run cop-thief
+--gui` to render the animation → (with Google OAuth set up) the report email is sent after the 6 games.
 
-### 3.3 Worked example _(planned output shape)_
+### 3.3 Example output
 ```text
-$ uv run python -m marl_cop_thief --seed 42
-[sub-game 1] thief: "I'm hugging the north wall, heading east." cop: "Cutting you off at (3,1)."
-... CAPTURE at move 14 → cop_win
-[match] totals: cop=..., thief=...  → JSON report emailed to <reporting.recipient_email>
+$ uv run cop-thief
+{ "sub_games": [ { "index": 0, "winner": "cop", "moves_used": 8, "cop_score": 20, "thief_score": 5 }, ... ],
+  "totals": { "cop": 90, "thief": 40 } }
 ```
+A natural-language run log is in [`results/nl_match_sample.txt`](results/nl_match_sample.txt) (see R.5).
 
 ## 4. Architecture
 Summary in [`docs/PLAN.md`](docs/PLAN.md) (C4 model, ADRs, module layout). Diagrams go in `assets/`.
@@ -118,6 +120,7 @@ Newest first.
 
 | Date | What we did | Why | Evidence |
 |------|-------------|-----|----------|
+| 2026-06-25 | Synced `docs/PLAN.md` to the as-built tree; added a **single-command** runner (`cop-thief` console script + `run.ps1`) | Keep docs accurate; simpler UX | `uv run cop-thief` works |
 | 2026-06-25 | **Phase 6**: GUI board renderer + match animator (`--gui` → animated GIF) + smoke tests | Visualize the game; required screenshots | 108 tests; `assets/match.gif` |
 | 2026-06-25 | Generated **experiment graphs + board screenshots + NL log** from real runs; filled README R.3–R.5 | Report results with evidence | `scripts/make_figures.py`; 5 PNGs in `assets/`, log in `results/` |
 | 2026-06-25 | **NL match runnable** (`--nl`) + **Phase 8** report builder (internal + inter-group JSON) and Gmail/Calendar agent tools (read/extract/calendar/send, dependency-injected) | Make NL playable + build the submission report | 106 tests, 100% cov; `--nl` CLI works (workflow-authored) |
