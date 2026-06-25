@@ -15,6 +15,10 @@
   "strategy": {
     "type": "heuristic"
   },
+  "gui": {
+    "live_backend": "TkAgg",
+    "turn_delay_seconds": 0.6
+  },
   "llm": {
     "provider": "openai",
     "model": "gpt-4o-mini",

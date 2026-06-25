@@ -3,44 +3,24 @@
 Two modes mirror the CLI: a **heuristic/smart** sub-game (``animate_match``, the
 ``--simple`` path, cop policy from ``config.strategy.type``) and the **natural-language**
 sub-game (``animate_nl_match``, the default), which overlays each turn's NL message so
-the GIF shows the agents *talking* as they move. Frames are ``(state, caption)`` pairs.
+the GIF shows the agents *talking* as they move. The ``(state, caption)`` frames come
+from the service-layer streams; this module only renders them to a file (SDK-only).
 """
 
 from __future__ import annotations
 
-import copy
-import random
 from collections.abc import Callable
 from typing import Any
 
 import matplotlib.pyplot as plt
 from matplotlib import animation
 
-from ..services.game_engine import GameEngine
+from ..services.match_stream import Frame, heuristic_subgame_stream
 from ..services.nl_match import nl_subgame_frames
-from ..services.orchestrator import select_cop_policy
-from ..services.strategy.heuristic import thief_action
-from ..services.turn_pipeline import run_turn
-from ..shared.constants import Role
 from ..shared.gatekeeper import ApiGatekeeper
 from .board_renderer import render_state
 
 plt.switch_backend("Agg")
-
-Frame = tuple[Any, str]
-
-
-def _heuristic_frames(config: dict[str, Any]) -> list[Frame]:
-    """Run a heuristic/smart sub-game (cop policy from config), snapshotting each turn."""
-    width, height = config["grid_size"]
-    engine = GameEngine(width, height, config["max_moves"], config["max_barriers"])
-    state = engine.new_state(random.Random(config.get("seed", 0)))
-    deciders = {Role.COP: select_cop_policy(config), Role.THIEF: thief_action}
-    frames: list[Frame] = [(copy.deepcopy(state), "")]
-    while not state.done:
-        run_turn(engine, state, deciders)
-        frames.append((copy.deepcopy(state), ""))
-    return frames
 
 
 def _animate(frames: list[Frame], path: str, fps: int) -> str:
@@ -57,7 +37,7 @@ def _animate(frames: list[Frame], path: str, fps: int) -> str:
 
 def animate_match(config: dict[str, Any], path: str = "assets/match.gif", fps: int = 2) -> str:
     """Render a heuristic/smart sub-game as an animated GIF (the ``--simple`` path)."""
-    return _animate(_heuristic_frames(config), path, fps)
+    return _animate(list(heuristic_subgame_stream(config)), path, fps)
 
 
 def animate_nl_match(

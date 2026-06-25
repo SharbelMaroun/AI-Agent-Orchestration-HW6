@@ -22,12 +22,12 @@
 | 3 | Orchestrator & full local match | M3 | 60 |
 | 4 | Decision strategy | M4 | 70 |
 | 5 | Natural-language integration | M5 | 60 |
-| 6 | GUI & CLI | M6 | 38 |
+| 6 | GUI & CLI | M6 | 48 |
 | 7 | Cloud deployment & security | M7 | 27 |
 | 8 | Gmail/Calendar agent & reporting | M8 | 104 |
 | 9 | Gatekeeper, quality gates, research & submission | M9 | 85 |
 | 10 | Audit closure (requirements coverage gaps) | M10 | 54 |
-| — | **Total** | — | **665** |
+| — | **Total** | — | **675** |
 
 ---
 
@@ -434,8 +434,9 @@ _Real-time visualization and CLI logs (read state from SDK only)._
 > **As-built (2026-06-25):** the GUI shipped as `gui/board_renderer.py` (`render_state` + `save_state_png`)
 > and `gui/match_animator.py` (`animate_match` / `animate_nl_match` → animated GIF, with NL message overlay
 > for the NL match), **not** `gui/gui_renderer.py` / `gui/gui_realtime.py`. T6.1–T6.22 are re-mapped to
-> those two modules. A **live interactive window** is still pending (README R.0 / PLAN.md); the per-turn
-> **GIF animation** stands in for it today.
+> those two modules. The **live interactive window** now ships as `gui/live_viewer.py` (`--live`): it renders
+> the service-layer per-turn frame stream (`services/match_stream.py` + `nl_subgame_stream`) live, drawing
+> each turn the instant the engine computes it (T6.39–T6.48). The **GIF animation** remains for headless/report use.
 
 | ID | Task | Pri | Status | Owner | DoD |
 |----|------|-----|--------|-------|-----|
@@ -477,6 +478,16 @@ _Real-time visualization and CLI logs (read state from SDK only)._
 | T6.36 | GUI reads state from SDK only | P0 | ✅ | `<TBD>` | No logic in GUI |
 | T6.37 | Clear labels/legend + accessible colors | P2 | ⬜ | `<TBD>` | Readable |
 | T6.38 | Record short demo run (gif/video link) | P2 | ⬜ | `<TBD>` | Linked in README |
+| T6.39 | Spec & single-concern interface for `services/match_stream.py` — per-turn `(state, caption)` streams | P1 | ✅ | `<TBD>` | Interface + docstring agreed; ≤150-LOC plan |
+| T6.40 | RED: failing unit tests for `services/match_stream.py` (heuristic stream + shared loop) | P1 | ✅ | `<TBD>` | Failing tests committed |
+| T6.41 | GREEN: implement `services/match_stream.py` (`stream_subgame`, `heuristic_subgame_stream`) | P1 | ✅ | `<TBD>` | Tests pass; 100% cov |
+| T6.42 | Refactor `nl_match.py` to a generator (`nl_subgame_stream`) reusing `stream_subgame` (DRY) | P1 | ✅ | `<TBD>` | No duplicated engine loop; tests pass |
+| T6.43 | Refactor `gui/match_animator.py` to consume the shared stream (drop in-GUI game loop) | P1 | ✅ | `<TBD>` | GIF unchanged; no logic in GUI |
+| T6.44 | Spec & interface for `gui/live_viewer.py` — interactive real-time window (render-only) | P1 | ✅ | `<TBD>` | Interface + docstring agreed; ≤150-LOC plan |
+| T6.45 | GREEN: implement `gui/live_viewer.py` (`play_live`, runtime interactive backend) | P1 | ✅ | `<TBD>` | Renders each frame as it streams |
+| T6.46 | Smoke test `gui/live_viewer.py` headlessly (mock matplotlib; no window) | P1 | ✅ | `<TBD>` | No live window in tests |
+| T6.47 | Expose streams via SDK (`stream_simple_frames`, `stream_nl_frames`) + `--live` CLI flag | P0 | ✅ | `<TBD>` | SDK-only; CLI delegates |
+| T6.48 | Config `gui.live_backend` + `gui.turn_delay_seconds` (no hardcoded values) | P1 | ✅ | `<TBD>` | Config-driven; defaults documented |
 
 ## Phase 7 — Cloud deployment & security (Milestone: M7)
 _Deploy both MCP servers with token auth (deployment tasks, not modules)._
