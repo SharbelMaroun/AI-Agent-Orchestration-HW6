@@ -60,6 +60,7 @@ def main() -> None:
     load_dotenv()
     parser = argparse.ArgumentParser(description="Play the inter-group match vs the partner.")
     parser.add_argument("--first-role", choices=["cop", "thief"], default="cop")
+    parser.add_argument("--opponent", default="salareen", help="opponent group name (for the report)")
     args = parser.parse_args()
 
     sdk = Sdk()
@@ -70,7 +71,9 @@ def main() -> None:
         Role.COP: make_partner_decide(_client("PARTNER_COP_URL", "PARTNER_COP_TOKEN", gk), engine, vis),
         Role.THIEF: make_partner_decide(_client("PARTNER_THIEF_URL", "PARTNER_THIEF_TOKEN", gk), engine, vis),
     }
-    report = sdk.run_interop_series(partner_for, Role(args.first_role))
+    meta = dict(sdk.config.get("reporting", {}).get("report_meta", {}))
+    meta["opponent_group"] = args.opponent
+    report = sdk.run_interop_series(partner_for, Role(args.first_role), meta=meta)
     print(json.dumps(report, indent=2))
     _maybe_email(sdk, report)
 

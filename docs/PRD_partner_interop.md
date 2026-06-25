@@ -74,3 +74,29 @@ Position map: our `Position(x, y)` → their `[y, x]`. Barrier target → `[cop.
 - **S4:** `PartnerClient.decide` routes through the gatekeeper and sends matching `request_id` (unit, fake transport).
 - **S5:** `play_interop_game` drives a full game with a fake partner decider to a terminal state (unit).
 - **S6:** Live smoke: one real game each way vs `salareen` ends legally (manual/script).
+
+## 8. Open issue — protocol asymmetry & bonus reconciliation
+**Status:** open (2026-06-26).
+
+We adapted to the partner: we own the game and call their stateless `/decide` (live result **60–40**,
+emailed). But their **bonus client drives the match from their side via REST `/decide`**, and **our servers
+are FastMCP** — so they cannot call our agents the same way. The two stacks are asymmetric:
+
+| | Our stack | salareen's stack |
+|---|---|---|
+| Transport | MCP (FastMCP, `/mcp/`) | custom REST (`/decide`) |
+| Game state | server holds it (cop-mcp/thief-mcp each one game) | stateless; the caller owns the game |
+| Session | one game per server, created at startup (no session endpoint) | n/a (stateless) |
+
+**The §12 bonus needs both teams to email the *same* JSON** (mutual agreement; disagreement → 0/0). Two
+resolutions:
+1. **Share the authoritative result (recommended — no new infra).** We already ran the 6-game series; send
+   salareen our group info + the result JSON; both email the identical JSON.
+2. **Expose a REST `/decide` server mirroring their protocol (symmetric).** Wrap `ortho_policy` in a
+   `/health`+`/identity`+`/capabilities`+`/decide` server, deploy it, share URLs+tokens; then their bonus
+   client can drive a match against our agents independently. More robust, but a new server + deploy.
+
+**Info salareen requested (answers):** group = **sharNamr**; students = **Sharbel, Amr**; repo =
+`https://github.com/SharbelMaroun/AI-Agent-Orchestration-HW6`. Our MCP tools (a *game-hosting* model, not a
+stateless `/decide`): `get_observation`, `send_message`, `receive_message`, `submit_action(kind,dx,dy)`,
+`verify_location`, `get_game_status`; each server hosts **one** game created at startup (no session id).

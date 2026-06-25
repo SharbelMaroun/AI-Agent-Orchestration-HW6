@@ -526,12 +526,19 @@ _Deploy both MCP servers with token auth (deployment tasks, not modules)._
 | T7.16 | Store URLs/tokens in `.env` (git-ignored) | P0 | ✅ | `<TBD>` | `.env-example`: COP/THIEF_MCP_URL + MCP_AUTH_SECRET |
 | T7.17 | Latency check intra-region (<200ms round-trip) | P2 | ⬜ | `<TBD>` | After deploy |
 | T7.18 | Retry/backoff on cloud calls via gatekeeper | P1 | ✅ | `<TBD>` | `McpClient` routes every call through the gatekeeper |
-| T7.19 | End-to-end cloud match (6 games) | P0 | 🟦 | `<TBD>` | Cross-network driver built (`remote_match.py` + `host_server.py` + `play_remote.py`); live run needs a partner team |
+| T7.19 | End-to-end cloud match (6 games) | P0 | ✅ | `<TBD>` | **Live 6-game match vs team `salareen` done — won 60–40** (`interop_match.py` + `play_partner.py`); JSON emailed |
 | T7.20 | README deployment section | P1 | ✅ | `<TBD>` | README §4.1 (Render + ngrok step-by-step) |
 | T7.21 | Firewall/non-standard-port caveat documented | P1 | ✅ | `<TBD>` | README §2.5 + PLAN §3 |
 | T7.22 | Rotate tokens before submission | P2 | ⬜ | `<TBD>` | Rotated |
 | T7.23 | Monitor usage / minimal permissions | P2 | ⬜ | `<TBD>` | Least privilege |
 | T7.24 | Health checks on cloud URLs | P1 | ✅ | `<TBD>` | `scripts/check_mcp.py` probes both servers via McpClient |
+| T7.25 | Decode partner's `/decide` protocol (coord/direction mapping) | P0 | ✅ | `<TBD>` | `partner_protocol.py`: their `[row,col]`=our `(y,x)`; 4-dir; validated by live probe |
+| T7.26 | Gatekeeper-routed client for partner `/decide` | P0 | ✅ | `<TBD>` | `shared/partner_client.py` (token + gatekeeper; injected transport) |
+| T7.27 | Interop driver (we own engine; our policy + their `/decide`) | P0 | ✅ | `<TBD>` | `services/interop_match.py` + `strategy/ortho_policy.py`; `Sdk.run_interop_series` |
+| T7.28 | Handle partner cop `/decide` 500 on `place_barrier` | P0 | ✅ | `<TBD>` | Moves-only interop (`allow_barrier` off by default); documented |
+| T7.29 | Reachability probe for partner servers | P1 | ✅ | `<TBD>` | `scripts/check_partner.py` (`/health`, `/identity`, `/capabilities`) |
+| T7.30 | Resolve protocol asymmetry (partner can't drive our FastMCP) | P0 | 🟦 | `<TBD>` | Open: share authoritative result OR expose a REST `/decide` server (PRD_partner_interop §8) |
+| T7.31 | Both teams email the same JSON (mutual agreement) | P0 | ⬜ | `<TBD>` | Send salareen the result + `sharNamr` group info; both report identical JSON |
 | T7.25 | Rollback / redeploy procedure | P2 | ⬜ | `<TBD>` | Documented |
 | T7.26 | Cloud cost note | P3 | ⬜ | `<TBD>` | Estimated |
 | T7.27 | Capture CLI logs from a cloud run | P1 | ✅ | `<TBD>` | `results/cloud_check.txt` (authenticated get_game_status on both servers) |

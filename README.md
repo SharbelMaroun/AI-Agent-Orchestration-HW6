@@ -496,6 +496,42 @@ palette toggle and keyboard navigation for a future live window.
 **Google/Microsoft API** design guidance (SDK facade, gatekeeper, versioned config), and **Nielsen's 10
 heuristics** (above) — see also [`docs/PLAN.md`](docs/PLAN.md) and `docs/PRD.md` §4.
 
+## R.12 Inter-Group Match (partner interop)
+Played a **live §12 inter-group series vs team `salareen`** (our group **sharNamr** — Sharbel, Amr) — **won 60–40**.
+
+Their servers speak a **custom JSON-over-HTTP decision protocol** (`/health`, `/identity`, `/capabilities`,
+`POST /decide`), **not MCP**. `/decide` is a **stateless policy**: the caller owns the game, sends a
+role-filtered observation with explicit `legal_actions`, and gets back one action. So **we own the
+`GameEngine`**, play our role with `strategy/ortho_policy`, and call their `/decide` for theirs (design:
+[`docs/PRD_partner_interop.md`](docs/PRD_partner_interop.md); run `uv run python scripts/play_partner.py`).
+
+**Result** (6 games · 3-cop/3-thief swap · full visibility · moves-only):
+
+| Game | Our role | Winner | Moves | Us | Partner |
+|---|---|---|---|---|---|
+| 0 | cop | thief | 25 | 5 | 10 |
+| 1 | cop | thief | 25 | 5 | 10 |
+| 2 | cop | **cop (capture)** | 8 | 20 | 5 |
+| 3 | thief | **thief** | 25 | 10 | 5 |
+| 4 | thief | **thief** | 25 | 10 | 5 |
+| 5 | thief | **thief** | 25 | 10 | 5 |
+| **Total** | | | | **60** | **40** |
+
+66 gatekeeper-routed `/decide` calls; JSON result emailed (§9). **Coordinate bridge** (validated live):
+their `[row,col]` = our `(y,x)`; `up/down/left/right` → `(0,−1)/(0,+1)/(−1,0)/(+1,0)`.
+
+### 🐞 Problems found & how we handled them
+- **No GUI on the interop run.** `play_partner.py` is a **headless CLI** (prints JSON + emails); the
+  animated/live GUI (`--gui`/`--live`) is wired only for the *local* match. The interop game state is local
+  (we own the engine), so a live window can be added — not done yet.
+- **Their cop `/decide` returns HTTP 500 on `place_barrier`** → interop is **moves-only** (`allow_barrier`
+  off by default; barriers are an optional cop ability their server can't process).
+- **Protocol asymmetry (open).** Our servers are **FastMCP**; their *bonus client* drives via **REST
+  `/decide`**, so they **cannot drive the match against our MCP servers** the way we drove theirs. For the
+  bonus both teams must email the **same** JSON, so either (a) we share this authoritative result and both
+  report it, or (b) we expose a REST `/decide` server mirroring their protocol. See
+  [`docs/PRD_partner_interop.md`](docs/PRD_partner_interop.md) §8.
+
 ---
 
 ## 5. Configuration Guide
