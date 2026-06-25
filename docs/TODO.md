@@ -511,14 +511,14 @@ _Deploy both MCP servers with token auth (deployment tasks, not modules)._
 | T7.1 | Choose cloud platform (Prefect Cloud / similar) | P0 | ✅ | `<TBD>` | Render chosen (stable URL); ngrok as live-match alt (README §4.1) |
 | T7.2 | Package/containerize cop MCP server | P0 | ✅ | `<TBD>` | `Dockerfile` + `run_mcp_server.py` (MCP_ROLE=cop) |
 | T7.3 | Package/containerize thief MCP server | P0 | ✅ | `<TBD>` | Same image; MCP_ROLE=thief (`render.yaml`) |
-| T7.4 | Deploy cop MCP server | P0 | 🟦 | `<TBD>` | Blueprint ready; user runs Render deploy |
-| T7.5 | Deploy thief MCP server | P0 | 🟦 | `<TBD>` | Blueprint ready; user runs Render deploy |
-| T7.6 | Obtain public HTTPS URL for cop | P0 | 🟦 | `<TBD>` | After deploy → COP_MCP_URL |
-| T7.7 | Obtain public HTTPS URL for thief | P0 | 🟦 | `<TBD>` | After deploy → THIEF_MCP_URL |
+| T7.4 | Deploy cop MCP server | P0 | ✅ | `<TBD>` | Live on Render (cop-mcp.onrender.com) |
+| T7.5 | Deploy thief MCP server | P0 | ✅ | `<TBD>` | Live on Render (thief-mcp.onrender.com) |
+| T7.6 | Obtain public HTTPS URL for cop | P0 | ✅ | `<TBD>` | COP_MCP_URL set; reachable (401 auth) |
+| T7.7 | Obtain public HTTPS URL for thief | P0 | ✅ | `<TBD>` | THIEF_MCP_URL set; reachable (401 auth) |
 | T7.8 | Token-based auth on cop URL | P0 | ✅ | `<TBD>` | `TokenAuth`+FastMCP `TokenVerifier`; unauthorized rejected (verified) |
 | T7.9 | Token-based auth on thief URL | P0 | ✅ | `<TBD>` | Same auth bridge on the thief server |
 | T7.10 | Token revocation mechanism | P1 | ✅ | `<TBD>` | `TokenAuth.revoke` (tested) |
-| T7.11 | Verify URLs not firewalled / not public-blocked | P0 | 🟦 | `<TBD>` | Runtime check after deploy |
+| T7.11 | Verify URLs not firewalled / not public-blocked | P0 | ✅ | `<TBD>` | `check_mcp.py`: both URLs reachable over public HTTPS (401 = endpoint live + auth) |
 | T7.12 | Hybrid: client+LLM local, outbound-only requests | P1 | ✅ | `<TBD>` | Servers tools-only (no LLM/secrets); client local (ADR-002) |
 | T7.13 | Document ngrok option | P2 | ✅ | `<TBD>` | README §4.1 option B |
 | T7.14 | Document Localtonet option | P2 | ⬜ | `<TBD>` | In README |
@@ -531,7 +531,7 @@ _Deploy both MCP servers with token auth (deployment tasks, not modules)._
 | T7.21 | Firewall/non-standard-port caveat documented | P1 | ✅ | `<TBD>` | README §2.5 + PLAN §3 |
 | T7.22 | Rotate tokens before submission | P2 | ⬜ | `<TBD>` | Rotated |
 | T7.23 | Monitor usage / minimal permissions | P2 | ⬜ | `<TBD>` | Least privilege |
-| T7.24 | Health checks on cloud URLs | P1 | ⬜ | `<TBD>` | Monitored |
+| T7.24 | Health checks on cloud URLs | P1 | ✅ | `<TBD>` | `scripts/check_mcp.py` probes both servers via McpClient |
 | T7.25 | Rollback / redeploy procedure | P2 | ⬜ | `<TBD>` | Documented |
 | T7.26 | Cloud cost note | P3 | ⬜ | `<TBD>` | Estimated |
 | T7.27 | Capture CLI logs from a cloud run | P1 | ⬜ | `<TBD>` | Saved to results/ |
