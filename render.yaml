@@ -23,3 +23,14 @@ services:
         value: thief
       - key: MCP_AUTH_SECRET
         sync: false
+  # Reciprocal REST /decide endpoint (interop adapter) so a partner can HOST the game and
+  # pull our agent's move. Same image, different start command. See docs/PRD_partner_interop.md §9.
+  - type: web
+    name: decide-sharnamr
+    runtime: docker
+    plan: free
+    dockerfilePath: ./Dockerfile
+    dockerCommand: uv run python scripts/run_decide_server.py
+    envVars:
+      - key: MCP_AUTH_SECRET
+        sync: false

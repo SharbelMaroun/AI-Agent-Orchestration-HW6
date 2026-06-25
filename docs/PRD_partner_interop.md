@@ -100,3 +100,14 @@ resolutions:
 `https://github.com/SharbelMaroun/AI-Agent-Orchestration-HW6`. Our MCP tools (a *game-hosting* model, not a
 stateless `/decide`): `get_observation`, `send_message`, `receive_message`, `submit_action(kind,dx,dy)`,
 `verify_location`, `get_game_status`; each server hosts **one** game created at startup (no session id).
+
+## 9. Reciprocal `/decide` server (so the partner can host)
+To let salareen **host** the game and pull our agent's move, we expose our own decision endpoint mirroring
+their protocol: [`services/decide_service.py`](../src/marl_cop_thief/services/decide_service.py)
+`decide_action(observation) -> action` (pure; returns one of the caller's `legal_actions`) behind
+[`scripts/run_decide_server.py`](../scripts/run_decide_server.py) — stdlib JSON-over-HTTP (`GET
+/health|/identity|/capabilities`, `POST /decide`; bearer auth via `MCP_AUTH_SECRET`). Deployed as a third
+Render service (`render.yaml`, `decide-sharnamr`). **Interop adapter only** — our MCP servers stay
+tools-only (ADR-001); this just wraps our policy so the partner's REST bonus client drives us unchanged.
+- **S8:** `decide_action` returns a legal move that pursues (cop) / evades (thief); blind → toward centre.
+- **S9:** `/decide` echoes `request_id`, enforces `observation.request_id == request_id`, rejects bad tokens (401).
