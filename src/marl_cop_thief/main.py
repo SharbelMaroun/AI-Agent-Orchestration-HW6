@@ -25,15 +25,21 @@ def main() -> None:
     parser.add_argument(
         "--gui",
         action="store_true",
-        help="Render a sub-game to an animated GIF (assets/match.gif) instead of printing.",
+        help="Animate a sub-game to a GIF: the NL match (default) or the heuristic match (--simple).",
     )
     args = parser.parse_args()
     load_dotenv()  # pick up OPENAI_API_KEY (and other vars) from .env
     sdk = Sdk()
     if args.gui:
-        from .gui.match_animator import animate_match
+        from .gui.match_animator import animate_match, animate_nl_match
 
-        print(f"GUI animation saved to {animate_match(sdk.config)}")
+        if args.simple:
+            path = animate_match(sdk.config)
+        else:
+            path = animate_nl_match(
+                sdk.config, select_backend(sdk.config), select_gatekeeper(sdk.config)
+            )
+        print(f"GUI animation saved to {path}")
         return
     summary = (
         sdk.run_match()

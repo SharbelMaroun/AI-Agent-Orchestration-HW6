@@ -18,6 +18,14 @@ from .turn_pipeline import Decider, run_turn
 COP_POLICIES: dict[str, Decider] = {"heuristic": cop_action, "smart": smart_cop_action}
 
 
+def select_cop_policy(config: dict[str, Any]) -> Decider:
+    """Pick the cop decider from config (default ``heuristic``); reject unknowns."""
+    name = config.get("strategy", {}).get("type", "heuristic")
+    if name not in COP_POLICIES:
+        raise ValueError(f"Unknown cop strategy {name!r}; choose from {sorted(COP_POLICIES)}")
+    return COP_POLICIES[name]
+
+
 class Orchestrator:
     """Drives ``num_games`` sub-games to completion and accumulates scores."""
 
@@ -29,17 +37,9 @@ class Orchestrator:
         self.num_games = config["num_games"]
         self.seed = config.get("seed", 0)
         self.deciders: dict[Role, Decider] = {
-            Role.COP: self._select_cop_policy(config),
+            Role.COP: select_cop_policy(config),
             Role.THIEF: thief_action,
         }
-
-    @staticmethod
-    def _select_cop_policy(config: dict[str, Any]) -> Decider:
-        """Pick the cop decider from config (default ``heuristic``); reject unknowns."""
-        name = config.get("strategy", {}).get("type", "heuristic")
-        if name not in COP_POLICIES:
-            raise ValueError(f"Unknown cop strategy {name!r}; choose from {sorted(COP_POLICIES)}")
-        return COP_POLICIES[name]
 
     def play_subgame(self, index: int, rng: random.Random) -> SubGameResult:
         """Play one sub-game to a terminal state and score it."""

@@ -21,5 +21,10 @@ class MessageBus:
         box = self._inbox[role]
         return box.pop(0) if box else None
 
+    def peek_last(self, role: Role) -> Message | None:
+        """Return ``role``'s most recent inbox message without consuming it (for the GUI)."""
+        box = self._inbox[role]
+        return box[-1] if box else None
+
     def pending(self, role: Role) -> int:
         return len(self._inbox[role])

@@ -67,14 +67,17 @@ uv sync          # creates the venv and installs locked dependencies
 | Command | What it does |
 |---|---|
 | `uv run cop-thief` | **Natural-language match** (the assignment) → prints the JSON summary |
+| `uv run cop-thief --gui` | **Natural-language match → animated GIF** with the agents' NL messages overlaid (`assets/match_nl.gif`) |
 | `uv run cop-thief --simple` | Simple heuristic match (no natural language, no LLM) |
-| `uv run cop-thief --gui` | Renders an animated GIF to `assets/match.gif` |
+| `uv run cop-thief --simple --gui` | Heuristic/`smart` match → `assets/match.gif` |
 | `.\run.ps1 [--simple\|--gui]` | Windows wrapper (shortest) |
 
-The default NL match uses **OpenAI** when `OPENAI_API_KEY` is in `.env` (§2.4); otherwise it falls back
-to a deterministic offline backend so it still runs without a key. Long form:
+**Full real run with the GUI:** put your key in `.env` (`OPENAI_API_KEY=sk-...`, see §2.4), then
+`uv run cop-thief --gui` — this animates a natural-language sub-game where the cop and thief move on the
+board **and** their LLM-interpreted NL messages appear under each frame (`assets/match_nl.gif`). Without a
+key it runs the same NL pipeline on a deterministic **offline** backend (no network, no cost). Long form:
 `uv run python -m marl_cop_thief [--simple\|--gui]`. All parameters (grid size, moves, scoring, seed,
-report recipient, `llm.model`) come from `config/config.json` — no flags for them.
+report recipient, `llm.model`, `strategy.type`) come from `config/config.json` — no flags for them.
 
 ### 3.2 Typical workflow
 Add `OPENAI_API_KEY` to `.env` → `uv run cop-thief` to watch a natural-language match → `uv run cop-thief
@@ -110,12 +113,12 @@ Nielsen's 10 usability heuristics (GUI/CLI) — see [`docs/PLAN.md`](docs/PLAN.m
 | 3 | Orchestrator + SDK + CLI (full local match) | ✅ done | `python -m marl_cop_thief` runs |
 | 4 | Decision strategy | ✅ done | greedy heuristic + **cornering "smart" cop** (1-ply look-ahead, 100% capture, config-selectable); Q-table optional/pending |
 | 5 | Natural-language + LLM | ✅ done | NL encode/decode, ambiguity handler, NL decider; LLM via gatekeeper |
-| 6 | GUI | 🟦 partial | board renderer + animated GIF (`--gui`); live interactive window pending |
+| 6 | GUI | 🟦 partial | board renderer + **NL match animation with message overlay** (`--gui`) + heuristic/smart GIF (`--simple --gui`); live interactive window pending |
 | 8 | Report builder + Gmail/Calendar agent | 🟦 partial | JSON builders + read/extract/calendar/send tools tested; real OAuth send pending |
 | 9 | API gatekeeper | ✅ done | config-driven rate limit + FIFO queue + backpressure + drain + retries/backoff + concurrency + `get_queue_status` (see R.9) |
 | 7, 10 | Cloud, research/submission | ⬜ pending | — |
 
-Whole suite: **149 tests, 100% coverage, Ruff zero-violation.** The NL match is runnable via
+Whole suite: **154 tests, 100% coverage, Ruff zero-violation.** The NL match is runnable via
 `uv run python -m marl_cop_thief --nl`. The Gmail/Calendar tools are dependency-injected (tested with
 fakes); `shared/google_auth.py` builds the real services and needs your Google OAuth `client_secret.json`.
 
@@ -124,6 +127,7 @@ Newest first.
 
 | Date | What we did | Why | Evidence |
 |------|-------------|-----|----------|
+| 2026-06-25 | **GUI now animates the NL match** — `cop-thief --gui` renders the natural-language sub-game with each turn's NL message overlaid (real OpenAI when keyed, else offline); `--simple --gui` keeps the heuristic/smart GIF | One command to *see* the full NL run, not just text | `assets/match_nl.gif`; 154 tests, 100% cov; `peek_last` bus API + `nl_subgame_frames` |
 | 2026-06-25 | **Token-cost analysis (R.7)** — `token_cost.py` util + `token_report.py` capture real prompts from an offline match; filled the cost table (config-driven gpt-4o-mini pricing) | Required cost analysis now that OpenAI is wired | **66 calls, 3310 tokens, $0.000615/match**; 149 tests, 100% cov; `results/token_cost.txt` |
 | 2026-06-25 | **Phase 4: cornering "smart" cop** — 1-ply look-ahead ranking actions by `(distance, thief escape-options)` after the thief's reply; config-selectable (`strategy.type`); refreshed comparison graphs | Greedy cop fell into limit cycles and let the thief escape (R.3) | **Capture 0.72→1.00** on 5×5; 100% on 3×3–7×7; 144 tests, 100% cov; `smart_cop.py` + `geometry.py`; graphs in `assets/` |
 | 2026-06-25 | **Phase 9: full API gatekeeper** — config-driven rate limiting (`rate_limits.json`), FIFO overflow queue with backpressure alert + drain-on-reset, retries with backoff, `concurrent_max` semaphore, thread-safe `RLock`, `get_queue_status()`; injected clock/sleep for deterministic offline tests; **adversarial multi-agent review** then fixed 6 confirmed defects (ticket-leak deadlock, retries bypassing the limiter, prod path not loading `rate_limits.json`, backpressure off-by-one, version validation, drain test) | Required centralized chokepoint (CLAUDE §2); close T9.1–11/45–50 | 134 tests, 100% cov; `shared/{gatekeeper,rate_limit}.py`; demo → [R.9](#r9-api-gatekeeper-rate-limiting--queueing) |
@@ -187,13 +191,19 @@ cornering, not wall-building, is the effective lever here — see
 
 ## R.4 Screenshots & GUI (Phase 6)
 The GUI renders the board — **cop = blue circle, thief = red star, barriers = black** — reading state
-from the engine only. Run `uv run python -m marl_cop_thief --gui` to produce an animated GIF of a sub-game.
+from the engine only.
 
 Start vs. capture (static):
 
 ![Board: start and capture](assets/board_state.png)
 
-Animated sub-game (the cop closes in and captures):
+**Natural-language match GUI** — `uv run cop-thief --gui` animates an NL sub-game with each turn's
+**natural-language message overlaid** under the board (the LLM-through-gatekeeper interprets it), so you
+watch the agents *talk* as they move (`assets/match_nl.gif`):
+
+![NL match animation](assets/match_nl.gif)
+
+Heuristic/`smart` sub-game (`uv run cop-thief --simple --gui`, the cop closes in and captures):
 
 ![Match animation](assets/match.gif)
 

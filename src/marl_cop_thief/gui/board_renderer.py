@@ -9,8 +9,8 @@ from ..shared.models import GameState
 plt.switch_backend("Agg")
 
 
-def render_state(state: GameState, ax) -> None:
-    """Draw cop (blue circle), thief (red star), and barriers (black) on ``ax``."""
+def render_state(state: GameState, ax, message: str = "") -> None:
+    """Draw cop (blue circle), thief (red star), barriers (black); optional NL caption."""
     ax.clear()
     ax.set_xlim(-0.5, state.width - 0.5)
     ax.set_ylim(-0.5, state.height - 0.5)
@@ -27,6 +27,8 @@ def render_state(state: GameState, ax) -> None:
     if state.done and state.winner is not None:
         title += f" — {state.winner.value} wins"
     ax.set_title(title)
+    if message:  # natural-language message spoken this turn (NL match)
+        ax.set_xlabel(message, fontsize=8, wrap=True)
     ax.legend(loc="upper right")
 
 

@@ -5,8 +5,9 @@ services. Covers ``run_nl_match`` and ``Sdk.run_nl_match`` to 100% (incl. branch
 """
 
 from marl_cop_thief.sdk import Sdk
-from marl_cop_thief.services.nl_match import run_nl_match
+from marl_cop_thief.services.nl_match import nl_subgame_frames, run_nl_match
 from marl_cop_thief.shared.gatekeeper import ApiGatekeeper
+from marl_cop_thief.shared.models import GameState
 
 CONFIG = {
     "grid_size": [5, 5],
@@ -72,3 +73,16 @@ def test_sdk_run_nl_match_passes_gatekeeper():
     gk = ApiGatekeeper()
     Sdk(CONFIG).run_nl_match(gatekeeper=gk)
     assert gk.calls > 0
+
+
+def test_nl_subgame_frames_captures_states_and_messages():
+    frames = nl_subgame_frames(CONFIG)
+    assert len(frames) >= 2  # initial snapshot + at least one turn
+    first_state, first_caption = frames[0]
+    assert isinstance(first_state, GameState) and first_caption == ""  # nothing spoken yet
+    assert frames[-1][0].done  # last frame is terminal
+    assert any(cap.startswith(("cop:", "thief:")) for _, cap in frames[1:])  # NL messages captured
+
+
+def test_nl_subgame_frames_seed_override_is_deterministic():
+    assert nl_subgame_frames(CONFIG, seed=3)[-1][0].winner == nl_subgame_frames(CONFIG, seed=3)[-1][0].winner
