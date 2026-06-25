@@ -18,8 +18,7 @@ from typing import Any
 from ..shared.constants import Role
 from ..shared.models import GameState
 from .game_engine import GameEngine
-from .orchestrator import select_cop_policy
-from .strategy.heuristic import thief_action
+from .orchestrator import select_cop_policy, select_thief_policy
 from .turn_pipeline import Decider, run_turn
 
 Frame = tuple[GameState, str]
@@ -42,5 +41,8 @@ def heuristic_subgame_stream(config: dict[str, Any]) -> Iterator[Frame]:
     width, height = config["grid_size"]
     engine = GameEngine(width, height, config["max_moves"], config["max_barriers"])
     state = engine.new_state(random.Random(config.get("seed", 0)))
-    deciders: dict[Role, Decider] = {Role.COP: select_cop_policy(config), Role.THIEF: thief_action}
+    deciders: dict[Role, Decider] = {
+        Role.COP: select_cop_policy(config),
+        Role.THIEF: select_thief_policy(config),
+    }
     yield from stream_subgame(engine, state, deciders, lambda _actor: "")

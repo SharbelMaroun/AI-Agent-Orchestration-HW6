@@ -111,14 +111,14 @@ Nielsen's 10 usability heuristics (GUI/CLI) — see [`docs/PLAN.md`](docs/PLAN.m
 | 1 | Game engine (board, models, engine, scoring, barriers) | ✅ done | 100% cov |
 | 2 | MCP tool layer + 2 FastMCP servers | 🟦 partial | tools/observation/bus/servers done; transport/auth pending |
 | 3 | Orchestrator + SDK + CLI (full local match) | ✅ done | `python -m marl_cop_thief` runs |
-| 4 | Decision strategy | ✅ done | greedy heuristic + **cornering "smart" cop** (1-ply look-ahead, 100% capture, config-selectable); Q-table optional/pending |
+| 4 | Decision strategy | ✅ done | cop: greedy + **cornering "smart"** (1-ply look-ahead); thief: greedy baseline + **"smart" evasion** (default, flees + keeps escape room, roams the board); all config-selectable; Q-table optional/pending |
 | 5 | Natural-language + LLM | ✅ done | NL encode/decode, ambiguity handler, NL decider; **LLM-written in-character speech** (cop/thief personas, template fallback offline); LLM via gatekeeper |
 | 6 | GUI | ✅ done | **modern-dark themed** board (glow cop/thief tokens, barrier slabs, movement trails, capture flash, HUD scoreboard, speech bubbles) · GIF (`--gui`) + **live real-time window** (`--live`, auto-closes when done) |
 | 8 | Report builder + Gmail/Calendar agent | 🟦 partial | JSON builders + read/extract/calendar/send tools tested; real OAuth send pending |
 | 9 | API gatekeeper | ✅ done | config-driven rate limit + FIFO queue + backpressure + drain + retries/backoff + concurrency + `get_queue_status` (see R.9) |
 | 7, 10 | Cloud, research/submission | ⬜ pending | — |
 
-Whole suite: **180 tests, 100% coverage, Ruff zero-violation.** The NL match is runnable via
+Whole suite: **189 tests, 100% coverage, Ruff zero-violation.** The NL match is runnable via
 `uv run cop-thief` (NL is the default; `--simple` for heuristic; `--gui` for a GIF; `--live` for a live
 window). The Gmail/Calendar tools are dependency-injected (tested with
 fakes); `shared/google_auth.py` builds the real services and needs your Google OAuth `client_secret.json`.
@@ -128,6 +128,7 @@ Newest first.
 
 | Date | What we did | Why | Evidence |
 |------|-------------|-----|----------|
+| 2026-06-25 | **Smarter thief — fixed the "always goes left" drift** — greedy evasion tied on distance and the fixed `DIRECTIONS_8` order made `max` pick the leftmost move every time. Added a config-selectable `smart` thief (default) ranking moves by `(distance, mobility, centrality)` via `strategy/evasion.py`, used by the simple match, the NL belief-based `_choose`, and the GUI; greedy retained as the R.3 baseline | "The thief keeps making the same move, not smart/varied" — reported in R.3 | `strategy/{smart_thief,evasion}.py`; 189 tests, 100% cov; honest capture trade-off in R.3/PRD §4 |
 | 2026-06-25 | **Fixed clipped speech bubbles** — the NL message bubble (and title) were cut off the figure edge because `tight_layout` squeezed the axes; reserved explicit top/bottom margins (`subplots_adjust`) and dropped `tight_layout`, so each turn's spoken line is fully visible below the board | "I don't see the comments the agents send" — bubbles were rendered but off-frame | `gui/{board_renderer,overlays}.py`; regenerated `assets/*`; 180 tests, 100% cov |
 | 2026-06-25 | **Modern-dark GUI redesign** — new `gui/theme.py` (dark palette + `glow()` halo) and `gui/overlays.py` (HUD banner/move-counter/legend + rounded **speech bubble** on the speaker); `board_renderer` now draws a dark board with **glowing cop/thief tokens**, barrier slabs, faded **movement trails**, and a **capture flash** on a cop win (renderer stays stateless; trails + `max_moves` passed in) | "Make the GUI very very beautiful" | `assets/board_state.png`, `match.gif`, `match_nl.gif` (regenerated); 180 tests, 100% cov, Ruff clean |
 | 2026-06-25 | **LLM-written, in-character speech** — added a pluggable `Speaker`: `nl_speak.llm_speaker` asks the LLM (persona prompt B5) to voice each move freshly (cop = heroic + implies cell; thief = sly + cryptic), replacing the fixed `nl_encode` templates. Enabled with a real key + `llm.creative_speech`; falls back to templates on empty/error/offline. **Live window now auto-closes** after the game (`gui.close_on_finish` + `final_hold_seconds`) | The bottom-of-screen lines were identical templates (only coords changed) — make them genuinely generative; and the window lingered after the game ended | `nl_protocol/{nl_speak,prompt_templates}.py`; **180 tests, 100% cov**, Ruff clean; ~2× LLM calls (R.7) |
@@ -194,6 +195,17 @@ into a corner — where the board edges act as walls and its mobility collapses 
 **1.00** on every sampled board. (Barriers only seal the cop's own cell at a tempo cost, so geometric
 cornering, not wall-building, is the effective lever here — see
 [`docs/PRD_decision_strategy.md`](docs/PRD_decision_strategy.md) §3.1 for the analysis.)
+
+**🐞 Problem & fix — repetitive thief that "always goes left" (Phase 4).** We observed in the GUI that the
+thief kept making the *same* move (drifting left) instead of varied, smart moves. **Root cause:** the
+greedy thief maximised *only* distance, and because distance ties are common on an open board and
+`DIRECTIONS_8` lists the west moves first, Python's `max` always returned the first (left) move — so the
+thief hugged one wall. The default thief is now `smart` (`strategy.thief_type`,
+[`smart_thief.py`](src/marl_cop_thief/services/strategy/smart_thief.py)): it ranks moves by
+`(distance from cop, own mobility, centrality)` so it flees *and* keeps escape room, using the whole
+board. As an **honest** consequence, this better evader lowers the cornering cop's capture against it —
+**1.00/1.00/0.90/0.88/0.47** on 3×3–7×7 (vs 1.00 against the greedy baseline) — since the cop's look-ahead
+still models a greedy thief. The R.3 cop comparison above keeps the greedy thief as the controlled baseline.
 
 ## R.4 Screenshots & GUI (Phase 6)
 A **modern-dark theme** (`gui/theme.py`): glowing **cop = blue disc**, **thief = amber star**, barrier
@@ -364,7 +376,8 @@ All tunables live in `config/` (nothing hard-coded). Full schema in [`docs/PLAN.
 | `visibility_radius` | int | `1` | Partial-observation radius |
 | `seed` | int | `42` | RNG seed for deterministic match/figure runs |
 | `scoring.*` | int | `20/10/5/5` | cop_win / thief_win / cop_loss / thief_loss |
-| `strategy.type` | str | `heuristic` | Cop policy for the simple match: `heuristic` (greedy) or `smart` (cornering, ~100% capture) |
+| `strategy.type` | str | `heuristic` | Cop policy: `heuristic` (greedy) or `smart` (cornering, ~100% capture vs greedy thief) |
+| `strategy.thief_type` | str | `smart` | Thief policy: `smart` (flee + keep escape room, roams the board) or `greedy` (distance-only baseline) |
 | `gui.live_backend` / `gui.poll_interval_ms` | str / int | `TkAgg` / `150` | Live window (`--live`): interactive matplotlib backend + how often (ms) the GUI drains the frame queue while turns compute on a worker thread |
 | `llm.model` | str | `gpt-4o-mini` | OpenAI model for the NL match (used when `OPENAI_API_KEY` is set) |
 | `llm.pricing.*` | obj | `0.15/0.60` | `$/1M` input & output, `chars_per_token`, `est_output_tokens_per_call` (token-cost report, R.7) |

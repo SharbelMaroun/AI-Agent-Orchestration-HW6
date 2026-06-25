@@ -4,8 +4,10 @@ import random
 
 import pytest
 
-from marl_cop_thief.services.orchestrator import Orchestrator
+from marl_cop_thief.services.orchestrator import Orchestrator, select_thief_policy
+from marl_cop_thief.services.strategy.heuristic import thief_action
 from marl_cop_thief.services.strategy.smart_cop import smart_cop_action
+from marl_cop_thief.services.strategy.smart_thief import smart_thief_action
 from marl_cop_thief.shared.constants import Role
 
 CONFIG = {
@@ -45,8 +47,10 @@ def test_config_without_seed_defaults():
 
 
 def test_smart_strategy_is_selected_and_dominates():
-    orch = Orchestrator({**CONFIG, "strategy": {"type": "smart"}})
+    # cornering cop vs the greedy baseline thief (the controlled R.3 comparison)
+    orch = Orchestrator({**CONFIG, "strategy": {"type": "smart", "thief_type": "greedy"}})
     assert orch.deciders[Role.COP] is smart_cop_action
+    assert orch.deciders[Role.THIEF] is thief_action
     totals = orch.play_match()["totals"]
     assert totals["cop"] > totals["thief"]  # the cornering cop wins the match
 
@@ -54,3 +58,13 @@ def test_smart_strategy_is_selected_and_dominates():
 def test_unknown_strategy_is_rejected():
     with pytest.raises(ValueError, match="Unknown cop strategy"):
         Orchestrator({**CONFIG, "strategy": {"type": "nope"}})
+
+
+def test_select_thief_policy_default_smart_and_options():
+    assert select_thief_policy(CONFIG) is smart_thief_action  # default = smart
+    assert select_thief_policy({"strategy": {"thief_type": "greedy"}}) is thief_action
+
+
+def test_unknown_thief_strategy_is_rejected():
+    with pytest.raises(ValueError, match="Unknown thief strategy"):
+        select_thief_policy({"strategy": {"thief_type": "nope"}})

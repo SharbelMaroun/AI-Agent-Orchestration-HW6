@@ -13,6 +13,7 @@ from ...shared.models import Action, GameState, Position
 from ..game_engine import GameEngine
 from ..mcp.message_bus import MessageBus
 from ..observation import observe
+from ..strategy.evasion import evade_key
 from .nl_decode import interpret
 from .nl_encode import Speaker, encode
 
@@ -55,7 +56,10 @@ class NLDecider:
         if not moves:
             return Action.stay()
         target = self.belief or Position(engine.board.width // 2, engine.board.height // 2)
-        pos = state.cop if self.role is Role.COP else state.thief
         if self.role is Role.COP:
-            return min(moves, key=lambda a: _chebyshev(pos.step(a.dx, a.dy), target))
-        return max(moves, key=lambda a: _chebyshev(pos.step(a.dx, a.dy), target))
+            return min(moves, key=lambda a: _chebyshev(state.cop.step(a.dx, a.dy), target))
+        # Thief: flee the believed cop while keeping escape room (avoids always-left drift).
+        return max(
+            moves,
+            key=lambda a: evade_key(engine.board, state.barriers, state.thief.step(a.dx, a.dy), target),
+        )
