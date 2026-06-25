@@ -48,10 +48,13 @@ uv sync          # creates the venv and installs locked dependencies
 2. **Add your OpenAI API key** in `.env` (git-ignored): `OPENAI_API_KEY=sk-...`. The app auto-loads
    `.env` on every run, so once it's there the natural-language match always uses OpenAI. The model is
    set in `config/config.json` → `llm.model` (default `gpt-4o-mini`). Without a key it runs offline.
-3. Put the Google OAuth files (`client_secret.json`, and `token.json` once generated) in a **secret
-   folder OUTSIDE this repo**, and point `google.secrets_dir` (in `config/config.json`) at it.
-4. **First run is interactive** (one time): a browser opens for OAuth consent → approve as a Google
-   **Test user** → `token.json` is written. All subsequent match runs are fully autonomous.
+3. Put `client_secret.json` in a **secret folder OUTSIDE this repo** and set `MARL_GOOGLE_SECRETS_DIR`
+   in `.env` to that folder (or point `google.secrets_dir` in `config/config.json` at it). `token.json`
+   is written there on first consent.
+4. **Verify the Google setup** (one command, does the first-run consent + the read→extract→calendar→send
+   demo, sending a test email to your own dev address): `uv run python scripts/google_smoke.py`. A browser
+   opens for OAuth consent — **log in as a Test user** (`sharbelma3@gmail.com`); after that `token.json`
+   is cached and runs are autonomous.
 
 ### 2.5 Troubleshooting
 | Symptom | Fix |
@@ -131,6 +134,7 @@ Newest first.
 
 | Date | What we did | Why | Evidence |
 |------|-------------|-----|----------|
+| 2026-06-25 | **Google setup verification script** — `scripts/google_smoke.py` does the one-time OAuth consent + full read→extract(LLM)→add-Calendar-event→send-email demo (test email to the dev address), each step defensive. Browser-agent set up Google Cloud (project `cop-thief-agent`, Gmail+Calendar APIs, External/Testing OAuth, Desktop client, test user) + OpenAI key + Prefect workspace | Now that real credentials exist, give a one-command way to verify + first-consent (T10.45/46, T8.102) | `scripts/google_smoke.py`; README §2.4; uses existing tested tools |
 | 2026-06-25 | **Phase 10 batch 2 docs + non-square sanity** — non-square match test (3×2, 4×3); PRD §1.5 market/landscape + §1.6 relative-path note; PLAN §3 production secret-store + MCP HTTP-transport (not stdio) + token encrypt/revoke notes; PRD_game_engine special-action clarification | Close audit gaps C6/C14/C15/C18/C21, gap10/37/53/61 | `test_match_runs_on_non_square_boards`; PRD §1.5/1.6, PLAN §3; 197 tests, 100% cov |
 | 2026-06-25 | **Budget management (gatekeeper spend counter)** — `shared/budget.py` `BudgetTracker` reads the live gatekeeper call count + config `llm.budget.usd_per_call` for a real-time spend/remaining counter, `forecast_usd(n)`, and a two-stage **alert** (`alert_threshold`) / **over_budget** flag; the CLI prints it after a real run | Required cost forecasting + real-time monitoring + overrun alerts (audit C14/C20) | `shared/budget.py`; 196 tests, 100% cov; README R.7 + config `llm.budget` |
 | 2026-06-25 | **Phase 9 research & visualization** — `scripts/sensitivity.py` runs OAT sweeps (visibility radius, grid size) over real offline matches and renders the full chart suite (**line, heatmap, box, scatter**); added `notebooks/analysis.ipynb` (LaTeX Dec-POMDP + Bellman, sensitivity results, 6 academic references). Key finding: NL capture needs visibility (r=0≈blind), peaks at r=1–2, and degrades with board size | Required sensitivity research + visualization (guidelines §11; T9.61–69, T10.23–25) | README R.3 sensitivity section; `assets/sensitivity_*.png`, `moves_boxplot.png`, `scatter_area_moves.png`; `results/sensitivity.txt` |
