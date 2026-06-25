@@ -711,16 +711,16 @@ _Cross-cutting infra, quality gates, research/visualization, final checklist & s
 | T9.58 | Package `__init__` exports + relative imports | P1 | ⬜ | `<TBD>` | No absolute paths |
 | T9.59 | Enums for actions/events; no magic numbers | P1 | ⬜ | `<TBD>` | constants.py used |
 | T9.60 | (Opt) CI runs tests + ruff | P2 | ⬜ | `<TBD>` | Pipeline green |
-| T9.61 | Parameter research (grid/visibility/hyper-params) | P2 | ⬜ | `<TBD>` | Experiments logged |
-| T9.62 | OAT (one-at-a-time) sensitivity analysis | P2 | ⬜ | `<TBD>` | Documented |
-| T9.63 | Variance-based / partial-derivative analysis | P3 | ⬜ | `<TBD>` | Documented |
-| T9.64 | Results analysis notebook (Jupyter) with LaTeX | P2 | ⬜ | `<TBD>` | Notebook in notebooks/ |
-| T9.65 | Bar chart (comparisons) | P2 | ⬜ | `<TBD>` | In assets/ |
-| T9.66 | Line chart (trends / learning curve) | P2 | ⬜ | `<TBD>` | In assets/ |
-| T9.67 | Scatter plot (correlations) | P3 | ⬜ | `<TBD>` | In assets/ |
-| T9.68 | Heatmap (parameter sensitivity) | P2 | ⬜ | `<TBD>` | In assets/ |
-| T9.69 | Box plot (distributions) | P3 | ⬜ | `<TBD>` | In assets/ |
-| T9.70 | Waterfall chart (variance analysis) | P3 | ⬜ | `<TBD>` | In assets/ |
+| T9.61 | Parameter research (grid/visibility/hyper-params) | P2 | ✅ | `<TBD>` | `scripts/sensitivity.py`; data `results/sensitivity.txt` |
+| T9.62 | OAT (one-at-a-time) sensitivity analysis | P2 | ✅ | `<TBD>` | Visibility + grid OAT sweeps (README R.3) |
+| T9.63 | Variance-based / partial-derivative analysis | P3 | 🟦 | `<TBD>` | 2-factor heatmap done; formal variance decomposition pending |
+| T9.64 | Results analysis notebook (Jupyter) with LaTeX | P2 | ✅ | `<TBD>` | `notebooks/analysis.ipynb` (LaTeX Dec-POMDP/Bellman + refs) |
+| T9.65 | Bar chart (comparisons) | P2 | ✅ | `<TBD>` | `assets/win_distribution.png`, `heuristic_vs_nl.png` |
+| T9.66 | Line chart (trends / learning curve) | P2 | ✅ | `<TBD>` | `assets/winrate_vs_gridsize.png`, `sensitivity_visibility.png` |
+| T9.67 | Scatter plot (correlations) | P3 | ✅ | `<TBD>` | `assets/scatter_area_moves.png` |
+| T9.68 | Heatmap (parameter sensitivity) | P2 | ✅ | `<TBD>` | `assets/sensitivity_heatmap.png` (grid × visibility) |
+| T9.69 | Box plot (distributions) | P3 | ✅ | `<TBD>` | `assets/moves_boxplot.png` |
+| T9.70 | Waterfall chart (variance analysis) | P3 | ⬜ | `<TBD>` | Pending (optional; depends on T9.63) |
 | T9.71 | Token-cost analysis table | P2 | ✅ | `<TBD>` | README R.7 filled from `scripts/token_report.py` (3046 in / 264 out / $0.000615 per match) |
 | T9.72 | Maintain prompt-engineering log | P1 | 🟦 | `<TBD>` | PROMPT_LOG.md / README R.8 |
 | T9.73 | ISO/IEC 25010 self-assessment | P2 | ⬜ | `<TBD>` | Documented |
@@ -764,9 +764,9 @@ _Close every gap from the 2026-06-25 multi-agent audit (see docs/AUDIT-2026-06-2
 | T10.20 | Pin Google client lib versions in pyproject (version churn) [C26] | P2 | ⬜ | `<TBD>` | Versions pinned |
 | T10.21 | Thread-safety: deadlock avoidance + context managers + queue.Queue [gap17] | P1 | ✅ | `<TBD>` | Single `RLock` (consistent order ⇒ no deadlock) + `with` blocks + `deque` FIFO; noted in PRD_gatekeeper §6 |
 | T10.22 | Classify ops I/O vs CPU-bound; threads for I/O, no CPU hot path [gap54,55,56] | P2 | ✅ | `<TBD>` | Rationale in PRD_gatekeeper §6 (LLM/Gmail are I/O-bound → threads) |
-| T10.23 | Notebook includes LaTeX + academic references [gap12] | P2 | ⬜ | `<TBD>` | Bibliography present |
-| T10.24 | Graph quality 5-part (labels,legend,colors,caption,>=150dpi) [gap13] | P2 | ⬜ | `<TBD>` | DoD on viz tasks |
-| T10.25 | Name viz stack (Matplotlib/Seaborn/Plotly) + add deps [gap42] | P2 | ⬜ | `<TBD>` | Deps added |
+| T10.23 | Notebook includes LaTeX + academic references [gap12] | P2 | ✅ | `<TBD>` | `notebooks/analysis.ipynb` (LaTeX + 6 references) |
+| T10.24 | Graph quality 5-part (labels,legend,colors,caption,>=150dpi) [gap13] | P2 | ✅ | `<TBD>` | All figures: titles/labels/legend/annotations @150dpi |
+| T10.25 | Name viz stack (Matplotlib/Seaborn/Plotly) + add deps [gap42] | P2 | ✅ | `<TBD>` | Matplotlib (named in R.3); Seaborn/Plotly optional |
 | T10.26 | Budget mgmt: forecast + real-time spend counter + overrun alert [gap14,C20] | P2 | 🟦 | `<TBD>` | Forecast + token-cost util (`token_cost.py`) + design in README R.7; live gatekeeper spend counter/alert pending |
 | T10.27 | Usability NFR + Nielsen 10 heuristics mapping + accessibility [gap15,43,44,46,47,C8] | P1 | ✅ | `<TBD>` | README R.11 (Nielsen table + accessibility) |
 | T10.28 | User-workflow + interactions/feedback documentation [gap45] | P2 | ✅ | `<TBD>` | README §3.2 workflow + R.11 feedback |
