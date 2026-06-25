@@ -2,11 +2,22 @@
 
 from marl_cop_thief.services.remote_match import play_my_turns, remote_decider
 
+FULL_5x5 = [[x, y] for x in range(5) for y in range(5)]
+
+
+def _obs(self_pos, opponent, cells=None, barriers=()):
+    return {
+        "self": list(self_pos),
+        "opponent": list(opponent) if opponent else None,
+        "visible_cells": cells if cells is not None else FULL_5x5,
+        "visible_barriers": [list(b) for b in barriers],
+    }
+
 
 class _FakeHost:
     """Scripts get_game_status responses; records calls; canned obs + submit result."""
 
-    def __init__(self, statuses, submit_result=None, opponent=(2, 2)):
+    def __init__(self, statuses, submit_result=None, opponent=(4, 4)):
         self._statuses = statuses
         self._i = 0
         self.submit_result = submit_result or {"event": "move", "done": False}
@@ -20,7 +31,7 @@ class _FakeHost:
             self._i += 1
             return s
         if tool == "get_observation":
-            return {"self": [0, 0], "opponent": list(self.opponent) if self.opponent else None}
+            return _obs((0, 0), self.opponent)
         if tool == "submit_action":
             return self.submit_result
         raise AssertionError(tool)
@@ -54,7 +65,22 @@ def test_poll_limit_returns_final_status():
     assert out["to_move"] == "thief"
 
 
-def test_remote_decider_directions():
-    assert remote_decider("cop")({"self": [0, 0], "opponent": [3, 3]}) == ("move", 1, 1)  # toward
-    assert remote_decider("thief")({"self": [2, 2], "opponent": [3, 3]}) == ("move", -1, -1)  # away
-    assert remote_decider("cop")({"self": [1, 1], "opponent": None}) == ("stay", 0, 0)  # unseen
+def test_cop_closes_in_thief_flees():
+    assert remote_decider("cop")(_obs((0, 0), (3, 3))) == ("move", 1, 1)  # toward
+    assert remote_decider("thief")(_obs((2, 2), (3, 3))) == ("move", -1, -1)  # away, stays mobile
+
+
+def test_blind_agent_heads_for_interior_not_stay():
+    # rival unseen: move toward the visible centroid (2,2), not STAY
+    assert remote_decider("cop")(_obs((0, 0), None)) == ("move", 1, 1)
+
+
+def test_no_legal_move_stays():
+    # only the current cell is on-board/visible -> no legal neighbour
+    assert remote_decider("cop")(_obs((0, 0), (3, 3), cells=[[0, 0]])) == ("stay", 0, 0)
+
+
+def test_avoids_visible_barrier():
+    # barrier on the best diagonal -> cop picks a different legal step
+    out = remote_decider("cop")(_obs((0, 0), (3, 3), barriers=[(1, 1)]))
+    assert out[0] == "move" and out != ("move", 1, 1)
