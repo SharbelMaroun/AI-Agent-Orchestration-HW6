@@ -16,6 +16,13 @@ to avoid being blocked by external mail servers. Authentication uses **token-bas
 username/password: a stolen short-lived token is far less dangerous than a password. Google issues a
 secret client file (`client_secret.json`) and a `token.json` created on first authentication.
 
+> **Status (2026-06-25):** the **report builders** (`services/reporting.py` — internal + inter-group
+> `bonus_game` schemas) are implemented and tested. The **autonomous end-of-match send** described below
+> is **planned wiring**: no orchestrator/SDK path calls `send_email` yet, nothing reads
+> `reporting.recipient_email` / `reporting.send_real_email`, and the inter-group **bonus arithmetic**
+> (10/5/5 + averaging) is not computed (the schema accepts `totals_by_group`/`bonus_claim` as inputs).
+> Pending real OAuth + cloud series (README R.0; assignment §12).
+
 **Recipient (config-driven — `reporting.recipient_email`, never hard-coded):**
 - **Now (development/testing):** `sharbelma3@gmail.com`.
 - **At submission:** switch the config value to `rmisegal+uoh26b@gmail.com` **verbatim** — keep the
@@ -42,7 +49,9 @@ can ingest it automatically.
   folder OUTSIDE the repo** — **both git-ignored**; include a token-expiry re-consent recovery path.
 - Dependencies via `uv`: `google-api-python-client`, `google-auth-oauthlib`, `google-auth-httplib2`.
 
-> All Gmail/Calendar sends route through the **gatekeeper** ([`PRD_gatekeeper.md`](PRD_gatekeeper.md)).
+> _Planned:_ Gmail/Calendar sends will route through the **gatekeeper**
+> ([`PRD_gatekeeper.md`](PRD_gatekeeper.md)) once OAuth is wired (the LLM path is gatekept today — see
+> README R.9); they are not gatekept yet.
 
 ## 3. JSON Schemas
 

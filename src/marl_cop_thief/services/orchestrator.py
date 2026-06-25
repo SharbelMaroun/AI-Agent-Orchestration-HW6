@@ -11,7 +11,19 @@ from .accumulator import summarize
 from .game_engine import GameEngine
 from .scoring import score_subgame
 from .strategy.heuristic import cop_action, thief_action
+from .strategy.smart_cop import smart_cop_action
 from .turn_pipeline import Decider, run_turn
+
+# Config-selectable cop policies (config["strategy"]["type"]); thief is always greedy.
+COP_POLICIES: dict[str, Decider] = {"heuristic": cop_action, "smart": smart_cop_action}
+
+
+def select_cop_policy(config: dict[str, Any]) -> Decider:
+    """Pick the cop decider from config (default ``heuristic``); reject unknowns."""
+    name = config.get("strategy", {}).get("type", "heuristic")
+    if name not in COP_POLICIES:
+        raise ValueError(f"Unknown cop strategy {name!r}; choose from {sorted(COP_POLICIES)}")
+    return COP_POLICIES[name]
 
 
 class Orchestrator:
@@ -25,7 +37,7 @@ class Orchestrator:
         self.num_games = config["num_games"]
         self.seed = config.get("seed", 0)
         self.deciders: dict[Role, Decider] = {
-            Role.COP: cop_action,
+            Role.COP: select_cop_policy(config),
             Role.THIEF: thief_action,
         }
 

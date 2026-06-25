@@ -22,7 +22,7 @@ rejects them, preventing desync or cheating.
 - Current authoritative `GameState`.
 
 ### 2.2 Output
-- `TurnResult(actor, action, state_after, event)` where
+- `TurnResult(actor, action, event, state)` where
   `event ∈ {NONE, CAPTURE, BARRIER_PLACED, ILLEGAL, MAX_MOVES_REACHED}`.
 - `SubGameResult(index, winner, moves_used, cop_score, thief_score)`.
 

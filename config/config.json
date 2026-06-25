@@ -15,6 +15,20 @@
   "strategy": {
     "type": "heuristic"
   },
+  "gui": {
+    "live_backend": "TkAgg",
+    "turn_delay_seconds": 0.6
+  },
+  "llm": {
+    "provider": "openai",
+    "model": "gpt-4o-mini",
+    "pricing": {
+      "input_per_1m": 0.15,
+      "output_per_1m": 0.60,
+      "chars_per_token": 4,
+      "est_output_tokens_per_call": 4
+    }
+  },
   "reporting": {
     "recipient_email": "sharbelma3@gmail.com",
     "submission_recipient": "rmisegal+uoh26b@gmail.com",

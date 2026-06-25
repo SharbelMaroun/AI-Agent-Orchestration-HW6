@@ -2,7 +2,11 @@
 
 import random
 
+import pytest
+
 from marl_cop_thief.services.orchestrator import Orchestrator
+from marl_cop_thief.services.strategy.smart_cop import smart_cop_action
+from marl_cop_thief.shared.constants import Role
 
 CONFIG = {
     "grid_size": [5, 5],
@@ -38,3 +42,15 @@ def test_config_without_seed_defaults():
     cfg = {k: v for k, v in CONFIG.items() if k != "seed"}
     summary = Orchestrator(cfg).play_match()
     assert len(summary["sub_games"]) == 6
+
+
+def test_smart_strategy_is_selected_and_dominates():
+    orch = Orchestrator({**CONFIG, "strategy": {"type": "smart"}})
+    assert orch.deciders[Role.COP] is smart_cop_action
+    totals = orch.play_match()["totals"]
+    assert totals["cop"] > totals["thief"]  # the cornering cop wins the match
+
+
+def test_unknown_strategy_is_rejected():
+    with pytest.raises(ValueError, match="Unknown cop strategy"):
+        Orchestrator({**CONFIG, "strategy": {"type": "nope"}})

@@ -47,7 +47,7 @@ External Consumers (GUI / CLI / Tests / Inter-group runner)
 |  - GameEngine + Board + Scoring (state machine)  |
 |  - CopAgent / ThiefAgent (belief + policy)       |
 |  - NLProtocol (encode/decode free text)          |
-|  - Strategy (heuristic | q_table)                |
+|  - Strategy (heuristic | smart; q_table planned) |
 |  - GoogleAgent (read/extract/calendar/send)      |
 |  - Reporting (JSON builder -> send_email)        |
 +--------------------------------------------------+
@@ -141,55 +141,62 @@ See the module layout in §4 and the per-mechanism PRDs.
 
 ---
 
-## 4. Module Layout (target)
+## 4. Module Layout (as-built — 2026-06-25)
+Reflects the actual `src/` tree. `(planned)` marks not-yet-built items.
 ```text
 src/marl_cop_thief/
-├── __init__.py                 # exports __all__, __version__
-├── main.py                     # thin entrypoint -> sdk
-├── sdk/
-│   ├── __init__.py
-│   └── sdk.py                  # single public entry point
+├── __init__.py                 # __all__, __version__
+├── __main__.py                 # enables `python -m marl_cop_thief`
+├── main.py                     # CLI: default NL run · --simple · --gui (GIF) · --live (window) -> SDK
+├── sdk/sdk.py                  # single public entry point (run_match, run_nl_match)
 ├── services/
-│   ├── orchestrator.py         # match & sub-game loop
+│   ├── orchestrator.py         # heuristic match loop
+│   ├── nl_match.py             # natural-language match loop (run_nl_match)
+│   ├── turn_pipeline.py        # one-turn pipeline (pluggable Decider)
+│   ├── match_stream.py         # per-turn (state, caption) frame streams (live GUI + GIF)
+│   ├── accumulator.py          # match summary builder
 │   ├── game_engine.py          # state machine, legality, capture
-│   ├── board.py                # grid, cells, barriers, neighbours
-│   ├── scoring.py              # per-subgame & match scoring
-│   ├── cop_agent.py            # belief + policy (cop)
-│   ├── thief_agent.py          # belief + policy (thief)
-│   ├── nl_protocol.py          # encode/decode free-text messages
-│   ├── reporting.py            # JSON report builder -> send_email trigger
-│   ├── google_agent/           # Gmail & Calendar agent
-│   │   ├── email_reader.py     # read_emails
-│   │   ├── meeting_extractor.py# extract_meeting (LLM-assisted, via gatekeeper)
-│   │   └── calendar_writer.py  # add_calendar_event
-│   └── strategy/
-│       ├── heuristic.py        # default decision strategy
-│       └── q_table.py          # optional tabular Q-learning
-├── mcp/
-│   ├── cop_server.py           # FastMCP server (cop)
-│   ├── thief_server.py         # FastMCP server (thief)
-│   └── tools.py                # shared tool definitions
+│   ├── board.py                # grid, neighbours, passability
+│   ├── barriers.py             # cop barrier rules
+│   ├── scoring.py              # per-subgame + accumulation
+│   ├── observation.py          # partial-observation snapshot
+│   ├── reporting.py            # JSON report builders (internal + inter-group)
+│   ├── nl_protocol/            # nl_encode, nl_decode, ambiguity_handler,
+│   │                           #   prompt_templates, nl_decider
+│   ├── google_agent/           # email_reader, meeting_extractor, calendar_writer (DI)
+│   ├── mcp/                    # tools (ToolService, 6 tools), message_bus, servers (FastMCP)
+│   └── strategy/              # heuristic.py (greedy cop+thief), smart_cop.py (cornering 1-ply),
+│                              #   geometry.py (shared chebyshev); belief_model/q_table planned
+├── gui/                        # board_renderer, match_animator (GIF), live_viewer (interactive window); render-only, omitted from coverage
 └── shared/
-    ├── gatekeeper.py           # centralized API gatekeeper
-    ├── llm_client.py           # LLM transport (via gatekeeper)
-    ├── google_auth.py          # OAuth flow, token load/refresh/recovery (external secret folder)
-    ├── gmail_client.py         # Gmail read/send transport (via gatekeeper)
-    ├── calendar_client.py      # Google Calendar transport (via gatekeeper)
-    ├── config.py               # config loader + version validation
-    ├── version.py              # __code_version__ = "1.00"
-    ├── constants.py            # immutable constants / enums
-    └── models.py               # dataclasses: Position, Move, GameState, Report...
-config/
-├── config.json                 # game params (versioned)
-├── rate_limits.json            # gatekeeper limits (versioned)
-└── logging_config.json
-gui/                            # (no business logic) renders state from SDK
-tests/
-├── unit/                        # mirrors src/
-├── integration/
-└── conftest.py
+    ├── gatekeeper.py           # API gatekeeper (rate limit + FIFO queue + backpressure + retries + concurrency)
+    ├── rate_limit.py           # RateLimitConfig, QueueStatus, SlidingWindowLimiter (config-driven)
+    ├── llm_client.py           # LLMClient protocol + GatekeptLLM
+    ├── llm_backend.py          # select OpenAI vs offline echo backend (by OPENAI_API_KEY)
+    ├── openai_backend.py       # real OpenAI Chat Completions (omitted from coverage)
+    ├── google_auth.py          # lazy build_services (real OAuth; omitted from coverage)
+    ├── gmail_client.py         # send_email (DI service)
+    ├── token_cost.py           # token accounting + cost estimate (config-driven pricing; R.7)
+    ├── config.py · version.py · constants.py
+    └── models.py               # Position, Action, GameState, TurnResult, SubGameResult, Message, Meeting
+config/    config.json · rate_limits.json · logging_config.json   (versioned 1.00)
+tests/     unit/ · integration/ · conftest.py
+scripts/   make_figures.py · gatekeeper_demo.py · token_report.py   # reproducible analysis -> assets/ + results/
+assets/    graphs, board screenshots, match.gif        results/  run logs
 ```
 > Every file targets **≤150 lines of code** (comments/blanks excluded); split when exceeded.
+> Note: the `mcp/` package lives under `services/mcp/` (not the package root). `belief_model`/`q_table`
+> remain planned.
+>
+> **GUI streaming design (real-time window).** The service layer exposes the game as a *per-turn frame
+> stream* — `services/match_stream.py` (`heuristic_subgame_stream`) and `services/nl_match.py`
+> (`nl_subgame_stream`) are generators that `yield (deepcopy(state), caption)` once before the first move
+> and again after every turn; the shared `stream_subgame()` helper holds the single engine loop (DRY).
+> Two consumers render the same stream: the **GIF animator** collects it into a list and writes a file
+> (headless `Agg`, deterministic/CI-safe), while the **live viewer** (`gui/live_viewer.py`) switches
+> matplotlib to an interactive backend at runtime (config `gui.live_backend`, default `TkAgg`) and draws
+> each frame the instant it streams off the engine — so an NL match visibly advances as each LLM call
+> returns. The GUI stays render-only; all game logic is in the SDK-exposed services (SDK-only).
 
 ---
 
@@ -205,6 +212,8 @@ tests/
   "max_barriers": 5,
   "visibility_radius": 1,
   "scoring": { "cop_win": 20, "thief_win": 10, "cop_loss": 5, "thief_loss": 5 },
+  "strategy": { "type": "heuristic" },
+  "llm": { "provider": "openai", "model": "gpt-4o-mini", "pricing": { "input_per_1m": 0.15, "output_per_1m": 0.60, "chars_per_token": 4, "est_output_tokens_per_call": 4 } },
   "reporting": {
     "recipient_email": "sharbelma3@gmail.com",
     "_submission_recipient": "rmisegal+uoh26b@gmail.com",
@@ -229,8 +238,8 @@ tests/
 ```text
 Position(x:int, y:int)
 Action = MOVE(dx,dy in {-1,0,1}, not both 0) | PLACE_BARRIER | STAY
-Message(sender:str, turn:int, text:str)
-TurnResult(actor, action, message, state_after, event: NONE|CAPTURE|BARRIER|ILLEGAL)
+Message(sender: 'cop'|'thief', text: str)
+TurnResult(actor, action, event: NONE|CAPTURE|BARRIER_PLACED|ILLEGAL|MAX_MOVES_REACHED, state)
 SubGameResult(index, winner:'cop'|'thief', moves_used, cop_score, thief_score)
 MatchReport(group_name, students[], github_repo, cop_mcp_url, thief_mcp_url,
             timezone, sub_games[], totals{cop,thief})

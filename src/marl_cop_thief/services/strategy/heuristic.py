@@ -8,12 +8,9 @@ distance from the cop. Both choose only from the engine's legal actions.
 from __future__ import annotations
 
 from ...shared.constants import ActionKind
-from ...shared.models import Action, GameState, Position
+from ...shared.models import Action, GameState
 from ..game_engine import GameEngine
-
-
-def _chebyshev(a: Position, b: Position) -> int:
-    return max(abs(a.x - b.x), abs(a.y - b.y))
+from .geometry import chebyshev
 
 
 def _legal_moves(engine: GameEngine, state: GameState) -> list[Action]:
@@ -26,7 +23,7 @@ def cop_action(engine: GameEngine, state: GameState) -> Action:
     if not moves:
         return Action.stay()
     target = state.thief
-    return min(moves, key=lambda a: _chebyshev(state.cop.step(a.dx, a.dy), target))
+    return min(moves, key=lambda a: chebyshev(state.cop.step(a.dx, a.dy), target))
 
 
 def thief_action(engine: GameEngine, state: GameState) -> Action:
@@ -35,4 +32,4 @@ def thief_action(engine: GameEngine, state: GameState) -> Action:
     if not moves:
         return Action.stay()
     threat = state.cop
-    return max(moves, key=lambda a: _chebyshev(state.thief.step(a.dx, a.dy), threat))
+    return max(moves, key=lambda a: chebyshev(state.thief.step(a.dx, a.dy), threat))

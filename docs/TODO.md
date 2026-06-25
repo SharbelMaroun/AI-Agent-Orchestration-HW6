@@ -4,11 +4,11 @@
 **Document version:** 2.00  
 **Governing standard:** [`../MATERIALS/software_submission_guidelines-V3_Summary.md`](../MATERIALS/software_submission_guidelines-V3_Summary.md)
 
-> **Lecturer requirement:** this task list is maintained at fine granularity — **658 tasks** (≥550).  
+> **Lecturer requirement:** this task list is maintained at fine granularity — **665 tasks** (≥550).  
 > **Status:** ⬜ Not Started · 🟦 In Progress · ✅ Completed — **Priority:** P0–P3. Owner: `<TBD>`.  
 > Update statuses continuously; add a README Work-Log row + evidence (graph/screenshot) per task.
 
-> **Implementation status (code, 2026-06-25):** Phase 0 ✅ · Phase 1 ✅ · Phase 2 🟦 (tool layer + 2 FastMCP servers done; MCP transport/auth pending) · Phase 3 ✅ · Phase 5 ✅ (NL agents + minimal gatekeeper) · Phase 4 🟦 (heuristic only) — all green (ruff clean, pytest 86 passing, 100% coverage). Phases 6–10 mostly pending; the gatekeeper is minimal (retry+log) pending full FIFO queue.
+> **Implementation status (code, 2026-06-25):** Phase 0 ✅ · Phase 1 ✅ · Phase 2 🟦 (tool layer + 2 FastMCP servers done; MCP transport/auth pending) · Phase 3 ✅ · Phase 5 ✅ (NL agents; the default `cop-thief` run) · Phase 6 🟦 (GUI renderer + **NL match animation with message overlay** via --gui; --simple --gui for heuristic/smart) · Phase 8 🟦 (report builder + Gmail/Calendar agent tools done; real OAuth send pending) · Phase 4 ✅ (greedy + **cornering "smart" cop**, config-selectable, 100% capture on 3×3–7×7) · Phase 9 🟦 (**full API gatekeeper done** — config-driven rate limiting + FIFO queue + backpressure + drain + retries/backoff + concurrency + `get_queue_status`; research/submission tasks pending) — all green (ruff clean, pytest 154 passing, 100% coverage). Phases 7/10 mostly pending.
 
 ---
 
@@ -20,14 +20,14 @@
 | 1 | Game logic & rules engine | M1 | 68 |
 | 2 | MCP communication infrastructure | M2 | 63 |
 | 3 | Orchestrator & full local match | M3 | 60 |
-| 4 | Decision strategy | M4 | 63 |
+| 4 | Decision strategy | M4 | 70 |
 | 5 | Natural-language integration | M5 | 60 |
-| 6 | GUI & CLI | M6 | 38 |
+| 6 | GUI & CLI | M6 | 48 |
 | 7 | Cloud deployment & security | M7 | 27 |
 | 8 | Gmail/Calendar agent & reporting | M8 | 104 |
 | 9 | Gatekeeper, quality gates, research & submission | M9 | 85 |
 | 10 | Audit closure (requirements coverage gaps) | M10 | 54 |
-| — | **Total** | — | **658** |
+| — | **Total** | — | **675** |
 
 ---
 
@@ -284,6 +284,11 @@ _Match/sub-game loop and single SDK entry point._
 
 ## Phase 4 — Decision strategy (Milestone: M4)
 _Heuristic policies + optional tabular Q-learning. See PRD_decision_strategy.md._
+> **As-built (2026-06-25):** greedy cop+thief live together in `services/strategy/heuristic.py`
+> (one module, not separate `heuristic_cop.py`/`heuristic_thief.py`); the **cornering "smart" cop** is
+> `services/strategy/smart_cop.py` with shared distance in `geometry.py`. The `Strategy` interface is the
+> lightweight `Decider` Callable (`turn_pipeline.py`) + the `COP_POLICIES` registry in the orchestrator,
+> not a Template-Method base class. `belief_model.py`/`q_table.py` remain optional/pending.
 
 | ID | Task | Pri | Status | Owner | DoD |
 |----|------|-----|--------|-------|-----|
@@ -298,28 +303,28 @@ _Heuristic policies + optional tabular Q-learning. See PRD_decision_strategy.md.
 | T4.9 | Ruff clean `services/strategy/strategy_base.py` | P0 | 🟦 | `<TBD>` | 0 ruff violations |
 | T4.10 | Mock external deps in `services/strategy/strategy_base.py` tests | P0 | 🟦 | `<TBD>` | No live external calls |
 | T4.11 | Coverage ≥85% for `services/strategy/strategy_base.py` + add README Work Log row | P0 | 🟦 | `<TBD>` | ≥85% coverage; Work Log updated |
-| T4.12 | Spec & single-concern interface for `services/strategy/heuristic_cop.py` — cop pursuit policy | P0 | 🟦 | `<TBD>` | Interface + docstring agreed; ≤150-LOC plan |
-| T4.13 | Define typed models/signatures for `services/strategy/heuristic_cop.py` | P0 | 🟦 | `<TBD>` | Typed inputs/outputs defined |
-| T4.14 | RED: write failing unit tests for `services/strategy/heuristic_cop.py` (happy path) | P0 | 🟦 | `<TBD>` | Failing tests committed |
-| T4.15 | GREEN: implement `services/strategy/heuristic_cop.py` | P0 | 🟦 | `<TBD>` | Happy-path tests pass |
-| T4.16 | Edge-case & boundary tests for `services/strategy/heuristic_cop.py` | P0 | 🟦 | `<TBD>` | Empty/invalid/limit inputs covered |
-| T4.17 | Defensive error handling in `services/strategy/heuristic_cop.py` | P0 | 🟦 | `<TBD>` | Graceful failure + clear message |
-| T4.18 | Refactor `services/strategy/heuristic_cop.py`: DRY, ≤150 lines, single responsibility | P0 | 🟦 | `<TBD>` | No duplication; ≤150 LOC |
-| T4.19 | Docstrings + why-comments for `services/strategy/heuristic_cop.py` | P0 | 🟦 | `<TBD>` | Module/functions documented |
-| T4.20 | Ruff clean `services/strategy/heuristic_cop.py` | P0 | 🟦 | `<TBD>` | 0 ruff violations |
-| T4.21 | Mock external deps in `services/strategy/heuristic_cop.py` tests | P0 | 🟦 | `<TBD>` | No live external calls |
-| T4.22 | Coverage ≥85% for `services/strategy/heuristic_cop.py` + add README Work Log row | P0 | 🟦 | `<TBD>` | ≥85% coverage; Work Log updated |
-| T4.23 | Spec & single-concern interface for `services/strategy/heuristic_thief.py` — thief evasion policy | P0 | 🟦 | `<TBD>` | Interface + docstring agreed; ≤150-LOC plan |
-| T4.24 | Define typed models/signatures for `services/strategy/heuristic_thief.py` | P0 | 🟦 | `<TBD>` | Typed inputs/outputs defined |
-| T4.25 | RED: write failing unit tests for `services/strategy/heuristic_thief.py` (happy path) | P0 | 🟦 | `<TBD>` | Failing tests committed |
-| T4.26 | GREEN: implement `services/strategy/heuristic_thief.py` | P0 | 🟦 | `<TBD>` | Happy-path tests pass |
-| T4.27 | Edge-case & boundary tests for `services/strategy/heuristic_thief.py` | P0 | 🟦 | `<TBD>` | Empty/invalid/limit inputs covered |
-| T4.28 | Defensive error handling in `services/strategy/heuristic_thief.py` | P0 | 🟦 | `<TBD>` | Graceful failure + clear message |
-| T4.29 | Refactor `services/strategy/heuristic_thief.py`: DRY, ≤150 lines, single responsibility | P0 | 🟦 | `<TBD>` | No duplication; ≤150 LOC |
-| T4.30 | Docstrings + why-comments for `services/strategy/heuristic_thief.py` | P0 | 🟦 | `<TBD>` | Module/functions documented |
-| T4.31 | Ruff clean `services/strategy/heuristic_thief.py` | P0 | 🟦 | `<TBD>` | 0 ruff violations |
-| T4.32 | Mock external deps in `services/strategy/heuristic_thief.py` tests | P0 | 🟦 | `<TBD>` | No live external calls |
-| T4.33 | Coverage ≥85% for `services/strategy/heuristic_thief.py` + add README Work Log row | P0 | 🟦 | `<TBD>` | ≥85% coverage; Work Log updated |
+| T4.12 | Spec & single-concern interface for cop pursuit policy (as-built: `heuristic.cop_action`) | P0 | ✅ | `<TBD>` | Interface + docstring agreed; ≤150-LOC plan |
+| T4.13 | Define typed models/signatures for the cop policy | P0 | ✅ | `<TBD>` | Typed inputs/outputs defined |
+| T4.14 | RED: write failing unit tests for the cop policy (happy path) | P0 | ✅ | `<TBD>` | Failing tests committed |
+| T4.15 | GREEN: implement the cop policy (`heuristic.cop_action`) | P0 | ✅ | `<TBD>` | Happy-path tests pass |
+| T4.16 | Edge-case & boundary tests for the cop policy | P0 | ✅ | `<TBD>` | Boxed-in/no-move cases covered |
+| T4.17 | Defensive error handling in the cop policy | P0 | ✅ | `<TBD>` | Falls back to STAY; engine validates |
+| T4.18 | Refactor cop policy: DRY, ≤150 lines, single responsibility | P0 | ✅ | `<TBD>` | Shared `geometry.chebyshev`; ≤150 LOC |
+| T4.19 | Docstrings + why-comments for the cop policy | P0 | ✅ | `<TBD>` | Module/functions documented |
+| T4.20 | Ruff clean the cop policy module | P0 | ✅ | `<TBD>` | 0 ruff violations |
+| T4.21 | Mock external deps in cop-policy tests | P0 | ✅ | `<TBD>` | Pure/offline; no live external calls |
+| T4.22 | Coverage ≥85% for the cop policy + add README Work Log row | P0 | ✅ | `<TBD>` | 100% coverage; Work Log updated |
+| T4.23 | Spec & single-concern interface for thief evasion policy (as-built: `heuristic.thief_action`) | P0 | ✅ | `<TBD>` | Interface + docstring agreed; ≤150-LOC plan |
+| T4.24 | Define typed models/signatures for the thief policy | P0 | ✅ | `<TBD>` | Typed inputs/outputs defined |
+| T4.25 | RED: write failing unit tests for the thief policy (happy path) | P0 | ✅ | `<TBD>` | Failing tests committed |
+| T4.26 | GREEN: implement the thief policy (`heuristic.thief_action`) | P0 | ✅ | `<TBD>` | Happy-path tests pass |
+| T4.27 | Edge-case & boundary tests for the thief policy | P0 | ✅ | `<TBD>` | Boxed-in stay case covered |
+| T4.28 | Defensive error handling in the thief policy | P0 | ✅ | `<TBD>` | Falls back to STAY; engine validates |
+| T4.29 | Refactor thief policy: DRY, ≤150 lines, single responsibility | P0 | ✅ | `<TBD>` | Shared `geometry.chebyshev`; ≤150 LOC |
+| T4.30 | Docstrings + why-comments for the thief policy | P0 | ✅ | `<TBD>` | Module/functions documented |
+| T4.31 | Ruff clean the thief policy module | P0 | ✅ | `<TBD>` | 0 ruff violations |
+| T4.32 | Mock external deps in thief-policy tests | P0 | ✅ | `<TBD>` | Pure/offline; no live external calls |
+| T4.33 | Coverage ≥85% for the thief policy + add README Work Log row | P0 | ✅ | `<TBD>` | 100% coverage; Work Log updated |
 | T4.34 | Spec & single-concern interface for `services/strategy/belief_model.py` — belief over opponent cell (partial obs) | P1 | ⬜ | `<TBD>` | Interface + docstring agreed; ≤150-LOC plan |
 | T4.35 | Define typed models/signatures for `services/strategy/belief_model.py` | P1 | ⬜ | `<TBD>` | Typed inputs/outputs defined |
 | T4.36 | RED: write failing unit tests for `services/strategy/belief_model.py` (happy path) | P1 | ⬜ | `<TBD>` | Failing tests committed |
@@ -342,14 +347,21 @@ _Heuristic policies + optional tabular Q-learning. See PRD_decision_strategy.md.
 | T4.53 | Ruff clean `services/strategy/q_table.py` | P3 | ⬜ | `<TBD>` | 0 ruff violations |
 | T4.54 | Mock external deps in `services/strategy/q_table.py` tests | P3 | ⬜ | `<TBD>` | No live external calls |
 | T4.55 | Coverage ≥85% for `services/strategy/q_table.py` + add README Work Log row | P3 | ⬜ | `<TBD>` | ≥85% coverage; Work Log updated |
-| T4.56 | Strategy selection via config (heuristic|q_table) | P1 | ⬜ | `<TBD>` | Switch with no code change |
+| T4.56 | Strategy selection via config (heuristic\|smart\|q_table) | P1 | ✅ | `<TBD>` | `select_cop_policy` (via `COP_POLICIES` registry) switches with no code change |
 | T4.57 | Heuristic beats random baseline | P1 | ⬜ | `<TBD>` | Win-rate > 50% |
-| T4.58 | Chebyshev/distance utilities | P1 | ⬜ | `<TBD>` | Unit-tested |
+| T4.58 | Chebyshev/distance utilities | P1 | ✅ | `<TBD>` | `services/strategy/geometry.py`, unit-tested |
 | T4.59 | (Opt) Q-state encoding compact for 5x5 | P3 | ⬜ | `<TBD>` | State space bounded |
 | T4.60 | (Opt) Q-update matches Bellman on hand example | P3 | ⬜ | `<TBD>` | Unit test passes |
 | T4.61 | (Opt) Epsilon-greedy explore/exploit | P3 | ⬜ | `<TBD>` | Policy implemented |
 | T4.62 | (Opt) Training loop over episodes | P3 | ⬜ | `<TBD>` | Q-table improves |
 | T4.63 | (Opt) Learning-curve plot saved to results/ | P3 | ⬜ | `<TBD>` | Curve in README |
+| T4.64 | Spec & single-concern interface for `services/strategy/smart_cop.py` — cornering 1-ply cop | P1 | ✅ | `<TBD>` | Interface + docstring agreed; ≤150-LOC plan |
+| T4.65 | RED+GREEN: implement `smart_cop.smart_cop_action` (lexicographic `(distance, escape-options)` eval after thief reply) | P1 | ✅ | `<TBD>` | Tests pass; breaks the greedy limit cycle |
+| T4.66 | Edge/boundary tests for smart cop (immediate capture, boxed-in stay, determinism) | P1 | ✅ | `<TBD>` | 100% coverage |
+| T4.67 | Empirical capture-rate ≥ greedy (100% on 3×3–7×7, 60 seeds) | P1 | ✅ | `<TBD>` | Measured; `test_corners_thief_on_every_sampled_seed` |
+| T4.68 | Config-driven `smart` selection in `Orchestrator` + reject unknown strategy | P1 | ✅ | `<TBD>` | `test_smart_strategy_is_selected_and_dominates` / `test_unknown_strategy_is_rejected` |
+| T4.69 | Refresh comparison graphs (greedy vs smart vs NL; grid-size overlay) via `make_figures.py` | P1 | ✅ | `<TBD>` | `assets/heuristic_vs_nl.png`, `assets/winrate_vs_gridsize.png` |
+| T4.70 | Update `PRD_decision_strategy.md` §3.1 + README R.3 (cornering policy + barrier analysis) | P1 | ✅ | `<TBD>` | Docs reflect as-built |
 
 ## Phase 5 — Natural-language integration (Milestone: M5)
 _Free-text protocol + belief update; robust to ambiguity/deception. See PRD_nl_communication.md._
@@ -419,31 +431,37 @@ _Free-text protocol + belief update; robust to ambiguity/deception. See PRD_nl_c
 
 ## Phase 6 — GUI & CLI (Milestone: M6)
 _Real-time visualization and CLI logs (read state from SDK only)._
+> **As-built (2026-06-25):** the GUI shipped as `gui/board_renderer.py` (`render_state` + `save_state_png`)
+> and `gui/match_animator.py` (`animate_match` / `animate_nl_match` → animated GIF, with NL message overlay
+> for the NL match), **not** `gui/gui_renderer.py` / `gui/gui_realtime.py`. T6.1–T6.22 are re-mapped to
+> those two modules. The **live interactive window** now ships as `gui/live_viewer.py` (`--live`): it renders
+> the service-layer per-turn frame stream (`services/match_stream.py` + `nl_subgame_stream`) live, drawing
+> each turn the instant the engine computes it (T6.39–T6.48). The **GIF animation** remains for headless/report use.
 
 | ID | Task | Pri | Status | Owner | DoD |
 |----|------|-----|--------|-------|-----|
-| T6.1 | Spec & single-concern interface for `gui/gui_renderer.py` — draw grid/agents/barriers | P1 | ⬜ | `<TBD>` | Interface + docstring agreed; ≤150-LOC plan |
-| T6.2 | Define typed models/signatures for `gui/gui_renderer.py` | P1 | ⬜ | `<TBD>` | Typed inputs/outputs defined |
-| T6.3 | RED: write failing unit tests for `gui/gui_renderer.py` (happy path) | P1 | ⬜ | `<TBD>` | Failing tests committed |
-| T6.4 | GREEN: implement `gui/gui_renderer.py` | P1 | ⬜ | `<TBD>` | Happy-path tests pass |
-| T6.5 | Edge-case & boundary tests for `gui/gui_renderer.py` | P1 | ⬜ | `<TBD>` | Empty/invalid/limit inputs covered |
-| T6.6 | Defensive error handling in `gui/gui_renderer.py` | P1 | ⬜ | `<TBD>` | Graceful failure + clear message |
-| T6.7 | Refactor `gui/gui_renderer.py`: DRY, ≤150 lines, single responsibility | P1 | ⬜ | `<TBD>` | No duplication; ≤150 LOC |
-| T6.8 | Docstrings + why-comments for `gui/gui_renderer.py` | P1 | ⬜ | `<TBD>` | Module/functions documented |
-| T6.9 | Ruff clean `gui/gui_renderer.py` | P1 | ⬜ | `<TBD>` | 0 ruff violations |
-| T6.10 | Mock external deps in `gui/gui_renderer.py` tests | P1 | ⬜ | `<TBD>` | No live external calls |
-| T6.11 | Coverage ≥85% for `gui/gui_renderer.py` + add README Work Log row | P1 | ⬜ | `<TBD>` | ≥85% coverage; Work Log updated |
-| T6.12 | Spec & single-concern interface for `gui/gui_realtime.py` — live updates per turn | P1 | ⬜ | `<TBD>` | Interface + docstring agreed; ≤150-LOC plan |
-| T6.13 | Define typed models/signatures for `gui/gui_realtime.py` | P1 | ⬜ | `<TBD>` | Typed inputs/outputs defined |
-| T6.14 | RED: write failing unit tests for `gui/gui_realtime.py` (happy path) | P1 | ⬜ | `<TBD>` | Failing tests committed |
-| T6.15 | GREEN: implement `gui/gui_realtime.py` | P1 | ⬜ | `<TBD>` | Happy-path tests pass |
-| T6.16 | Edge-case & boundary tests for `gui/gui_realtime.py` | P1 | ⬜ | `<TBD>` | Empty/invalid/limit inputs covered |
-| T6.17 | Defensive error handling in `gui/gui_realtime.py` | P1 | ⬜ | `<TBD>` | Graceful failure + clear message |
-| T6.18 | Refactor `gui/gui_realtime.py`: DRY, ≤150 lines, single responsibility | P1 | ⬜ | `<TBD>` | No duplication; ≤150 LOC |
-| T6.19 | Docstrings + why-comments for `gui/gui_realtime.py` | P1 | ⬜ | `<TBD>` | Module/functions documented |
-| T6.20 | Ruff clean `gui/gui_realtime.py` | P1 | ⬜ | `<TBD>` | 0 ruff violations |
-| T6.21 | Mock external deps in `gui/gui_realtime.py` tests | P1 | ⬜ | `<TBD>` | No live external calls |
-| T6.22 | Coverage ≥85% for `gui/gui_realtime.py` + add README Work Log row | P1 | ⬜ | `<TBD>` | ≥85% coverage; Work Log updated |
+| T6.1 | Spec & single-concern interface for `gui/board_renderer.py` — draw grid/agents/barriers | P1 | ✅ | `<TBD>` | Interface + docstring agreed; ≤150-LOC plan |
+| T6.2 | Define typed models/signatures for `gui/board_renderer.py` | P1 | ✅ | `<TBD>` | Typed inputs/outputs defined |
+| T6.3 | RED: write failing unit tests for `gui/board_renderer.py` (happy path) | P1 | ✅ | `<TBD>` | Failing tests committed |
+| T6.4 | GREEN: implement `gui/board_renderer.py` | P1 | ✅ | `<TBD>` | Happy-path tests pass |
+| T6.5 | Edge-case & boundary tests for `gui/board_renderer.py` | P1 | ✅ | `<TBD>` | Empty/invalid/limit inputs covered |
+| T6.6 | Defensive error handling in `gui/board_renderer.py` | P1 | ✅ | `<TBD>` | Graceful failure + clear message |
+| T6.7 | Refactor `gui/board_renderer.py`: DRY, ≤150 lines, single responsibility | P1 | ✅ | `<TBD>` | No duplication; ≤150 LOC |
+| T6.8 | Docstrings + why-comments for `gui/board_renderer.py` | P1 | ✅ | `<TBD>` | Module/functions documented |
+| T6.9 | Ruff clean `gui/board_renderer.py` | P1 | ✅ | `<TBD>` | 0 ruff violations |
+| T6.10 | Mock external deps in `gui/board_renderer.py` tests | P1 | ✅ | `<TBD>` | No live external calls |
+| T6.11 | Coverage ≥85% for `gui/board_renderer.py` + add README Work Log row | P1 | ✅ | `<TBD>` | ≥85% coverage; Work Log updated |
+| T6.12 | Spec & single-concern interface for `gui/match_animator.py` — animated GIF of each turn (live interactive window pending) | P1 | ✅ | `<TBD>` | Interface + docstring agreed; ≤150-LOC plan |
+| T6.13 | Define typed models/signatures for `gui/match_animator.py` | P1 | ✅ | `<TBD>` | Typed inputs/outputs defined |
+| T6.14 | RED: write failing unit tests for `gui/match_animator.py` (happy path) | P1 | ✅ | `<TBD>` | Failing tests committed |
+| T6.15 | GREEN: implement `gui/match_animator.py` | P1 | ✅ | `<TBD>` | Happy-path tests pass |
+| T6.16 | Edge-case & boundary tests for `gui/match_animator.py` | P1 | ✅ | `<TBD>` | Empty/invalid/limit inputs covered |
+| T6.17 | Defensive error handling in `gui/match_animator.py` | P1 | ✅ | `<TBD>` | Graceful failure + clear message |
+| T6.18 | Refactor `gui/match_animator.py`: DRY, ≤150 lines, single responsibility | P1 | ✅ | `<TBD>` | No duplication; ≤150 LOC |
+| T6.19 | Docstrings + why-comments for `gui/match_animator.py` | P1 | ✅ | `<TBD>` | Module/functions documented |
+| T6.20 | Ruff clean `gui/match_animator.py` | P1 | ✅ | `<TBD>` | 0 ruff violations |
+| T6.21 | Mock external deps in `gui/match_animator.py` tests | P1 | ✅ | `<TBD>` | No live external calls |
+| T6.22 | Coverage ≥85% for `gui/match_animator.py` + add README Work Log row | P1 | ✅ | `<TBD>` | ≥85% coverage; Work Log updated |
 | T6.23 | Spec & single-concern interface for `cli/cli_runner.py` — CLI match runner + structured logs | P1 | ⬜ | `<TBD>` | Interface + docstring agreed; ≤150-LOC plan |
 | T6.24 | Define typed models/signatures for `cli/cli_runner.py` | P1 | ⬜ | `<TBD>` | Typed inputs/outputs defined |
 | T6.25 | RED: write failing unit tests for `cli/cli_runner.py` (happy path) | P1 | ⬜ | `<TBD>` | Failing tests committed |
@@ -457,9 +475,19 @@ _Real-time visualization and CLI logs (read state from SDK only)._
 | T6.33 | Coverage ≥85% for `cli/cli_runner.py` + add README Work Log row | P1 | ⬜ | `<TBD>` | ≥85% coverage; Work Log updated |
 | T6.34 | Capture GUI screenshots of key states -> assets/ | P1 | 🟦 | `<TBD>` | Screenshots in README |
 | T6.35 | CLI structured logs of MCP communication | P1 | ⬜ | `<TBD>` | Logs prove comms |
-| T6.36 | GUI reads state from SDK only | P0 | ⬜ | `<TBD>` | No logic in GUI |
+| T6.36 | GUI reads state from SDK only | P0 | ✅ | `<TBD>` | No logic in GUI |
 | T6.37 | Clear labels/legend + accessible colors | P2 | ⬜ | `<TBD>` | Readable |
 | T6.38 | Record short demo run (gif/video link) | P2 | ⬜ | `<TBD>` | Linked in README |
+| T6.39 | Spec & single-concern interface for `services/match_stream.py` — per-turn `(state, caption)` streams | P1 | ✅ | `<TBD>` | Interface + docstring agreed; ≤150-LOC plan |
+| T6.40 | RED: failing unit tests for `services/match_stream.py` (heuristic stream + shared loop) | P1 | ✅ | `<TBD>` | Failing tests committed |
+| T6.41 | GREEN: implement `services/match_stream.py` (`stream_subgame`, `heuristic_subgame_stream`) | P1 | ✅ | `<TBD>` | Tests pass; 100% cov |
+| T6.42 | Refactor `nl_match.py` to a generator (`nl_subgame_stream`) reusing `stream_subgame` (DRY) | P1 | ✅ | `<TBD>` | No duplicated engine loop; tests pass |
+| T6.43 | Refactor `gui/match_animator.py` to consume the shared stream (drop in-GUI game loop) | P1 | ✅ | `<TBD>` | GIF unchanged; no logic in GUI |
+| T6.44 | Spec & interface for `gui/live_viewer.py` — interactive real-time window (render-only) | P1 | ✅ | `<TBD>` | Interface + docstring agreed; ≤150-LOC plan |
+| T6.45 | GREEN: implement `gui/live_viewer.py` (`play_live`, runtime interactive backend) | P1 | ✅ | `<TBD>` | Renders each frame as it streams |
+| T6.46 | Smoke test `gui/live_viewer.py` headlessly (mock matplotlib; no window) | P1 | ✅ | `<TBD>` | No live window in tests |
+| T6.47 | Expose streams via SDK (`stream_simple_frames`, `stream_nl_frames`) + `--live` CLI flag | P0 | ✅ | `<TBD>` | SDK-only; CLI delegates |
+| T6.48 | Config `gui.live_backend` + `gui.turn_delay_seconds` (no hardcoded values) | P1 | ✅ | `<TBD>` | Config-driven; defaults documented |
 
 ## Phase 7 — Cloud deployment & security (Milestone: M7)
 _Deploy both MCP servers with token auth (deployment tasks, not modules)._
@@ -499,28 +527,28 @@ _Google setup + read/extract/calendar/send agent + JSON report. See PRD_gmail_ca
 
 | ID | Task | Pri | Status | Owner | DoD |
 |----|------|-----|--------|-------|-----|
-| T8.1 | Spec & single-concern interface for `shared/google_auth.py` — OAuth flow, token load/refresh/recovery | P0 | ⬜ | `<TBD>` | Interface + docstring agreed; ≤150-LOC plan |
-| T8.2 | Define typed models/signatures for `shared/google_auth.py` | P0 | ⬜ | `<TBD>` | Typed inputs/outputs defined |
-| T8.3 | RED: write failing unit tests for `shared/google_auth.py` (happy path) | P0 | ⬜ | `<TBD>` | Failing tests committed |
-| T8.4 | GREEN: implement `shared/google_auth.py` | P0 | ⬜ | `<TBD>` | Happy-path tests pass |
-| T8.5 | Edge-case & boundary tests for `shared/google_auth.py` | P0 | ⬜ | `<TBD>` | Empty/invalid/limit inputs covered |
-| T8.6 | Defensive error handling in `shared/google_auth.py` | P0 | ⬜ | `<TBD>` | Graceful failure + clear message |
-| T8.7 | Refactor `shared/google_auth.py`: DRY, ≤150 lines, single responsibility | P0 | ⬜ | `<TBD>` | No duplication; ≤150 LOC |
-| T8.8 | Docstrings + why-comments for `shared/google_auth.py` | P0 | ⬜ | `<TBD>` | Module/functions documented |
-| T8.9 | Ruff clean `shared/google_auth.py` | P0 | ⬜ | `<TBD>` | 0 ruff violations |
-| T8.10 | Mock external deps in `shared/google_auth.py` tests | P0 | ⬜ | `<TBD>` | No live external calls |
-| T8.11 | Coverage ≥85% for `shared/google_auth.py` + add README Work Log row | P0 | ⬜ | `<TBD>` | ≥85% coverage; Work Log updated |
-| T8.12 | Spec & single-concern interface for `shared/gmail_client.py` — Gmail read + send (via gatekeeper) | P0 | ⬜ | `<TBD>` | Interface + docstring agreed; ≤150-LOC plan |
-| T8.13 | Define typed models/signatures for `shared/gmail_client.py` | P0 | ⬜ | `<TBD>` | Typed inputs/outputs defined |
-| T8.14 | RED: write failing unit tests for `shared/gmail_client.py` (happy path) | P0 | ⬜ | `<TBD>` | Failing tests committed |
-| T8.15 | GREEN: implement `shared/gmail_client.py` | P0 | ⬜ | `<TBD>` | Happy-path tests pass |
-| T8.16 | Edge-case & boundary tests for `shared/gmail_client.py` | P0 | ⬜ | `<TBD>` | Empty/invalid/limit inputs covered |
-| T8.17 | Defensive error handling in `shared/gmail_client.py` | P0 | ⬜ | `<TBD>` | Graceful failure + clear message |
-| T8.18 | Refactor `shared/gmail_client.py`: DRY, ≤150 lines, single responsibility | P0 | ⬜ | `<TBD>` | No duplication; ≤150 LOC |
-| T8.19 | Docstrings + why-comments for `shared/gmail_client.py` | P0 | ⬜ | `<TBD>` | Module/functions documented |
-| T8.20 | Ruff clean `shared/gmail_client.py` | P0 | ⬜ | `<TBD>` | 0 ruff violations |
-| T8.21 | Mock external deps in `shared/gmail_client.py` tests | P0 | ⬜ | `<TBD>` | No live external calls |
-| T8.22 | Coverage ≥85% for `shared/gmail_client.py` + add README Work Log row | P0 | ⬜ | `<TBD>` | ≥85% coverage; Work Log updated |
+| T8.1 | Spec & single-concern interface for `shared/google_auth.py` — OAuth flow, token load/refresh/recovery | P0 | 🟦 | `<TBD>` | Interface + docstring agreed; ≤150-LOC plan |
+| T8.2 | Define typed models/signatures for `shared/google_auth.py` | P0 | 🟦 | `<TBD>` | Typed inputs/outputs defined |
+| T8.3 | RED: write failing unit tests for `shared/google_auth.py` (happy path) | P0 | 🟦 | `<TBD>` | Failing tests committed |
+| T8.4 | GREEN: implement `shared/google_auth.py` | P0 | 🟦 | `<TBD>` | Happy-path tests pass |
+| T8.5 | Edge-case & boundary tests for `shared/google_auth.py` | P0 | 🟦 | `<TBD>` | Empty/invalid/limit inputs covered |
+| T8.6 | Defensive error handling in `shared/google_auth.py` | P0 | 🟦 | `<TBD>` | Graceful failure + clear message |
+| T8.7 | Refactor `shared/google_auth.py`: DRY, ≤150 lines, single responsibility | P0 | 🟦 | `<TBD>` | No duplication; ≤150 LOC |
+| T8.8 | Docstrings + why-comments for `shared/google_auth.py` | P0 | 🟦 | `<TBD>` | Module/functions documented |
+| T8.9 | Ruff clean `shared/google_auth.py` | P0 | 🟦 | `<TBD>` | 0 ruff violations |
+| T8.10 | Mock external deps in `shared/google_auth.py` tests | P0 | 🟦 | `<TBD>` | No live external calls |
+| T8.11 | Coverage ≥85% for `shared/google_auth.py` + add README Work Log row | P0 | 🟦 | `<TBD>` | ≥85% coverage; Work Log updated |
+| T8.12 | Spec & single-concern interface for `shared/gmail_client.py` — Gmail read + send (via gatekeeper) | P0 | ✅ | `<TBD>` | Interface + docstring agreed; ≤150-LOC plan |
+| T8.13 | Define typed models/signatures for `shared/gmail_client.py` | P0 | ✅ | `<TBD>` | Typed inputs/outputs defined |
+| T8.14 | RED: write failing unit tests for `shared/gmail_client.py` (happy path) | P0 | ✅ | `<TBD>` | Failing tests committed |
+| T8.15 | GREEN: implement `shared/gmail_client.py` | P0 | ✅ | `<TBD>` | Happy-path tests pass |
+| T8.16 | Edge-case & boundary tests for `shared/gmail_client.py` | P0 | ✅ | `<TBD>` | Empty/invalid/limit inputs covered |
+| T8.17 | Defensive error handling in `shared/gmail_client.py` | P0 | ✅ | `<TBD>` | Graceful failure + clear message |
+| T8.18 | Refactor `shared/gmail_client.py`: DRY, ≤150 lines, single responsibility | P0 | ✅ | `<TBD>` | No duplication; ≤150 LOC |
+| T8.19 | Docstrings + why-comments for `shared/gmail_client.py` | P0 | ✅ | `<TBD>` | Module/functions documented |
+| T8.20 | Ruff clean `shared/gmail_client.py` | P0 | ✅ | `<TBD>` | 0 ruff violations |
+| T8.21 | Mock external deps in `shared/gmail_client.py` tests | P0 | ✅ | `<TBD>` | No live external calls |
+| T8.22 | Coverage ≥85% for `shared/gmail_client.py` + add README Work Log row | P0 | ✅ | `<TBD>` | ≥85% coverage; Work Log updated |
 | T8.23 | Spec & single-concern interface for `shared/calendar_client.py` — Google Calendar events (via gatekeeper) | P0 | ⬜ | `<TBD>` | Interface + docstring agreed; ≤150-LOC plan |
 | T8.24 | Define typed models/signatures for `shared/calendar_client.py` | P0 | ⬜ | `<TBD>` | Typed inputs/outputs defined |
 | T8.25 | RED: write failing unit tests for `shared/calendar_client.py` (happy path) | P0 | ⬜ | `<TBD>` | Failing tests committed |
@@ -532,50 +560,50 @@ _Google setup + read/extract/calendar/send agent + JSON report. See PRD_gmail_ca
 | T8.31 | Ruff clean `shared/calendar_client.py` | P0 | ⬜ | `<TBD>` | 0 ruff violations |
 | T8.32 | Mock external deps in `shared/calendar_client.py` tests | P0 | ⬜ | `<TBD>` | No live external calls |
 | T8.33 | Coverage ≥85% for `shared/calendar_client.py` + add README Work Log row | P0 | ⬜ | `<TBD>` | ≥85% coverage; Work Log updated |
-| T8.34 | Spec & single-concern interface for `services/google_agent/email_reader.py` — read_emails() | P0 | ⬜ | `<TBD>` | Interface + docstring agreed; ≤150-LOC plan |
-| T8.35 | Define typed models/signatures for `services/google_agent/email_reader.py` | P0 | ⬜ | `<TBD>` | Typed inputs/outputs defined |
-| T8.36 | RED: write failing unit tests for `services/google_agent/email_reader.py` (happy path) | P0 | ⬜ | `<TBD>` | Failing tests committed |
-| T8.37 | GREEN: implement `services/google_agent/email_reader.py` | P0 | ⬜ | `<TBD>` | Happy-path tests pass |
-| T8.38 | Edge-case & boundary tests for `services/google_agent/email_reader.py` | P0 | ⬜ | `<TBD>` | Empty/invalid/limit inputs covered |
-| T8.39 | Defensive error handling in `services/google_agent/email_reader.py` | P0 | ⬜ | `<TBD>` | Graceful failure + clear message |
-| T8.40 | Refactor `services/google_agent/email_reader.py`: DRY, ≤150 lines, single responsibility | P0 | ⬜ | `<TBD>` | No duplication; ≤150 LOC |
-| T8.41 | Docstrings + why-comments for `services/google_agent/email_reader.py` | P0 | ⬜ | `<TBD>` | Module/functions documented |
-| T8.42 | Ruff clean `services/google_agent/email_reader.py` | P0 | ⬜ | `<TBD>` | 0 ruff violations |
-| T8.43 | Mock external deps in `services/google_agent/email_reader.py` tests | P0 | ⬜ | `<TBD>` | No live external calls |
-| T8.44 | Coverage ≥85% for `services/google_agent/email_reader.py` + add README Work Log row | P0 | ⬜ | `<TBD>` | ≥85% coverage; Work Log updated |
-| T8.45 | Spec & single-concern interface for `services/google_agent/meeting_extractor.py` — extract_meeting() (LLM-assisted) | P0 | ⬜ | `<TBD>` | Interface + docstring agreed; ≤150-LOC plan |
-| T8.46 | Define typed models/signatures for `services/google_agent/meeting_extractor.py` | P0 | ⬜ | `<TBD>` | Typed inputs/outputs defined |
-| T8.47 | RED: write failing unit tests for `services/google_agent/meeting_extractor.py` (happy path) | P0 | ⬜ | `<TBD>` | Failing tests committed |
-| T8.48 | GREEN: implement `services/google_agent/meeting_extractor.py` | P0 | ⬜ | `<TBD>` | Happy-path tests pass |
-| T8.49 | Edge-case & boundary tests for `services/google_agent/meeting_extractor.py` | P0 | ⬜ | `<TBD>` | Empty/invalid/limit inputs covered |
-| T8.50 | Defensive error handling in `services/google_agent/meeting_extractor.py` | P0 | ⬜ | `<TBD>` | Graceful failure + clear message |
-| T8.51 | Refactor `services/google_agent/meeting_extractor.py`: DRY, ≤150 lines, single responsibility | P0 | ⬜ | `<TBD>` | No duplication; ≤150 LOC |
-| T8.52 | Docstrings + why-comments for `services/google_agent/meeting_extractor.py` | P0 | ⬜ | `<TBD>` | Module/functions documented |
-| T8.53 | Ruff clean `services/google_agent/meeting_extractor.py` | P0 | ⬜ | `<TBD>` | 0 ruff violations |
-| T8.54 | Mock external deps in `services/google_agent/meeting_extractor.py` tests | P0 | ⬜ | `<TBD>` | No live external calls |
-| T8.55 | Coverage ≥85% for `services/google_agent/meeting_extractor.py` + add README Work Log row | P0 | ⬜ | `<TBD>` | ≥85% coverage; Work Log updated |
-| T8.56 | Spec & single-concern interface for `services/google_agent/calendar_writer.py` — add_calendar_event() | P0 | ⬜ | `<TBD>` | Interface + docstring agreed; ≤150-LOC plan |
-| T8.57 | Define typed models/signatures for `services/google_agent/calendar_writer.py` | P0 | ⬜ | `<TBD>` | Typed inputs/outputs defined |
-| T8.58 | RED: write failing unit tests for `services/google_agent/calendar_writer.py` (happy path) | P0 | ⬜ | `<TBD>` | Failing tests committed |
-| T8.59 | GREEN: implement `services/google_agent/calendar_writer.py` | P0 | ⬜ | `<TBD>` | Happy-path tests pass |
-| T8.60 | Edge-case & boundary tests for `services/google_agent/calendar_writer.py` | P0 | ⬜ | `<TBD>` | Empty/invalid/limit inputs covered |
-| T8.61 | Defensive error handling in `services/google_agent/calendar_writer.py` | P0 | ⬜ | `<TBD>` | Graceful failure + clear message |
-| T8.62 | Refactor `services/google_agent/calendar_writer.py`: DRY, ≤150 lines, single responsibility | P0 | ⬜ | `<TBD>` | No duplication; ≤150 LOC |
-| T8.63 | Docstrings + why-comments for `services/google_agent/calendar_writer.py` | P0 | ⬜ | `<TBD>` | Module/functions documented |
-| T8.64 | Ruff clean `services/google_agent/calendar_writer.py` | P0 | ⬜ | `<TBD>` | 0 ruff violations |
-| T8.65 | Mock external deps in `services/google_agent/calendar_writer.py` tests | P0 | ⬜ | `<TBD>` | No live external calls |
-| T8.66 | Coverage ≥85% for `services/google_agent/calendar_writer.py` + add README Work Log row | P0 | ⬜ | `<TBD>` | ≥85% coverage; Work Log updated |
-| T8.67 | Spec & single-concern interface for `services/reporting.py` — build JSON report + send via send_email | P0 | ⬜ | `<TBD>` | Interface + docstring agreed; ≤150-LOC plan |
-| T8.68 | Define typed models/signatures for `services/reporting.py` | P0 | ⬜ | `<TBD>` | Typed inputs/outputs defined |
-| T8.69 | RED: write failing unit tests for `services/reporting.py` (happy path) | P0 | ⬜ | `<TBD>` | Failing tests committed |
-| T8.70 | GREEN: implement `services/reporting.py` | P0 | ⬜ | `<TBD>` | Happy-path tests pass |
-| T8.71 | Edge-case & boundary tests for `services/reporting.py` | P0 | ⬜ | `<TBD>` | Empty/invalid/limit inputs covered |
-| T8.72 | Defensive error handling in `services/reporting.py` | P0 | ⬜ | `<TBD>` | Graceful failure + clear message |
-| T8.73 | Refactor `services/reporting.py`: DRY, ≤150 lines, single responsibility | P0 | ⬜ | `<TBD>` | No duplication; ≤150 LOC |
-| T8.74 | Docstrings + why-comments for `services/reporting.py` | P0 | ⬜ | `<TBD>` | Module/functions documented |
-| T8.75 | Ruff clean `services/reporting.py` | P0 | ⬜ | `<TBD>` | 0 ruff violations |
-| T8.76 | Mock external deps in `services/reporting.py` tests | P0 | ⬜ | `<TBD>` | No live external calls |
-| T8.77 | Coverage ≥85% for `services/reporting.py` + add README Work Log row | P0 | ⬜ | `<TBD>` | ≥85% coverage; Work Log updated |
+| T8.34 | Spec & single-concern interface for `services/google_agent/email_reader.py` — read_emails() | P0 | ✅ | `<TBD>` | Interface + docstring agreed; ≤150-LOC plan |
+| T8.35 | Define typed models/signatures for `services/google_agent/email_reader.py` | P0 | ✅ | `<TBD>` | Typed inputs/outputs defined |
+| T8.36 | RED: write failing unit tests for `services/google_agent/email_reader.py` (happy path) | P0 | ✅ | `<TBD>` | Failing tests committed |
+| T8.37 | GREEN: implement `services/google_agent/email_reader.py` | P0 | ✅ | `<TBD>` | Happy-path tests pass |
+| T8.38 | Edge-case & boundary tests for `services/google_agent/email_reader.py` | P0 | ✅ | `<TBD>` | Empty/invalid/limit inputs covered |
+| T8.39 | Defensive error handling in `services/google_agent/email_reader.py` | P0 | ✅ | `<TBD>` | Graceful failure + clear message |
+| T8.40 | Refactor `services/google_agent/email_reader.py`: DRY, ≤150 lines, single responsibility | P0 | ✅ | `<TBD>` | No duplication; ≤150 LOC |
+| T8.41 | Docstrings + why-comments for `services/google_agent/email_reader.py` | P0 | ✅ | `<TBD>` | Module/functions documented |
+| T8.42 | Ruff clean `services/google_agent/email_reader.py` | P0 | ✅ | `<TBD>` | 0 ruff violations |
+| T8.43 | Mock external deps in `services/google_agent/email_reader.py` tests | P0 | ✅ | `<TBD>` | No live external calls |
+| T8.44 | Coverage ≥85% for `services/google_agent/email_reader.py` + add README Work Log row | P0 | ✅ | `<TBD>` | ≥85% coverage; Work Log updated |
+| T8.45 | Spec & single-concern interface for `services/google_agent/meeting_extractor.py` — extract_meeting() (LLM-assisted) | P0 | ✅ | `<TBD>` | Interface + docstring agreed; ≤150-LOC plan |
+| T8.46 | Define typed models/signatures for `services/google_agent/meeting_extractor.py` | P0 | ✅ | `<TBD>` | Typed inputs/outputs defined |
+| T8.47 | RED: write failing unit tests for `services/google_agent/meeting_extractor.py` (happy path) | P0 | ✅ | `<TBD>` | Failing tests committed |
+| T8.48 | GREEN: implement `services/google_agent/meeting_extractor.py` | P0 | ✅ | `<TBD>` | Happy-path tests pass |
+| T8.49 | Edge-case & boundary tests for `services/google_agent/meeting_extractor.py` | P0 | ✅ | `<TBD>` | Empty/invalid/limit inputs covered |
+| T8.50 | Defensive error handling in `services/google_agent/meeting_extractor.py` | P0 | ✅ | `<TBD>` | Graceful failure + clear message |
+| T8.51 | Refactor `services/google_agent/meeting_extractor.py`: DRY, ≤150 lines, single responsibility | P0 | ✅ | `<TBD>` | No duplication; ≤150 LOC |
+| T8.52 | Docstrings + why-comments for `services/google_agent/meeting_extractor.py` | P0 | ✅ | `<TBD>` | Module/functions documented |
+| T8.53 | Ruff clean `services/google_agent/meeting_extractor.py` | P0 | ✅ | `<TBD>` | 0 ruff violations |
+| T8.54 | Mock external deps in `services/google_agent/meeting_extractor.py` tests | P0 | ✅ | `<TBD>` | No live external calls |
+| T8.55 | Coverage ≥85% for `services/google_agent/meeting_extractor.py` + add README Work Log row | P0 | ✅ | `<TBD>` | ≥85% coverage; Work Log updated |
+| T8.56 | Spec & single-concern interface for `services/google_agent/calendar_writer.py` — add_calendar_event() | P0 | ✅ | `<TBD>` | Interface + docstring agreed; ≤150-LOC plan |
+| T8.57 | Define typed models/signatures for `services/google_agent/calendar_writer.py` | P0 | ✅ | `<TBD>` | Typed inputs/outputs defined |
+| T8.58 | RED: write failing unit tests for `services/google_agent/calendar_writer.py` (happy path) | P0 | ✅ | `<TBD>` | Failing tests committed |
+| T8.59 | GREEN: implement `services/google_agent/calendar_writer.py` | P0 | ✅ | `<TBD>` | Happy-path tests pass |
+| T8.60 | Edge-case & boundary tests for `services/google_agent/calendar_writer.py` | P0 | ✅ | `<TBD>` | Empty/invalid/limit inputs covered |
+| T8.61 | Defensive error handling in `services/google_agent/calendar_writer.py` | P0 | ✅ | `<TBD>` | Graceful failure + clear message |
+| T8.62 | Refactor `services/google_agent/calendar_writer.py`: DRY, ≤150 lines, single responsibility | P0 | ✅ | `<TBD>` | No duplication; ≤150 LOC |
+| T8.63 | Docstrings + why-comments for `services/google_agent/calendar_writer.py` | P0 | ✅ | `<TBD>` | Module/functions documented |
+| T8.64 | Ruff clean `services/google_agent/calendar_writer.py` | P0 | ✅ | `<TBD>` | 0 ruff violations |
+| T8.65 | Mock external deps in `services/google_agent/calendar_writer.py` tests | P0 | ✅ | `<TBD>` | No live external calls |
+| T8.66 | Coverage ≥85% for `services/google_agent/calendar_writer.py` + add README Work Log row | P0 | ✅ | `<TBD>` | ≥85% coverage; Work Log updated |
+| T8.67 | Spec & single-concern interface for `services/reporting.py` — build JSON report + send via send_email | P0 | ✅ | `<TBD>` | Interface + docstring agreed; ≤150-LOC plan |
+| T8.68 | Define typed models/signatures for `services/reporting.py` | P0 | ✅ | `<TBD>` | Typed inputs/outputs defined |
+| T8.69 | RED: write failing unit tests for `services/reporting.py` (happy path) | P0 | ✅ | `<TBD>` | Failing tests committed |
+| T8.70 | GREEN: implement `services/reporting.py` | P0 | ✅ | `<TBD>` | Happy-path tests pass |
+| T8.71 | Edge-case & boundary tests for `services/reporting.py` | P0 | ✅ | `<TBD>` | Empty/invalid/limit inputs covered |
+| T8.72 | Defensive error handling in `services/reporting.py` | P0 | ✅ | `<TBD>` | Graceful failure + clear message |
+| T8.73 | Refactor `services/reporting.py`: DRY, ≤150 lines, single responsibility | P0 | ✅ | `<TBD>` | No duplication; ≤150 LOC |
+| T8.74 | Docstrings + why-comments for `services/reporting.py` | P0 | ✅ | `<TBD>` | Module/functions documented |
+| T8.75 | Ruff clean `services/reporting.py` | P0 | ✅ | `<TBD>` | 0 ruff violations |
+| T8.76 | Mock external deps in `services/reporting.py` tests | P0 | ✅ | `<TBD>` | No live external calls |
+| T8.77 | Coverage ≥85% for `services/reporting.py` + add README Work Log row | P0 | ✅ | `<TBD>` | ≥85% coverage; Work Log updated |
 | T8.78 | Create Google Cloud project (snake_case name) | P0 | ⬜ | `<TBD>` | Project exists |
 | T8.79 | Enable Gmail API | P0 | ⬜ | `<TBD>` | Enabled |
 | T8.80 | Enable Google Calendar API | P0 | ⬜ | `<TBD>` | Enabled |
@@ -593,10 +621,10 @@ _Google setup + read/extract/calendar/send agent + JSON report. See PRD_gmail_ca
 | T8.92 | First-run consent -> `token.json` created | P0 | ⬜ | `<TBD>` | Token generated |
 | T8.93 | Token-expiry recovery (delete -> re-consent) | P0 | ⬜ | `<TBD>` | Path tested |
 | T8.94 | Handle 'unverified app' warning (test user) | P1 | ⬜ | `<TBD>` | Flow proceeds |
-| T8.95 | Build internal-game JSON report | P0 | ⬜ | `<TBD>` | Matches schema |
-| T8.96 | Build inter-group bonus JSON report | P1 | ⬜ | `<TBD>` | Matches schema |
+| T8.95 | Build internal-game JSON report | P0 | ✅ | `<TBD>` | Matches schema |
+| T8.96 | Build inter-group bonus JSON report | P1 | ✅ | `<TBD>` | Matches schema |
 | T8.97 | Validate JSON against schema before send | P1 | ⬜ | `<TBD>` | Validation passes |
-| T8.98 | Email body is JSON-only (no free text) | P0 | ⬜ | `<TBD>` | Machine-parseable |
+| T8.98 | Email body is JSON-only (no free text) | P0 | ✅ | `<TBD>` | Machine-parseable |
 | T8.99 | Recipient from config (dev sharbelma3@gmail.com) | P0 | ⬜ | `<TBD>` | Config-driven |
 | T8.100 | send_email performs real SEND (not draft) | P0 | ⬜ | `<TBD>` | Email received |
 | T8.101 | End-to-end: 6 games -> report email sent | P0 | ⬜ | `<TBD>` | One email delivered |
@@ -609,17 +637,17 @@ _Cross-cutting infra, quality gates, research/visualization, final checklist & s
 
 | ID | Task | Pri | Status | Owner | DoD |
 |----|------|-----|--------|-------|-----|
-| T9.1 | Spec & single-concern interface for `shared/gatekeeper.py` — centralized API gatekeeper (rate-limit/queue/retry/log) | P0 | 🟦 | `<TBD>` | Interface + docstring agreed; ≤150-LOC plan |
-| T9.2 | Define typed models/signatures for `shared/gatekeeper.py` | P0 | 🟦 | `<TBD>` | Typed inputs/outputs defined |
-| T9.3 | RED: write failing unit tests for `shared/gatekeeper.py` (happy path) | P0 | 🟦 | `<TBD>` | Failing tests committed |
-| T9.4 | GREEN: implement `shared/gatekeeper.py` | P0 | 🟦 | `<TBD>` | Happy-path tests pass |
-| T9.5 | Edge-case & boundary tests for `shared/gatekeeper.py` | P0 | 🟦 | `<TBD>` | Empty/invalid/limit inputs covered |
-| T9.6 | Defensive error handling in `shared/gatekeeper.py` | P0 | 🟦 | `<TBD>` | Graceful failure + clear message |
-| T9.7 | Refactor `shared/gatekeeper.py`: DRY, ≤150 lines, single responsibility | P0 | 🟦 | `<TBD>` | No duplication; ≤150 LOC |
-| T9.8 | Docstrings + why-comments for `shared/gatekeeper.py` | P0 | 🟦 | `<TBD>` | Module/functions documented |
-| T9.9 | Ruff clean `shared/gatekeeper.py` | P0 | 🟦 | `<TBD>` | 0 ruff violations |
-| T9.10 | Mock external deps in `shared/gatekeeper.py` tests | P0 | 🟦 | `<TBD>` | No live external calls |
-| T9.11 | Coverage ≥85% for `shared/gatekeeper.py` + add README Work Log row | P0 | 🟦 | `<TBD>` | ≥85% coverage; Work Log updated |
+| T9.1 | Spec & single-concern interface for `shared/gatekeeper.py` — centralized API gatekeeper (rate-limit/queue/retry/log) | P0 | ✅ | `<TBD>` | Interface + docstring agreed; ≤150-LOC plan |
+| T9.2 | Define typed models/signatures for `shared/gatekeeper.py` | P0 | ✅ | `<TBD>` | Typed inputs/outputs defined (`RateLimitConfig`, `QueueStatus`) |
+| T9.3 | RED: write failing unit tests for `shared/gatekeeper.py` (happy path) | P0 | ✅ | `<TBD>` | Failing tests committed |
+| T9.4 | GREEN: implement `shared/gatekeeper.py` | P0 | ✅ | `<TBD>` | Happy-path tests pass |
+| T9.5 | Edge-case & boundary tests for `shared/gatekeeper.py` | P0 | ✅ | `<TBD>` | Overflow/backpressure/exhausted-retry/concurrency covered |
+| T9.6 | Defensive error handling in `shared/gatekeeper.py` | P0 | ✅ | `<TBD>` | Graceful failure + clear message; never rejects/crashes |
+| T9.7 | Refactor `shared/gatekeeper.py`: DRY, ≤150 lines, single responsibility | P0 | ✅ | `<TBD>` | 137 code LOC; limiter split to `rate_limit.py` |
+| T9.8 | Docstrings + why-comments for `shared/gatekeeper.py` | P0 | ✅ | `<TBD>` | Module/functions documented |
+| T9.9 | Ruff clean `shared/gatekeeper.py` | P0 | ✅ | `<TBD>` | 0 ruff violations |
+| T9.10 | Mock external deps in `shared/gatekeeper.py` tests | P0 | ✅ | `<TBD>` | Injected fake clock/sleep; no live external calls |
+| T9.11 | Coverage ≥85% for `shared/gatekeeper.py` + add README Work Log row | P0 | ✅ | `<TBD>` | 100% coverage; Work Log updated |
 | T9.12 | Spec & single-concern interface for `shared/config.py` — config loader + version validation | P0 | ⬜ | `<TBD>` | Interface + docstring agreed; ≤150-LOC plan |
 | T9.13 | Define typed models/signatures for `shared/config.py` | P0 | ⬜ | `<TBD>` | Typed inputs/outputs defined |
 | T9.14 | RED: write failing unit tests for `shared/config.py` (happy path) | P0 | ⬜ | `<TBD>` | Failing tests committed |
@@ -653,12 +681,12 @@ _Cross-cutting infra, quality gates, research/visualization, final checklist & s
 | T9.42 | Ruff clean `shared/logging_setup.py` | P1 | ⬜ | `<TBD>` | 0 ruff violations |
 | T9.43 | Mock external deps in `shared/logging_setup.py` tests | P1 | ⬜ | `<TBD>` | No live external calls |
 | T9.44 | Coverage ≥85% for `shared/logging_setup.py` + add README Work Log row | P1 | ⬜ | `<TBD>` | ≥85% coverage; Work Log updated |
-| T9.45 | All external calls routed through gatekeeper (audit) | P0 | ⬜ | `<TBD>` | No direct API calls |
-| T9.46 | FIFO queue on overflow (no reject/crash) | P0 | ⬜ | `<TBD>` | Queued, drained on reset |
-| T9.47 | Backpressure alert when queue full | P1 | ⬜ | `<TBD>` | get_queue_status reports |
-| T9.48 | Retry transient failures up to max_retries | P0 | ⬜ | `<TBD>` | Backoff honoured |
-| T9.49 | Enforce concurrent_max + thread-safety (locks) | P1 | ⬜ | `<TBD>` | No race conditions |
-| T9.50 | Rate limits read from rate_limits.json (versioned) | P0 | ⬜ | `<TBD>` | No hardcoded limits |
+| T9.45 | All external calls routed through gatekeeper (audit) | P0 | 🟦 | `<TBD>` | LLM gatekept (`GatekeptLLM`); Gmail/Calendar wrapping ready, wired at OAuth time (Phase 8) |
+| T9.46 | FIFO queue on overflow (no reject/crash) | P0 | ✅ | `<TBD>` | Ticket-gated FIFO; queued + drained on window reset (`test_overflow_is_queued_and_drained_not_rejected`) |
+| T9.47 | Backpressure alert when queue full | P1 | ✅ | `<TBD>` | `get_queue_status().backpressure` + logged event |
+| T9.48 | Retry transient failures up to max_retries | P0 | ✅ | `<TBD>` | Backoff `retry_after_seconds` honoured (`test_backoff_sleeps_retry_after_between_attempts`) |
+| T9.49 | Enforce concurrent_max + thread-safety (locks) | P1 | ✅ | `<TBD>` | `BoundedSemaphore` + single `RLock`; no lost increments under 25-thread load |
+| T9.50 | Rate limits read from rate_limits.json (versioned) | P0 | ✅ | `<TBD>` | `gatekeeper_from_config`; no hardcoded limits |
 | T9.51 | Coverage gate >=85% passes | P0 | ⬜ | `<TBD>` | fail_under met |
 | T9.52 | Ruff zero violations across repo | P0 | ⬜ | `<TBD>` | Clean |
 | T9.53 | File-size <=150 LOC check (all code files) | P1 | ⬜ | `<TBD>` | None exceed |
@@ -679,7 +707,7 @@ _Cross-cutting infra, quality gates, research/visualization, final checklist & s
 | T9.68 | Heatmap (parameter sensitivity) | P2 | ⬜ | `<TBD>` | In assets/ |
 | T9.69 | Box plot (distributions) | P3 | ⬜ | `<TBD>` | In assets/ |
 | T9.70 | Waterfall chart (variance analysis) | P3 | ⬜ | `<TBD>` | In assets/ |
-| T9.71 | Token-cost analysis table | P2 | ⬜ | `<TBD>` | In README R.7 |
+| T9.71 | Token-cost analysis table | P2 | ✅ | `<TBD>` | README R.7 filled from `scripts/token_report.py` (3046 in / 264 out / $0.000615 per match) |
 | T9.72 | Maintain prompt-engineering log | P1 | 🟦 | `<TBD>` | PROMPT_LOG.md / README R.8 |
 | T9.73 | ISO/IEC 25010 self-assessment | P2 | ⬜ | `<TBD>` | Documented |
 | T9.74 | Dec-POMDP formalization in README | P0 | ⬜ | `<TBD>` | Tuple + spaces defined |
@@ -720,12 +748,12 @@ _Close every gap from the 2026-06-25 multi-agent audit (see docs/AUDIT-2026-06-2
 | T10.18 | Relative file I/O for in-repo paths; secrets_dir sole external [gap53,C21] | P1 | ⬜ | `<TBD>` | No absolute in-repo paths |
 | T10.19 | Per-environment config templates (.env.dev/.env.prod) [gap60] | P2 | ⬜ | `<TBD>` | Templates shipped |
 | T10.20 | Pin Google client lib versions in pyproject (version churn) [C26] | P2 | ⬜ | `<TBD>` | Versions pinned |
-| T10.21 | Thread-safety: deadlock avoidance + context managers + queue.Queue [gap17] | P1 | ⬜ | `<TBD>` | Documented + implemented |
-| T10.22 | Classify ops I/O vs CPU-bound; threads for I/O, no CPU hot path [gap54,55,56] | P2 | ⬜ | `<TBD>` | Rationale in PRD_gatekeeper |
+| T10.21 | Thread-safety: deadlock avoidance + context managers + queue.Queue [gap17] | P1 | ✅ | `<TBD>` | Single `RLock` (consistent order ⇒ no deadlock) + `with` blocks + `deque` FIFO; noted in PRD_gatekeeper §6 |
+| T10.22 | Classify ops I/O vs CPU-bound; threads for I/O, no CPU hot path [gap54,55,56] | P2 | ✅ | `<TBD>` | Rationale in PRD_gatekeeper §6 (LLM/Gmail are I/O-bound → threads) |
 | T10.23 | Notebook includes LaTeX + academic references [gap12] | P2 | ⬜ | `<TBD>` | Bibliography present |
 | T10.24 | Graph quality 5-part (labels,legend,colors,caption,>=150dpi) [gap13] | P2 | ⬜ | `<TBD>` | DoD on viz tasks |
 | T10.25 | Name viz stack (Matplotlib/Seaborn/Plotly) + add deps [gap42] | P2 | ⬜ | `<TBD>` | Deps added |
-| T10.26 | Budget mgmt: forecast + real-time spend counter + overrun alert [gap14,C20] | P2 | ⬜ | `<TBD>` | Gatekeeper budget feature |
+| T10.26 | Budget mgmt: forecast + real-time spend counter + overrun alert [gap14,C20] | P2 | 🟦 | `<TBD>` | Forecast + token-cost util (`token_cost.py`) + design in README R.7; live gatekeeper spend counter/alert pending |
 | T10.27 | Usability NFR + Nielsen 10 heuristics mapping + accessibility [gap15,43,44,46,47,C8] | P1 | ⬜ | `<TBD>` | PRD NFR + README UI section |
 | T10.28 | User-workflow + interactions/feedback documentation [gap45] | P2 | ⬜ | `<TBD>` | README section 3 / PRD_ui |
 | T10.29 | ISO/IEC 25010 per-characteristic self-assessment table [gap50,51] | P2 | ⬜ | `<TBD>` | 8-char mapping |

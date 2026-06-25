@@ -24,3 +24,12 @@ def test_fifo_order():
 
 def test_receive_empty_returns_none():
     assert MessageBus().receive(Role.COP) is None
+
+
+def test_peek_last_returns_newest_without_consuming():
+    bus = MessageBus()
+    bus.send(Role.COP, "first")
+    bus.send(Role.COP, "second")
+    assert bus.peek_last(Role.THIEF).text == "second"
+    assert bus.pending(Role.THIEF) == 2  # peek does not pop
+    assert bus.peek_last(Role.COP) is None  # empty inbox

@@ -86,3 +86,13 @@ class Message:
 
     sender: Role
     text: str
+
+
+@dataclass(frozen=True)
+class Meeting:
+    """A meeting extracted from an email; datetimes are ISO-8601 strings."""
+
+    title: str
+    start: str
+    end: str
+    location: str | None = None

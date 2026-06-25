@@ -45,7 +45,9 @@ uv sync          # creates the venv and installs locked dependencies
 
 ### 2.4 Environment & secrets
 1. Copy the template: `cp .env-example .env`
-2. Set your LLM key in `.env` (e.g. `ANTHROPIC_API_KEY=...`).
+2. **Add your OpenAI API key** in `.env` (git-ignored): `OPENAI_API_KEY=sk-...`. The app auto-loads
+   `.env` on every run, so once it's there the natural-language match always uses OpenAI. The model is
+   set in `config/config.json` → `llm.model` (default `gpt-4o-mini`). Without a key it runs offline.
 3. Put the Google OAuth files (`client_secret.json`, and `token.json` once generated) in a **secret
    folder OUTSIDE this repo**, and point `google.secrets_dir` (in `config/config.json`) at it.
 4. **First run is interactive** (one time): a browser opens for OAuth consent → approve as a Google
@@ -61,26 +63,33 @@ uv sync          # creates the venv and installs locked dependencies
 
 ## 3. Usage
 
-### 3.1 Run modes _(planned CLI)_
-| Command | Mode |
+### 3.1 Run it — one command
+| Command | What it does |
 |---|---|
-| `uv run python -m marl_cop_thief` | Full local match (6 sub-games) |
-| `uv run python -m marl_cop_thief --subgame` | Single sub-game |
-| `uv run python -m marl_cop_thief --gui` | Real-time GUI |
-| `uv run python -m marl_cop_thief --headless` | CLI-log mode (no GUI) |
-| `--strategy heuristic\|q_table` · `--grid 5x5` · `--seed 42` · `--config path` | Common flags |
+| `uv run cop-thief` | **Natural-language match** (the assignment) → prints the JSON summary |
+| `uv run cop-thief --gui` | **Natural-language match → animated GIF** with the agents' NL messages overlaid (`assets/match_nl.gif`) |
+| `uv run cop-thief --simple` | Simple heuristic match (no natural language, no LLM) |
+| `uv run cop-thief --simple --gui` | Heuristic/`smart` match → `assets/match.gif` |
+| `.\run.ps1 [--simple\|--gui]` | Windows wrapper (shortest) |
+
+**Full real run with the GUI:** put your key in `.env` (`OPENAI_API_KEY=sk-...`, see §2.4), then
+`uv run cop-thief --gui` — this animates a natural-language sub-game where the cop and thief move on the
+board **and** their LLM-interpreted NL messages appear under each frame (`assets/match_nl.gif`). Without a
+key it runs the same NL pipeline on a deterministic **offline** backend (no network, no cost). Long form:
+`uv run python -m marl_cop_thief [--simple\|--gui]`. All parameters (grid size, moves, scoring, seed,
+report recipient, `llm.model`, `strategy.type`) come from `config/config.json` — no flags for them.
 
 ### 3.2 Typical workflow
-Edit `config/config.json` → `uv run python -m marl_cop_thief` → watch the GUI play 6 sub-games →
-read the CLI logs of the natural-language MCP exchange → receive the JSON report email.
+Add `OPENAI_API_KEY` to `.env` → `uv run cop-thief` to watch a natural-language match → `uv run cop-thief
+--gui` to render the animation → (with Google OAuth set up) the report email is sent after the 6 games.
 
-### 3.3 Worked example _(planned output shape)_
+### 3.3 Example output
 ```text
-$ uv run python -m marl_cop_thief --seed 42
-[sub-game 1] thief: "I'm hugging the north wall, heading east." cop: "Cutting you off at (3,1)."
-... CAPTURE at move 14 → cop_win
-[match] totals: cop=..., thief=...  → JSON report emailed to <reporting.recipient_email>
+$ uv run cop-thief
+{ "sub_games": [ { "index": 0, "winner": "cop", "moves_used": 8, "cop_score": 20, "thief_score": 5 }, ... ],
+  "totals": { "cop": 90, "thief": 40 } }
 ```
+A natural-language run log is in [`results/nl_match_sample.txt`](results/nl_match_sample.txt) (see R.5).
 
 ## 4. Architecture
 Summary in [`docs/PLAN.md`](docs/PLAN.md) (C4 model, ADRs, module layout). Diagrams go in `assets/`.
@@ -102,19 +111,33 @@ Nielsen's 10 usability heuristics (GUI/CLI) — see [`docs/PLAN.md`](docs/PLAN.m
 | 1 | Game engine (board, models, engine, scoring, barriers) | ✅ done | 100% cov |
 | 2 | MCP tool layer + 2 FastMCP servers | 🟦 partial | tools/observation/bus/servers done; transport/auth pending |
 | 3 | Orchestrator + SDK + CLI (full local match) | ✅ done | `python -m marl_cop_thief` runs |
-| 4 | Decision strategy | 🟦 minimal | heuristic decider only; belief/Q-table pending |
+| 4 | Decision strategy | ✅ done | greedy heuristic + **cornering "smart" cop** (1-ply look-ahead, 100% capture, config-selectable); Q-table optional/pending |
 | 5 | Natural-language + LLM | ✅ done | NL encode/decode, ambiguity handler, NL decider; LLM via gatekeeper |
-| 9 | API gatekeeper | 🟦 minimal | retry + per-call logging; FIFO queue/backpressure pending |
-| 6–8, 10 | GUI, cloud, Gmail agent, research | ⬜ pending | — |
+| 6 | GUI | ✅ done | board renderer + GIF animation w/ NL overlay (`--gui`) + **live real-time interactive window** (`--live`, draws each turn the instant the engine computes it) |
+| 8 | Report builder + Gmail/Calendar agent | 🟦 partial | JSON builders + read/extract/calendar/send tools tested; real OAuth send pending |
+| 9 | API gatekeeper | ✅ done | config-driven rate limit + FIFO queue + backpressure + drain + retries/backoff + concurrency + `get_queue_status` (see R.9) |
+| 7, 10 | Cloud, research/submission | ⬜ pending | — |
 
-Whole suite: **86 tests, 100% coverage, Ruff zero-violation.** The LLM client routes every call through
-the (minimal) gatekeeper; the full FIFO-queue gatekeeper lands in Phase 9.
+Whole suite: **166 tests, 100% coverage, Ruff zero-violation.** The NL match is runnable via
+`uv run cop-thief` (NL is the default; `--simple` for heuristic; `--gui` for a GIF; `--live` for a live
+window). The Gmail/Calendar tools are dependency-injected (tested with
+fakes); `shared/google_auth.py` builds the real services and needs your Google OAuth `client_secret.json`.
 
 ## R.1 Work Log (running changelog)
 Newest first.
 
 | Date | What we did | Why | Evidence |
 |------|-------------|-----|----------|
+| 2026-06-25 | **Live real-time GUI window** — `cop-thief --live` opens an interactive window that draws each turn the instant the engine computes it (so an NL match advances as each LLM call returns). Refactored the game loop into service-layer per-turn *frame streams* (`services/match_stream.py` `stream_subgame`/`heuristic_subgame_stream` + `nl_subgame_stream`); the GIF animator now collects the same stream (DRY); exposed via SDK (`stream_simple_frames`/`stream_nl_frames`); backend/pacing config-driven (`gui.live_backend`, `gui.turn_delay_seconds`) | The GIF was a recording, not real-time — user wanted to watch the game live | `gui/live_viewer.py`; **166 tests, 100% cov**, Ruff clean; docs-first (PLAN §4, PRD FR-11, TODO T6.39–48) |
+| 2026-06-25 | **GUI now animates the NL match** — `cop-thief --gui` renders the natural-language sub-game with each turn's NL message overlaid (real OpenAI when keyed, else offline); `--simple --gui` keeps the heuristic/smart GIF | One command to *see* the full NL run, not just text | `assets/match_nl.gif`; 154 tests, 100% cov; `peek_last` bus API + `nl_subgame_frames` |
+| 2026-06-25 | **Token-cost analysis (R.7)** — `token_cost.py` util + `token_report.py` capture real prompts from an offline match; filled the cost table (config-driven gpt-4o-mini pricing) | Required cost analysis now that OpenAI is wired | **66 calls, 3310 tokens, $0.000615/match**; 149 tests, 100% cov; `results/token_cost.txt` |
+| 2026-06-25 | **Phase 4: cornering "smart" cop** — 1-ply look-ahead ranking actions by `(distance, thief escape-options)` after the thief's reply; config-selectable (`strategy.type`); refreshed comparison graphs | Greedy cop fell into limit cycles and let the thief escape (R.3) | **Capture 0.72→1.00** on 5×5; 100% on 3×3–7×7; 144 tests, 100% cov; `smart_cop.py` + `geometry.py`; graphs in `assets/` |
+| 2026-06-25 | **Phase 9: full API gatekeeper** — config-driven rate limiting (`rate_limits.json`), FIFO overflow queue with backpressure alert + drain-on-reset, retries with backoff, `concurrent_max` semaphore, thread-safe `RLock`, `get_queue_status()`; injected clock/sleep for deterministic offline tests; **adversarial multi-agent review** then fixed 6 confirmed defects (ticket-leak deadlock, retries bypassing the limiter, prod path not loading `rate_limits.json`, backpressure off-by-one, version validation, drain test) | Required centralized chokepoint (CLAUDE §2); close T9.1–11/45–50 | 134 tests, 100% cov; `shared/{gatekeeper,rate_limit}.py`; demo → [R.9](#r9-api-gatekeeper-rate-limiting--queueing) |
+| 2026-06-25 | Made **NL the default** (`cop-thief`; `--simple` for heuristic) + wired a **real OpenAI backend** auto-loaded from `.env` | NL is the assignment; use a real LLM | 111 tests; offline fallback intact |
+| 2026-06-25 | Synced `docs/PLAN.md` to the as-built tree; added a **single-command** runner (`cop-thief` console script + `run.ps1`) | Keep docs accurate; simpler UX | `uv run cop-thief` works |
+| 2026-06-25 | **Phase 6**: GUI board renderer + match animator (`--gui` → animated GIF) + smoke tests | Visualize the game; required screenshots | 108 tests; `assets/match.gif` |
+| 2026-06-25 | Generated **experiment graphs + board screenshots + NL log** from real runs; filled README R.3–R.5 | Report results with evidence | `scripts/make_figures.py`; 5 PNGs in `assets/`, log in `results/` |
+| 2026-06-25 | **NL match runnable** (then `--nl`, now the default `cop-thief`) + **Phase 8** report builder (internal + inter-group JSON) and Gmail/Calendar agent tools (read/extract/calendar/send, dependency-injected) | Make NL playable + build the submission report | 106 tests, 100% cov; NL CLI works (workflow-authored) |
 | 2026-06-25 | **Phase 5**: NL encode/decode + ambiguity handler + NL decider; **minimal gatekeeper** + LLM client; agents coordinate in free text via the LLM-through-gatekeeper | The graded core: NL coordination under partial obs | 86 tests, 100% cov; NL sub-game runs offline |
 | 2026-06-25 | **Phase 2**: MCP tool layer (observation, message bus, tool service w/ turn-ownership) + 2 FastMCP servers exposing 6 tools each | Build the agent communication infra | 72 tests, 100% cov, ruff clean |
 | 2026-06-25 | **Phase 3**: orchestrator + turn pipeline + accumulator + SDK + CLI; full autonomous 6-sub-game match runs (heuristic decider) | Wire the end-to-end local match | `uv run python -m marl_cop_thief` works; 55 tests, 100% cov |
@@ -137,25 +160,169 @@ The game is a Decentralized Partially Observable Markov Decision Process `⟨n, 
 - **γ** = discount factor (used only if the optional Q-learning strategy is enabled).
 
 ## R.3 Experiments & Graphs
-> _TBD._ Sensitivity analysis (OAT sweeps over `grid_size`, `visibility_radius`, `α`, `γ`), learning
-> curves. Plots → `results/` / `assets/` with clear labels, legend, accessible colors, captions, ≥150 dpi.
+Generated from **real match runs** by [`scripts/make_figures.py`](scripts/make_figures.py)
+(`uv run python scripts/make_figures.py`).
 
-## R.4 Screenshots (GUI & states)  ·  ## R.5 CLI Logs & MCP Communication
-> _TBD._ GUI of agents+barriers and key states; CLI logs proving valid (cloud) MCP NL exchange.
+**Match outcomes & move distribution** (5×5, 60 seeds, heuristic):
+
+![Win distribution](assets/win_distribution.png)
+![Moves histogram](assets/moves_histogram.png)
+
+**Sensitivity — cop capture rate vs grid size, greedy vs cornering** (40 seeds per size):
+
+![Capture rate vs grid size](assets/winrate_vs_gridsize.png)
+
+The **greedy** cop's capture rate falls from **100% (2×2)** to **~62% (6×6)** — larger boards give the
+thief more room to evade, matching the assignment's sanity-check intuition. The **cornering (smart)** cop
+(Phase 4) holds **100% at every size**.
+
+**Strategy comparison — cop win rate by strategy** (5×5, 40 seeds):
+
+![Strategy comparison](assets/heuristic_vs_nl.png)
+
+**Finding & fix (Phase 4).** The greedy Chebyshev pursuit falls into a **limit cycle** — the cop
+oscillating (2,1)↔(1,2) while the thief mirrors (4,3)↔(3,4) — so the thief survives the 25-move cap
+(greedy ≈ 0.72 on 5×5). The **cornering cop** (`strategy.type: "smart"`,
+[`smart_cop.py`](src/marl_cop_thief/services/strategy/smart_cop.py)) fixes this with a **one-ply
+look-ahead**: it ranks each candidate action by the position it leaves *after the thief's best evasion*,
+lexicographically by `(distance, thief escape-options)`. Minimising the thief's escape options herds it
+into a corner — where the board edges act as walls and its mobility collapses — lifting capture to
+**1.00** on every sampled board. (Barriers only seal the cop's own cell at a tempo cost, so geometric
+cornering, not wall-building, is the effective lever here — see
+[`docs/PRD_decision_strategy.md`](docs/PRD_decision_strategy.md) §3.1 for the analysis.)
+
+## R.4 Screenshots & GUI (Phase 6)
+The GUI renders the board — **cop = blue circle, thief = red star, barriers = black** — reading state
+from the engine only.
+
+Start vs. capture (static):
+
+![Board: start and capture](assets/board_state.png)
+
+**Natural-language match GUI** — `uv run cop-thief --gui` animates an NL sub-game with each turn's
+**natural-language message overlaid** under the board (the LLM-through-gatekeeper interprets it), so you
+watch the agents *talk* as they move (`assets/match_nl.gif`):
+
+![NL match animation](assets/match_nl.gif)
+
+Heuristic/`smart` sub-game (`uv run cop-thief --simple --gui`, the cop closes in and captures):
+
+![Match animation](assets/match.gif)
+
+### Live real-time window (`--live`)
+The GIFs above are *recordings*. For a **live** view, `uv run cop-thief --live` opens an interactive
+matplotlib window (backend from `config.gui.live_backend`, default `TkAgg`) that draws **each turn the
+instant the engine computes it** — for the NL match the board advances as every LLM call returns, so you
+watch the pursuit unfold move-by-move (add `--simple` for the heuristic/smart match). The window stays on
+the final board until you close it. Architecture: the game is exposed as a per-turn *frame stream* from
+the SDK (`Sdk.stream_nl_frames` / `stream_simple_frames` → `services/match_stream.py`); the live viewer
+and the GIF animator are two render-only consumers of the same stream (SDK-only; GUI holds no game logic).
+Pacing is config-driven via `gui.turn_delay_seconds`.
+
+## R.5 CLI Logs & MCP Communication
+A natural-language sub-game (full log: [`results/nl_match_sample.txt`](results/nl_match_sample.txt)) —
+the thief **bluffs**, the cop **reveals its cell**, and the LLM (via the gatekeeper) interprets messages:
+
+```text
+move  1 | thief none      cop=(4,3) thief=(2,0) | thief: Slipping away to the north-west — you'll never find me.
+move  2 | cop   none      cop=(3,2) thief=(2,0) | cop:   I'm at 4,3 pushing north-west to close in.
+move  7 | thief none      cop=(1,1) thief=(0,1) | thief: Slipping away to the south — you'll never find me.
+move  8 | cop   capture   cop=(0,1) thief=(0,1) | cop:   I'm at 1,1 pushing west to close in.
+RESULT: cop wins in 8 moves; LLM calls via gatekeeper=7
+```
 
 ## R.6 Communication-Challenge Analysis
-> _TBD._ Ambiguity/deception/mutual-understanding without a fixed protocol (see [`docs/PRD_nl_communication.md`](docs/PRD_nl_communication.md)).
+The graded core is **coordination in free text with no fixed protocol**, under partial observation
+(Dec-POMDP). Each turn the acting agent speaks a natural-language `Message`; the opponent reads it off the
+MCP bus, has the **LLM (via the gatekeeper) interpret** it into a belief about where the other agent is,
+and acts. Design: [`docs/PRD_nl_communication.md`](docs/PRD_nl_communication.md). Four challenges and how
+the implementation meets each:
+
+- **Ambiguity.** Free text is unstructured, so we *constrain the interpretation, not the speech*:
+  `interpret_prompt` asks the LLM to answer **only** `x,y` or `unknown`, and
+  [`ambiguity_handler.parse_position`](src/marl_cop_thief/services/nl_protocol/nl_decode.py) parses it
+  **defensively** — anything unparseable, out-of-bounds, or an LLM/transport error falls back to the
+  **prior belief** and a safe action. Result: every inbound message yields a valid belief update with
+  **zero crashes** (PRD S2; covered by tests).
+- **Deception.** The thief deliberately **bluffs** — its encoder emits vague/misleading lines (e.g.
+  *"Slipping away to the west — you'll never find me"*), while the cop **reveals its own cell** to apply
+  pressure (R.5 log). The cop never lets talk override facts: belief precedence is **direct observation →
+  message interpretation → prior**, so whenever the opponent is within the visibility radius, observation
+  *overrides* any message (PRD S3). Messages only fill the gap when the opponent is unseen.
+- **No shared protocol.** There is no agreed coordinate schema between the two agents; the **LLM is the
+  bridge** that maps arbitrary free text to a structured guess, and each side **validates** that guess
+  (bounds-checks it) before trusting it. Coordination thus *emerges* from NL + interpretation rather than
+  a rigid wire format — exactly the assignment's intent (a JSON coordinate protocol was rejected, PRD §7).
+- **Mutual understanding.** A minimal **prompt contract** keeps meaning aligned with no prior agreement:
+  `interpret_prompt` fixes the reply shape (`x,y`/`unknown`) the decoder depends on. (`system_prompt` is a
+  versioned role/goal template in `prompt_templates.py`; in the current backend only the user
+  `interpret_prompt` is sent to the model — wiring the system prompt into the call is a noted enhancement.)
+  The asymmetry — cop transparent, thief evasive — directly reflects their opposed incentives.
+
+**Cost & limitation.** Interpretation is the only LLM call (~66/match, R.7); speech is a deterministic
+template (no tokens). Belief is a single most-likely cell rather than a full posterior; a Bayesian filter
+is noted as optional enrichment (PRD §7). The offline backend exercises the same pipeline deterministically
+(echo → the cop recovers any revealed cell), so the mechanics are testable without a network.
 
 ## R.7 Token-Cost Analysis
-| Model | Input tokens | Output tokens | $/1M in | $/1M out | Total cost |
+Per **full match** (6 sub-games, 5×5), measured by [`scripts/token_report.py`](scripts/token_report.py)
+(`uv run python scripts/token_report.py` → [`results/token_cost.txt`](results/token_cost.txt)). The LLM
+is consulted **once per turn** for `interpret_prompt` (parsing the opponent's message); the agent's own
+speech is a deterministic template (no tokens). Counts are an **offline estimate** (~4 chars/token, the
+OpenAI rule of thumb — no tokenizer download); prices are gpt-4o-mini **list price**, config-driven in
+`config.json → llm.pricing`. Exact billing should be read from the API `usage` field on a keyed run.
+
+| Model | Input tokens | Output tokens | $/1M in | $/1M out | Total cost / match |
 |---|---|---|---|---|---|
-| _TBD_ | | | | | |
-> Plus budget management: forecast (cost/token × projected calls/match), real-time spend counter in the
-> gatekeeper, and an overrun alert at a config-driven threshold.
+| gpt-4o-mini | 3046 | 264 | 0.15 | 0.60 | **$0.000615** |
+
+- **66 interpret calls/match** · ~46 input + 4 output tokens each · **3310 tokens/match**.
+- **Forecast:** ≈ **$0.62 per 1000 matches** — cost scales linearly with calls × tokens/call.
+- **Optimization strategies:** (1) the decider already **skips the LLM** when its own observation reveals
+  the opponent (sets belief directly — fewer calls on close range); (2) prompts are kept terse and the
+  reply is constrained to `x,y`/`unknown` (≈4 output tokens); (3) a larger model would be ~30× costlier,
+  so gpt-4o-mini is the right default for this short, structured task.
+
+**Budget management** (config-driven). The gatekeeper is the single chokepoint, so spend control lives
+there: a running **token/spend counter**, a **forecast** (cost/token × projected calls/match), and an
+**overrun alert** at a config threshold are natural extensions of `ApiGatekeeper.log` (each call already
+records service + outcome). Rate limits in `rate_limits.json` cap call volume (and thus spend) per minute/hour.
 
 ## R.8 Prompt-Engineering Log
 Maintained in [`docs/PROMPT_LOG.md`](docs/PROMPT_LOG.md) — development prompts + runtime agent prompt
 templates, with context/goal, example outputs, and improvements (guidelines §8.3).
+
+## R.9 API Gatekeeper (rate limiting & queueing)
+Every external call (the LLM today; Gmail/Calendar when OAuth is wired) routes through one
+[`ApiGatekeeper`](src/marl_cop_thief/shared/gatekeeper.py) (CLAUDE.md §2). It enforces **config-driven**
+limits from [`config/rate_limits.json`](config/rate_limits.json), **queues** overflow in FIFO order
+(never rejecting), **drains** the queue when the window resets, **retries** transient failures with
+backoff, bounds **concurrency** with a semaphore, and exposes `get_queue_status()` with a
+**backpressure** alert. Time is injected (`clock`/`sleep`) so the behaviour is tested **offline and
+deterministically** — no real waiting. Design: [`docs/PRD_gatekeeper.md`](docs/PRD_gatekeeper.md).
+
+Reproduce: `uv run python scripts/gatekeeper_demo.py` (full log:
+[`results/gatekeeper_demo.txt`](results/gatekeeper_demo.txt)). Under a **3 calls/min** cap, 9 calls are
+admitted 3-per-minute — none rejected — and a queue of 5 behind a `max_queue_depth` of 3 raises
+backpressure:
+
+![Gatekeeper throughput under a 3/min limit](assets/gatekeeper_throughput.png)
+
+```text
+Rate limiting + FIFO drain: 9 calls under a 3/min cap (no rejections):
+  call 1: t=0.0 min   call 2: t=0.0 min   call 3: t=0.0 min
+  call 4: t=1.0 min   call 5: t=1.0 min   call 6: t=1.0 min
+  call 7: t=2.0 min   call 8: t=2.0 min   call 9: t=2.0 min
+Backpressure: 5 callers queued behind a max_queue_depth of 3:
+  QueueStatus(depth=5, max_depth=3, backpressure=True, enqueued=5, drained=0, peak_depth=5)
+```
+
+Thread-safety is a single `RLock` (consistent acquisition order ⇒ no deadlock) with `with`-managed
+critical sections; gatekept calls are **I/O-bound**, so concurrency uses threads, not multiprocessing
+(PRD_gatekeeper §6.1). For local offline runs the default gatekeeper is **unlimited** so the match stays
+snappy; when `OPENAI_API_KEY` is set the CLI auto-selects a config-driven gatekeeper
+(`select_gatekeeper` → `gatekeeper_from_config(rate_limits.json, "llm")`), so editing `rate_limits.json`
+changes real-run throttling with **no code edit** (version-checked on load).
 
 ---
 
@@ -169,11 +336,16 @@ All tunables live in `config/` (nothing hard-coded). Full schema in [`docs/PLAN.
 | `num_games` | int | `6` | Sub-games per match |
 | `max_barriers` | int | `5` | Cop barrier budget per game |
 | `visibility_radius` | int | `1` | Partial-observation radius |
+| `seed` | int | `42` | RNG seed for deterministic match/figure runs |
 | `scoring.*` | int | `20/10/5/5` | cop_win / thief_win / cop_loss / thief_loss |
+| `strategy.type` | str | `heuristic` | Cop policy for the simple match: `heuristic` (greedy) or `smart` (cornering, ~100% capture) |
+| `llm.model` | str | `gpt-4o-mini` | OpenAI model for the NL match (used when `OPENAI_API_KEY` is set) |
+| `llm.pricing.*` | obj | `0.15/0.60` | `$/1M` input & output, `chars_per_token`, `est_output_tokens_per_call` (token-cost report, R.7) |
 | `reporting.recipient_email` | str | `sharbelma3@gmail.com` | Report recipient (→ `rmisegal+uoh26b@gmail.com` at submission) |
+| `reporting.timezone` | str | `Asia/Jerusalem` | Timezone stamped into the JSON match report (read by `services/reporting.py`) |
 | `google.secrets_dir` | path | _external_ | Folder (outside repo) holding `client_secret.json`/`token.json` |
 | `google.scopes` | list | gmail.modify, calendar | OAuth scopes |
-| `rate_limits.services.*` | obj | see file | Per-service RPM/RPH/concurrency/retries (gatekeeper) |
+| `rate_limits.services.*` | obj | see file | Per-service `requests_per_minute`/`requests_per_hour`/`concurrent_max`/`retry_after_seconds`/`max_retries`/`max_queue_depth` (gatekeeper; `0` = unlimited) |
 
 ## 6. Contribution Guidelines
 Follow [`CLAUDE.md`](CLAUDE.md) and the submission guidelines: docs-first, SDK-only, files ≤150 lines,

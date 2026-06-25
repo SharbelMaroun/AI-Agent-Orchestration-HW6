@@ -1,0 +1,12 @@
+Natural-language match log (5x5, seed 5)
+============================================================
+move  1 | thief none               cop=(4,3) thief=(2,0) | thief: Slipping away to the north-west — you'll never find me.
+move  2 | cop   none               cop=(3,2) thief=(2,0) | cop: I'm at 4,3 pushing north-west to close in.
+move  3 | thief none               cop=(3,2) thief=(1,0) | thief: Slipping away to the west — you'll never find me.
+move  4 | cop   none               cop=(2,2) thief=(1,0) | cop: I'm at 3,2 pushing west to close in.
+move  5 | thief none               cop=(2,2) thief=(0,0) | thief: Slipping away to the west — you'll never find me.
+move  6 | cop   none               cop=(1,1) thief=(0,0) | cop: I'm at 2,2 pushing north-west to close in.
+move  7 | thief none               cop=(1,1) thief=(0,1) | thief: Slipping away to the south — you'll never find me.
+move  8 | cop   capture            cop=(0,1) thief=(0,1) | cop: I'm at 1,1 pushing west to close in.
+============================================================
+RESULT: cop wins in 8 moves; LLM calls via gatekeeper=7
