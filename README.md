@@ -112,13 +112,13 @@ Nielsen's 10 usability heuristics (GUI/CLI) — see [`docs/PLAN.md`](docs/PLAN.m
 | 2 | MCP tool layer + 2 FastMCP servers | 🟦 partial | tools/observation/bus/servers done; transport/auth pending |
 | 3 | Orchestrator + SDK + CLI (full local match) | ✅ done | `python -m marl_cop_thief` runs |
 | 4 | Decision strategy | ✅ done | greedy heuristic + **cornering "smart" cop** (1-ply look-ahead, 100% capture, config-selectable); Q-table optional/pending |
-| 5 | Natural-language + LLM | ✅ done | NL encode/decode, ambiguity handler, NL decider; LLM via gatekeeper |
+| 5 | Natural-language + LLM | ✅ done | NL encode/decode, ambiguity handler, NL decider; **LLM-written in-character speech** (cop/thief personas, template fallback offline); LLM via gatekeeper |
 | 6 | GUI | ✅ done | board renderer + GIF animation w/ NL overlay (`--gui`) + **live real-time interactive window** (`--live`, draws each turn the instant the engine computes it) |
 | 8 | Report builder + Gmail/Calendar agent | 🟦 partial | JSON builders + read/extract/calendar/send tools tested; real OAuth send pending |
 | 9 | API gatekeeper | ✅ done | config-driven rate limit + FIFO queue + backpressure + drain + retries/backoff + concurrency + `get_queue_status` (see R.9) |
 | 7, 10 | Cloud, research/submission | ⬜ pending | — |
 
-Whole suite: **166 tests, 100% coverage, Ruff zero-violation.** The NL match is runnable via
+Whole suite: **180 tests, 100% coverage, Ruff zero-violation.** The NL match is runnable via
 `uv run cop-thief` (NL is the default; `--simple` for heuristic; `--gui` for a GIF; `--live` for a live
 window). The Gmail/Calendar tools are dependency-injected (tested with
 fakes); `shared/google_auth.py` builds the real services and needs your Google OAuth `client_secret.json`.
@@ -128,6 +128,7 @@ Newest first.
 
 | Date | What we did | Why | Evidence |
 |------|-------------|-----|----------|
+| 2026-06-25 | **LLM-written, in-character speech** — added a pluggable `Speaker`: `nl_speak.llm_speaker` asks the LLM (persona prompt B5) to voice each move freshly (cop = heroic + implies cell; thief = sly + cryptic), replacing the fixed `nl_encode` templates. Enabled with a real key + `llm.creative_speech`; falls back to templates on empty/error/offline. **Live window now auto-closes** after the game (`gui.close_on_finish` + `final_hold_seconds`) | The bottom-of-screen lines were identical templates (only coords changed) — make them genuinely generative; and the window lingered after the game ended | `nl_protocol/{nl_speak,prompt_templates}.py`; **180 tests, 100% cov**, Ruff clean; ~2× LLM calls (R.7) |
 | 2026-06-25 | **Live window no longer freezes** — moved frame production (which blocks on the per-turn LLM call) onto a **daemon worker thread** feeding a `queue.Queue`; the Tk event loop keeps the **main thread** and drains one frame per tick via `fig.canvas.new_timer` (`gui.poll_interval_ms`). Extracted pure `_produce`/`_render_tick` helpers (unit-tested). Config key `gui.turn_delay_seconds` → `gui.poll_interval_ms` | Window showed "not responding" while waiting for the next turn (blocking call on the GUI thread) | `gui/live_viewer.py`; PLAN §4 threading note; docs-first |
 | 2026-06-25 | **Live real-time GUI window** — `cop-thief --live` opens an interactive window that draws each turn the instant the engine computes it (so an NL match advances as each LLM call returns). Refactored the game loop into service-layer per-turn *frame streams* (`services/match_stream.py` `stream_subgame`/`heuristic_subgame_stream` + `nl_subgame_stream`); the GIF animator now collects the same stream (DRY); exposed via SDK (`stream_simple_frames`/`stream_nl_frames`); backend config-driven (`gui.live_backend`) | The GIF was a recording, not real-time — user wanted to watch the game live | `gui/live_viewer.py`; **166 tests, 100% cov**, Ruff clean; docs-first (PLAN §4, PRD FR-11, TODO T6.39–48) |
 | 2026-06-25 | **GUI now animates the NL match** — `cop-thief --gui` renders the natural-language sub-game with each turn's NL message overlaid (real OpenAI when keyed, else offline); `--simple --gui` keeps the heuristic/smart GIF | One command to *see* the full NL run, not just text | `assets/match_nl.gif`; 154 tests, 100% cov; `peek_last` bus API + `nl_subgame_frames` |
@@ -272,10 +273,14 @@ the implementation meets each:
   `interpret_prompt` is sent to the model — wiring the system prompt into the call is a noted enhancement.)
   The asymmetry — cop transparent, thief evasive — directly reflects their opposed incentives.
 
-**Cost & limitation.** Interpretation is the only LLM call (~66/match, R.7); speech is a deterministic
-template (no tokens). Belief is a single most-likely cell rather than a full posterior; a Bayesian filter
-is noted as optional enrichment (PRD §7). The offline backend exercises the same pipeline deterministically
-(echo → the cop recovers any revealed cell), so the mechanics are testable without a network.
+**Cost & limitation.** With deterministic speech, interpretation is the only LLM call (~66/match, R.7).
+Enabling **creative speech** (`llm.creative_speech`, real key) adds one LLM *generation* call per turn so
+each line is written fresh in-character — this roughly **doubles** the call count and token cost (the
+spoken line still implies the cop's cell / hides the thief's, so interpretation keeps working; on
+empty/error it falls back to the template). Belief is a single most-likely cell rather than a full
+posterior; a Bayesian filter is noted as optional enrichment (PRD §7). The offline backend exercises the
+same pipeline deterministically (echo → the cop recovers any revealed cell), so the mechanics are testable
+without a network.
 
 ## R.7 Token-Cost Analysis
 Per **full match** (6 sub-games, 5×5), measured by [`scripts/token_report.py`](scripts/token_report.py)

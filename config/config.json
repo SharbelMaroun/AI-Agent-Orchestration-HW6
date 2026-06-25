@@ -17,11 +17,14 @@
   },
   "gui": {
     "live_backend": "TkAgg",
-    "poll_interval_ms": 150
+    "poll_interval_ms": 150,
+    "close_on_finish": true,
+    "final_hold_seconds": 2.5
   },
   "llm": {
     "provider": "openai",
     "model": "gpt-4o-mini",
+    "creative_speech": true,
     "pricing": {
       "input_per_1m": 0.15,
       "output_per_1m": 0.60,

@@ -36,3 +36,14 @@ def test_decider_stays_when_no_moves():
     state = GameState(5, 5, Position(0, 0), Position(4, 4), barriers=barriers, to_move=Role.COP)
     decider = NLDecider(Role.COP, MessageBus(), _LLM(), visibility_radius=1)
     assert decider(engine, state).kind is ActionKind.STAY
+
+
+def test_decider_uses_injected_speaker():
+    engine = GameEngine(5, 5, 25, 5)
+    state = GameState(5, 5, Position(0, 0), Position(2, 2))  # thief to move
+    bus = MessageBus()
+    decider = NLDecider(
+        Role.THIEF, bus, _LLM(), visibility_radius=1, speaker=lambda r, o, a: "CUSTOM LINE"
+    )
+    decider(engine, state)
+    assert bus.peek_last(Role.COP).text == "CUSTOM LINE"  # the injected speaker was used

@@ -46,6 +46,7 @@ def animate_nl_match(
     gatekeeper: ApiGatekeeper | None = None,
     path: str = "assets/match_nl.gif",
     fps: int = 1,
+    creative: bool = False,
 ) -> str:
     """Render a natural-language sub-game (with NL message overlay) as an animated GIF."""
-    return _animate(nl_subgame_frames(config, backend, gatekeeper), path, fps)
+    return _animate(nl_subgame_frames(config, backend, gatekeeper, creative=creative), path, fps)

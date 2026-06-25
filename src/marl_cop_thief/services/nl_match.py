@@ -20,6 +20,8 @@ from .game_engine import GameEngine
 from .match_stream import Frame, stream_subgame
 from .mcp.message_bus import MessageBus
 from .nl_protocol.nl_decider import NLDecider
+from .nl_protocol.nl_encode import Speaker, encode
+from .nl_protocol.nl_speak import llm_speaker
 from .scoring import score_subgame
 from .turn_pipeline import run_turn
 
@@ -36,11 +38,18 @@ def _make_llm(
     return GatekeptLLM(backend or _echo, gatekeeper or ApiGatekeeper())
 
 
-def _nl_deciders(bus: MessageBus, llm: GatekeptLLM, visibility_radius: int) -> dict[Role, NLDecider]:
-    """Construct an NL decider for each role, sharing one bus + LLM."""
+def _make_speaker(llm: GatekeptLLM, creative: bool) -> Speaker:
+    """LLM-written speech when ``creative`` (real key), else the offline template."""
+    return llm_speaker(llm) if creative else encode
+
+
+def _nl_deciders(
+    bus: MessageBus, llm: GatekeptLLM, visibility_radius: int, speaker: Speaker
+) -> dict[Role, NLDecider]:
+    """Construct an NL decider for each role, sharing one bus + LLM + speaker."""
     return {
-        Role.COP: NLDecider(Role.COP, bus, llm, visibility_radius),
-        Role.THIEF: NLDecider(Role.THIEF, bus, llm, visibility_radius),
+        Role.COP: NLDecider(Role.COP, bus, llm, visibility_radius, speaker),
+        Role.THIEF: NLDecider(Role.THIEF, bus, llm, visibility_radius, speaker),
     }
 
 
@@ -48,12 +57,14 @@ def run_nl_match(
     config: dict[str, Any],
     backend: Callable[[str], str] | None = None,
     gatekeeper: ApiGatekeeper | None = None,
+    creative: bool = False,
 ) -> dict[str, Any]:
     """Run ``num_games`` NL sub-games to completion and return the summary.
 
     The LLM routes through one shared ``gatekeeper`` for the whole match, so any
     configured rate limit spans every sub-game; the default is unlimited, keeping
     offline runs fast. The CLI injects a config-driven gatekeeper for real runs.
+    ``creative`` swaps deterministic speech for LLM-written, in-character lines.
     """
     width, height = config["grid_size"]
     engine = GameEngine(width, height, config["max_moves"], config["max_barriers"])
@@ -62,11 +73,12 @@ def run_nl_match(
     num_games = config["num_games"]
     seed = config.get("seed", 0)
     llm = _make_llm(backend, gatekeeper)
+    speaker = _make_speaker(llm, creative)
 
     results = []
     for i in range(num_games):
         bus = MessageBus()
-        deciders = _nl_deciders(bus, llm, visibility_radius)
+        deciders = _nl_deciders(bus, llm, visibility_radius, speaker)
         state = engine.new_state(random.Random(seed + i))
         while not state.done:
             run_turn(engine, state, deciders)
@@ -79,19 +91,21 @@ def nl_subgame_stream(
     backend: Callable[[str], str] | None = None,
     gatekeeper: ApiGatekeeper | None = None,
     seed: int | None = None,
+    creative: bool = False,
 ) -> Iterator[Frame]:
     """Stream one NL sub-game as per-turn ``(state, spoken message)`` frames.
 
     Reuses the shared :func:`stream_subgame` engine loop (DRY); the caption reads
     the message the acting role just spoke off the bus, so the live window shows
-    the agents *talking* as they move.
+    the agents *talking* as they move. ``creative`` enables LLM-written speech.
     """
     width, height = config["grid_size"]
     engine = GameEngine(width, height, config["max_moves"], config["max_barriers"])
     if seed is None:
         seed = config.get("seed", 0)
     bus = MessageBus()
-    deciders = _nl_deciders(bus, _make_llm(backend, gatekeeper), config["visibility_radius"])
+    llm = _make_llm(backend, gatekeeper)
+    deciders = _nl_deciders(bus, llm, config["visibility_radius"], _make_speaker(llm, creative))
     state = engine.new_state(random.Random(seed))
 
     def caption(actor: Role) -> str:
@@ -107,6 +121,7 @@ def nl_subgame_frames(
     backend: Callable[[str], str] | None = None,
     gatekeeper: ApiGatekeeper | None = None,
     seed: int | None = None,
+    creative: bool = False,
 ) -> list[Frame]:
     """Play one NL sub-game, returning per-turn ``(state, spoken message)`` for the GUI."""
-    return list(nl_subgame_stream(config, backend, gatekeeper, seed))
+    return list(nl_subgame_stream(config, backend, gatekeeper, seed, creative))
