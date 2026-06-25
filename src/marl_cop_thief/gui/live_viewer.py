@@ -71,16 +71,22 @@ def play_live(
     gui_cfg = config.get("gui", {})
     plt.switch_backend(gui_cfg.get("live_backend", _DEFAULT_BACKEND))
     poll_ms = int(gui_cfg.get("poll_interval_ms", _DEFAULT_POLL_MS))
-    fig, ax = plt.subplots(figsize=(5, 5.5))
+    max_moves = config.get("max_moves")
+    fig, ax = plt.subplots(figsize=(5.5, 6))
     fig.suptitle(title)
 
     q: queue.Queue = queue.Queue()
     sentinel = object()
     threading.Thread(target=_produce, args=(frames, q, sentinel), daemon=True).start()
+    cop_trail: list = []
+    thief_trail: list = []
 
     def render(frame: Frame) -> None:
         state, caption = frame
-        render_state(state, ax, caption)
+        cop_trail.append(state.cop)
+        thief_trail.append(state.thief)
+        render_state(state, ax, caption, max_moves=max_moves,
+                     cop_trail=cop_trail, thief_trail=thief_trail)
         fig.tight_layout()
         fig.canvas.draw_idle()
 

@@ -23,11 +23,20 @@ from .board_renderer import render_state
 plt.switch_backend("Agg")
 
 
-def _animate(frames: list[Frame], path: str, fps: int) -> str:
+def _draw(frames: list[Frame], ax, max_moves: int | None, i: int) -> None:
+    """Render frame ``i`` with the trail accumulated up to it."""
+    render_state(
+        frames[i][0], ax, frames[i][1], max_moves=max_moves,
+        cop_trail=[f[0].cop for f in frames[: i + 1]],
+        thief_trail=[f[0].thief for f in frames[: i + 1]],
+    )
+
+
+def _animate(frames: list[Frame], path: str, fps: int, max_moves: int | None = None) -> str:
     """Render ``(state, caption)`` frames to an animated GIF; return the output path."""
-    fig, ax = plt.subplots(figsize=(5, 5.5))
+    fig, ax = plt.subplots(figsize=(5.5, 6))
     anim = animation.FuncAnimation(
-        fig, lambda i: render_state(frames[i][0], ax, frames[i][1]), frames=len(frames), interval=400
+        fig, lambda i: _draw(frames, ax, max_moves, i), frames=len(frames), interval=400
     )
     fig.tight_layout()
     anim.save(path, writer=animation.PillowWriter(fps=fps))
@@ -37,7 +46,7 @@ def _animate(frames: list[Frame], path: str, fps: int) -> str:
 
 def animate_match(config: dict[str, Any], path: str = "assets/match.gif", fps: int = 2) -> str:
     """Render a heuristic/smart sub-game as an animated GIF (the ``--simple`` path)."""
-    return _animate(list(heuristic_subgame_stream(config)), path, fps)
+    return _animate(list(heuristic_subgame_stream(config)), path, fps, config["max_moves"])
 
 
 def animate_nl_match(
@@ -49,4 +58,5 @@ def animate_nl_match(
     creative: bool = False,
 ) -> str:
     """Render a natural-language sub-game (with NL message overlay) as an animated GIF."""
-    return _animate(nl_subgame_frames(config, backend, gatekeeper, creative=creative), path, fps)
+    frames = nl_subgame_frames(config, backend, gatekeeper, creative=creative)
+    return _animate(frames, path, fps, config["max_moves"])

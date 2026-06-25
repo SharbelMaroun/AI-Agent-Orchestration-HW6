@@ -96,7 +96,7 @@ def test_play_live_renders_all_frames_off_thread(monkeypatch):
 
     rendered: list = []
     monkeypatch.setattr(live_viewer, "plt", fake)
-    monkeypatch.setattr(live_viewer, "render_state", lambda s, a, c: rendered.append((s, c)))
+    monkeypatch.setattr(live_viewer, "render_state", lambda s, a, c, **k: rendered.append((s, c)))
 
     def fake_show(block=True):  # pump the timer callback like a real event loop
         for _ in range(2000):
@@ -108,7 +108,11 @@ def test_play_live_renders_all_frames_off_thread(monkeypatch):
 
     fake.show.side_effect = fake_show
 
-    frames = [("s0", ""), ("s1", "cop: x"), ("s2", "thief: y")]
+    frames = [
+        (GameState(4, 4, Position(0, 0), Position(3, 3)), ""),
+        (GameState(4, 4, Position(1, 0), Position(3, 3)), "cop: x"),
+        (GameState(4, 4, Position(1, 1), Position(2, 3)), "thief: y"),
+    ]
     cfg = {"gui": {"live_backend": "Agg", "poll_interval_ms": 1, "close_on_finish": False}}
     live_viewer.play_live(iter(frames), cfg)
     assert rendered == frames  # all frames drawn via the worker -> queue -> tick path
@@ -144,7 +148,7 @@ def test_play_live_auto_closes_when_finished(monkeypatch):
     timer.stop.side_effect = lambda: stopped.__setitem__("v", True)
     fig.canvas.new_timer.return_value = timer
     monkeypatch.setattr(live_viewer, "plt", fake)
-    monkeypatch.setattr(live_viewer, "render_state", lambda *a: None)
+    monkeypatch.setattr(live_viewer, "render_state", lambda *a, **k: None)
     scheduled: list = []
     monkeypatch.setattr(live_viewer, "_schedule_close", lambda f, h: scheduled.append((f, h)))
 
@@ -158,7 +162,7 @@ def test_play_live_auto_closes_when_finished(monkeypatch):
 
     fake.show.side_effect = fake_show
     cfg = {"gui": {"live_backend": "Agg", "poll_interval_ms": 1, "close_on_finish": True}}
-    live_viewer.play_live(iter([("s", "")]), cfg)
+    live_viewer.play_live(iter([(GameState(4, 4, Position(0, 0), Position(3, 3)), "")]), cfg)
     assert scheduled and scheduled[0][0] is fig  # close scheduled on finish
 
 
