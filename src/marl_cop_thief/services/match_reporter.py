@@ -19,6 +19,16 @@ Sender = Callable[[str, str, str], str]
 _SUBJECT = "Cop & Thief — match report"
 
 
+def send_report(
+    config: dict[str, Any], report: dict[str, Any], sender: Sender, subject: str = _SUBJECT
+) -> str | None:
+    """Email a pre-built report dict as a JSON-only body, gated by send_real_email."""
+    reporting = config.get("reporting", {})
+    if not reporting.get("send_real_email", False):
+        return None
+    return sender(reporting["recipient_email"], subject, report_to_json(report))
+
+
 def send_match_report(
     config: dict[str, Any],
     summary: dict[str, Any],
@@ -35,4 +45,4 @@ def send_match_report(
     if not reporting.get("send_real_email", False):
         return None
     report = build_internal_report(config, summary, meta or reporting.get("report_meta", {}))
-    return sender(reporting["recipient_email"], _SUBJECT, report_to_json(report))
+    return send_report(config, report, sender)

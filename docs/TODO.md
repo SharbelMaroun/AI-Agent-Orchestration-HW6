@@ -734,7 +734,7 @@ _Cross-cutting infra, quality gates, research/visualization, final checklist & s
 | T9.81 | Final checklist (guidelines section 20.9) pass | P0 | ⬜ | `<TBD>` | All items checked |
 | T9.82 | Prepare submission: GitHub link + 2 MCP URLs | P0 | ⬜ | `<TBD>` | Report assembled |
 | T9.83 | Send final report email to lecturer | P0 | ⬜ | `<TBD>` | Submitted |
-| T9.84 | (Bonus) Inter-group series (3+3 role swap) | P3 | 🟦 | `<TBD>` | Scoring math done (`bonus.py`); 6-game role-swap runner + partner team pending |
+| T9.84 | (Bonus) Inter-group series (3+3 role swap) | P3 | ✅ | `<TBD>` | `services/series_runner.run_series` (6-game role-swap → bonus_game report) + SDK + `scripts/run_series.py`; live cross-group play needs a partner |
 | T9.85 | (Bonus) Confirm mutual-agreement JSON match | P3 | ✅ | `<TBD>` | `series_awards` voids (0/0) when `mutual_agreement` is false |
 
 ## Phase 10 — Audit closure (requirements coverage gaps) (Milestone: M10)

@@ -59,3 +59,11 @@ def test_bonus_awards_and_final_via_sdk():
     assert sdk.bonus_awards(SeriesResult({"A": 90, "B": 40})) == {"A": 10.0, "B": 5.0}
     series = [SeriesResult({"A": 90, "B": 40}), SeriesResult({"A": 40, "B": 90})]
     assert sdk.bonus_final("A", series) == 7.5
+
+
+def test_run_series_and_send_report_via_sdk():
+    cfg = {**CONFIG, "num_games": 6, "reporting": {"timezone": "Asia/Jerusalem"}}
+    rep = Sdk(cfg).run_series("A", "B")
+    assert rep["report_type"] == "bonus_game" and len(rep["sub_games"]) == 6
+    # send_report disabled by default -> None
+    assert Sdk(cfg).send_report(rep, lambda *a: "id") is None

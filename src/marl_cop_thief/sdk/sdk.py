@@ -11,9 +11,11 @@ from typing import Any
 from ..services.bonus import SeriesResult, final_bonus, series_awards
 from ..services.match_reporter import Sender
 from ..services.match_reporter import send_match_report as _send_match_report
+from ..services.match_reporter import send_report as _send_report
 from ..services.match_stream import Frame, heuristic_subgame_stream
 from ..services.nl_match import nl_subgame_stream, run_nl_match
 from ..services.orchestrator import Orchestrator
+from ..services.series_runner import run_series as _run_series
 from ..shared import config as config_module
 from ..shared.gatekeeper import ApiGatekeeper
 
@@ -42,6 +44,16 @@ class Sdk:
     ) -> str | None:
         """Email the JSON match report via ``sender`` (only if reporting.send_real_email)."""
         return _send_match_report(self.config, summary, sender, meta)
+
+    def run_series(
+        self, group_a: str, group_b: str, meta: dict[str, Any] | None = None
+    ) -> dict[str, Any]:
+        """Play a 6-game role-swap inter-group series; return the bonus report dict."""
+        return _run_series(self.config, group_a, group_b, meta)
+
+    def send_report(self, report: dict[str, Any], sender: Sender) -> str | None:
+        """Email a pre-built report dict (JSON-only) via ``sender`` if send_real_email."""
+        return _send_report(self.config, report, sender)
 
     def bonus_awards(self, series: SeriesResult) -> dict[str, float]:
         """Per-series inter-group bonus points (the report's ``bonus_claim``; §12.2)."""

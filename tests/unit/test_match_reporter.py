@@ -2,7 +2,7 @@
 
 import json
 
-from marl_cop_thief.services.match_reporter import send_match_report
+from marl_cop_thief.services.match_reporter import send_match_report, send_report
 
 SUMMARY = {"sub_games": [{"index": 0, "winner": "cop"}], "totals": {"cop": 90, "thief": 40}}
 CONFIG = {
@@ -43,3 +43,15 @@ def test_explicit_meta_overrides_config_meta():
     send_match_report(CONFIG, SUMMARY, lambda to, s, b: sent.update(b=b) or "id",
                       meta={"group_name": "Override", "github_repo": "r"})
     assert json.loads(sent["b"])["group_name"] == "Override"
+
+
+def test_send_report_gated_and_json_only():
+    report = {"report_type": "bonus_game", "totals_by_group": {"A": 90}}
+    # disabled by default -> no send
+    assert send_report({"reporting": {"recipient_email": "x"}}, report, lambda *a: "id") is None
+    # enabled -> JSON-only body to recipient
+    sent = {}
+    cfg = {"reporting": {"recipient_email": "x@y", "send_real_email": True}}
+    out = send_report(cfg, report, lambda to, s, b: sent.update(to=to, b=b) or "mid", subject="S")
+    assert out == "mid" and sent["to"] == "x@y"
+    assert json.loads(sent["b"])["report_type"] == "bonus_game"
