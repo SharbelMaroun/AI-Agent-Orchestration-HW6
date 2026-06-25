@@ -72,6 +72,20 @@ def _run_nl(sdk: Sdk, gui: bool, live: bool) -> None:
     else:
         print(json.dumps(sdk.run_nl_match(backend, gatekeeper), indent=2))
     print(f"LLM calls via gatekeeper: {gatekeeper.calls}")
+    if real:
+        _report_budget(sdk.config, gatekeeper.calls)
+
+
+def _report_budget(config: dict, calls: int) -> None:
+    """Print real-time spend vs the config-driven budget cap, with an overrun alert."""
+    from .shared.budget import BudgetConfig, BudgetTracker
+
+    tracker = BudgetTracker(BudgetConfig.from_config(config))
+    tracker.record(calls)
+    s = tracker.status()
+    flag = " [OVER BUDGET]" if s.over_budget else (" [ALERT]" if s.alert else "")
+    print(f"Budget: ${s.spent_usd:.4f} spent / ${s.cap_usd:.2f} cap "
+          f"(${s.remaining_usd:.4f} left){flag}")
 
 
 def main() -> None:

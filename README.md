@@ -131,6 +131,7 @@ Newest first.
 
 | Date | What we did | Why | Evidence |
 |------|-------------|-----|----------|
+| 2026-06-25 | **Budget management (gatekeeper spend counter)** — `shared/budget.py` `BudgetTracker` reads the live gatekeeper call count + config `llm.budget.usd_per_call` for a real-time spend/remaining counter, `forecast_usd(n)`, and a two-stage **alert** (`alert_threshold`) / **over_budget** flag; the CLI prints it after a real run | Required cost forecasting + real-time monitoring + overrun alerts (audit C14/C20) | `shared/budget.py`; 196 tests, 100% cov; README R.7 + config `llm.budget` |
 | 2026-06-25 | **Phase 9 research & visualization** — `scripts/sensitivity.py` runs OAT sweeps (visibility radius, grid size) over real offline matches and renders the full chart suite (**line, heatmap, box, scatter**); added `notebooks/analysis.ipynb` (LaTeX Dec-POMDP + Bellman, sensitivity results, 6 academic references). Key finding: NL capture needs visibility (r=0≈blind), peaks at r=1–2, and degrades with board size | Required sensitivity research + visualization (guidelines §11; T9.61–69, T10.23–25) | README R.3 sensitivity section; `assets/sensitivity_*.png`, `moves_boxplot.png`, `scatter_area_moves.png`; `results/sensitivity.txt` |
 | 2026-06-25 | **Phase 10 audit/quality closure (batch 1)** — automated **JUnit + coverage report** to `results/` on every `pytest` run + `results/TEST_REPORT.md` (expected results) + committed `test_run.log`; **ISO/IEC 25010** self-assessment (R.10); **Nielsen 10 heuristics + accessibility + standards alignment** (R.11); **`docs/EDGE_CASES.md`** register; **extension-points** table (PLAN §4.1); `__init__.py` in all test dirs | Close graded scientific/quality gaps (guidelines §6.4, §10, §17; audit T10.8–31) | README R.10/R.11, `results/TEST_REPORT.md`, `docs/EDGE_CASES.md`, PLAN §4.1; 189 tests, 100% cov |
 | 2026-06-25 | **Smarter thief — fixed the "always goes left" drift** — greedy evasion tied on distance and the fixed `DIRECTIONS_8` order made `max` pick the leftmost move every time. Added a config-selectable `smart` thief (default) ranking moves by `(distance, mobility, centrality)` via `strategy/evasion.py`, used by the simple match, the NL belief-based `_choose`, and the GUI; greedy retained as the R.3 baseline | "The thief keeps making the same move, not smart/varied" — reported in R.3 | `strategy/{smart_thief,evasion}.py`; 189 tests, 100% cov; honest capture trade-off in R.3/PRD §4 |
@@ -352,10 +353,14 @@ OpenAI rule of thumb — no tokenizer download); prices are gpt-4o-mini **list p
   reply is constrained to `x,y`/`unknown` (≈4 output tokens); (3) a larger model would be ~30× costlier,
   so gpt-4o-mini is the right default for this short, structured task.
 
-**Budget management** (config-driven). The gatekeeper is the single chokepoint, so spend control lives
-there: a running **token/spend counter**, a **forecast** (cost/token × projected calls/match), and an
-**overrun alert** at a config threshold are natural extensions of `ApiGatekeeper.log` (each call already
-records service + outcome). Rate limits in `rate_limits.json` cap call volume (and thus spend) per minute/hour.
+**Budget management** (implemented, config-driven — [`shared/budget.py`](src/marl_cop_thief/shared/budget.py),
+closes audit C14/C20). A `BudgetTracker` reads the gatekeeper's **live call count** and a config-driven
+`llm.budget.usd_per_call` to give a **real-time spend counter** (`spent_usd`/`remaining_usd`), a
+**forecast** (`forecast_usd(projected_calls)` = cost/call × projected calls), and a two-stage **overrun
+alert**: `alert` at `alert_threshold` (default 0.8) of `monthly_cap_usd`, and `over_budget` past the cap.
+A real `uv run cop-thief` prints, e.g., `Budget: $0.0012 spent / $5.00 cap ($4.9988 left)` with an
+`[ALERT]`/`[OVER BUDGET]` flag. Rate limits in `rate_limits.json` independently cap call volume (and thus
+spend) per minute/hour. (Cap `0` disables monitoring.)
 
 ## R.8 Prompt-Engineering Log
 Maintained in [`docs/PROMPT_LOG.md`](docs/PROMPT_LOG.md) — development prompts + runtime agent prompt
@@ -450,6 +455,7 @@ All tunables live in `config/` (nothing hard-coded). Full schema in [`docs/PLAN.
 | `gui.live_backend` / `gui.poll_interval_ms` | str / int | `TkAgg` / `150` | Live window (`--live`): interactive matplotlib backend + how often (ms) the GUI drains the frame queue while turns compute on a worker thread |
 | `llm.model` | str | `gpt-4o-mini` | OpenAI model for the NL match (used when `OPENAI_API_KEY` is set) |
 | `llm.pricing.*` | obj | `0.15/0.60` | `$/1M` input & output, `chars_per_token`, `est_output_tokens_per_call` (token-cost report, R.7) |
+| `llm.budget.*` | obj | `5.0/0.8/2e-5` | `monthly_cap_usd` / `alert_threshold` / `usd_per_call` — real-time spend counter + overrun alert (R.7; cap `0` disables) |
 | `reporting.recipient_email` | str | `sharbelma3@gmail.com` | Report recipient (→ `rmisegal+uoh26b@gmail.com` at submission) |
 | `reporting.timezone` | str | `Asia/Jerusalem` | Timezone stamped into the JSON match report (read by `services/reporting.py`) |
 | `google.secrets_dir` | path | _external_ | Folder (outside repo) holding `client_secret.json`/`token.json` |
