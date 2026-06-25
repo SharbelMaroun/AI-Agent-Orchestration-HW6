@@ -42,7 +42,14 @@
     "recipient_email": "sharbelma3@gmail.com",
     "submission_recipient": "rmisegal+uoh26b@gmail.com",
     "send_real_email": false,
-    "timezone": "Asia/Jerusalem"
+    "timezone": "Asia/Jerusalem",
+    "report_meta": {
+      "group_name": "",
+      "students": [],
+      "github_repo": "https://github.com/SharbelMaroun/AI-Agent-Orchestration-HW6",
+      "cop_mcp_url": "",
+      "thief_mcp_url": ""
+    }
   },
   "google": {
     "secrets_dir": "",

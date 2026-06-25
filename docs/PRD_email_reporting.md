@@ -16,12 +16,13 @@ to avoid being blocked by external mail servers. Authentication uses **token-bas
 username/password: a stolen short-lived token is far less dangerous than a password. Google issues a
 secret client file (`client_secret.json`) and a `token.json` created on first authentication.
 
-> **Status (2026-06-25):** the **report builders** (`services/reporting.py` — internal + inter-group
-> `bonus_game` schemas) are implemented and tested. The **autonomous end-of-match send** described below
-> is **planned wiring**: no orchestrator/SDK path calls `send_email` yet, nothing reads
-> `reporting.recipient_email` / `reporting.send_real_email`, and the inter-group **bonus arithmetic**
-> (10/5/5 + averaging) is not computed (the schema accepts `totals_by_group`/`bonus_claim` as inputs).
-> Pending real OAuth + cloud series (README R.0; assignment §12).
+> **Status (2026-06-25):** the **report builders** (`services/reporting.py`) and the **end-of-match send
+> wiring** are implemented and tested. `services/match_reporter.send_match_report` builds the internal JSON
+> report from the match summary + `reporting.report_meta` and emails it via an injected sender, **gated by
+> `reporting.send_real_email`** (default `false`); the SDK exposes `Sdk.send_match_report`, and the CLI
+> (`main._maybe_send_report`) builds the real Gmail service and sends after a full match when the flag is on.
+> Real send (`send_email`) is **verified on live Gmail** (README R.1). Still pending: the inter-group
+> **bonus arithmetic** (10/5/5 + averaging) and the **cloud series** (assignment §12).
 
 **Recipient (config-driven — `reporting.recipient_email`, never hard-coded):**
 - **Now (development/testing):** `sharbelma3@gmail.com`.

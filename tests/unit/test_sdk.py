@@ -34,3 +34,19 @@ def test_stream_simple_frames_runs_to_terminal():
 def test_stream_nl_frames_runs_to_terminal():
     frames = list(Sdk(NL_CONFIG).stream_nl_frames(seed=2))
     assert frames[-1][0].done
+
+
+_REPORT_SUMMARY = {"sub_games": [{"index": 0, "winner": "cop"}], "totals": {"cop": 90, "thief": 40}}
+
+
+def test_send_match_report_disabled_by_default_returns_none():
+    out = Sdk(CONFIG).send_match_report(_REPORT_SUMMARY, lambda *a: "id")
+    assert out is None  # no reporting.send_real_email -> never sends
+
+
+def test_send_match_report_sends_when_enabled():
+    cfg = {**CONFIG, "reporting": {"recipient_email": "x@y", "timezone": "Asia/Jerusalem",
+                                   "send_real_email": True}}
+    sent = {}
+    out = Sdk(cfg).send_match_report(_REPORT_SUMMARY, lambda to, s, b: sent.update(to=to) or "mid")
+    assert out == "mid" and sent["to"] == "x@y"
