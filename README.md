@@ -117,6 +117,7 @@ Newest first.
 
 | Date | What we did | Why | Evidence |
 |------|-------------|-----|----------|
+| 2026-06-25 | Generated **experiment graphs + board screenshots + NL log** from real runs; filled README R.3–R.5 | Report results with evidence | `scripts/make_figures.py`; 5 PNGs in `assets/`, log in `results/` |
 | 2026-06-25 | **NL match runnable** (`--nl`) + **Phase 8** report builder (internal + inter-group JSON) and Gmail/Calendar agent tools (read/extract/calendar/send, dependency-injected) | Make NL playable + build the submission report | 106 tests, 100% cov; `--nl` CLI works (workflow-authored) |
 | 2026-06-25 | **Phase 5**: NL encode/decode + ambiguity handler + NL decider; **minimal gatekeeper** + LLM client; agents coordinate in free text via the LLM-through-gatekeeper | The graded core: NL coordination under partial obs | 86 tests, 100% cov; NL sub-game runs offline |
 | 2026-06-25 | **Phase 2**: MCP tool layer (observation, message bus, tool service w/ turn-ownership) + 2 FastMCP servers exposing 6 tools each | Build the agent communication infra | 72 tests, 100% cov, ruff clean |
@@ -140,11 +141,46 @@ The game is a Decentralized Partially Observable Markov Decision Process `⟨n, 
 - **γ** = discount factor (used only if the optional Q-learning strategy is enabled).
 
 ## R.3 Experiments & Graphs
-> _TBD._ Sensitivity analysis (OAT sweeps over `grid_size`, `visibility_radius`, `α`, `γ`), learning
-> curves. Plots → `results/` / `assets/` with clear labels, legend, accessible colors, captions, ≥150 dpi.
+Generated from **real match runs** by [`scripts/make_figures.py`](scripts/make_figures.py)
+(`uv run python scripts/make_figures.py`).
 
-## R.4 Screenshots (GUI & states)  ·  ## R.5 CLI Logs & MCP Communication
-> _TBD._ GUI of agents+barriers and key states; CLI logs proving valid (cloud) MCP NL exchange.
+**Match outcomes & move distribution** (5×5, 60 seeds, heuristic):
+
+![Win distribution](assets/win_distribution.png)
+![Moves histogram](assets/moves_histogram.png)
+
+**Sensitivity — cop capture rate vs grid size** (40 seeds per size):
+
+![Capture rate vs grid size](assets/winrate_vs_gridsize.png)
+
+Capture rate falls from **100% (2×2)** to **~62% (6×6)** — larger boards give the thief more room to
+evade, matching the assignment's sanity-check intuition.
+
+**Strategy comparison — cop win rate, heuristic vs natural-language** (5×5, 40 seeds):
+
+![Heuristic vs NL](assets/heuristic_vs_nl.png)
+
+**Finding (heuristic limitation):** the greedy Chebyshev pursuit can fall into a **limit cycle** — e.g.
+the cop oscillating (2,1)↔(1,2) while the thief mirrors (4,3)↔(3,4) — so the thief survives the 25-move
+cap. This explains the sub-100% capture rate and motivates barrier use / a belief-based strategy (Phase 4).
+
+## R.4 Screenshots (board states)
+Rendered board states — **cop = blue circle, thief = red star, barriers = black**. (Live GUI screenshots
+arrive with Phase 6; these come from the same renderer.)
+
+![Board: start and capture](assets/board_state.png)
+
+## R.5 CLI Logs & MCP Communication
+A natural-language sub-game (full log: [`results/nl_match_sample.txt`](results/nl_match_sample.txt)) —
+the thief **bluffs**, the cop **reveals its cell**, and the LLM (via the gatekeeper) interprets messages:
+
+```text
+move  1 | thief none      cop=(4,3) thief=(2,0) | thief: Slipping away to the north-west — you'll never find me.
+move  2 | cop   none      cop=(3,2) thief=(2,0) | cop:   I'm at 4,3 pushing north-west to close in.
+move  7 | thief none      cop=(1,1) thief=(0,1) | thief: Slipping away to the south — you'll never find me.
+move  8 | cop   capture   cop=(0,1) thief=(0,1) | cop:   I'm at 1,1 pushing west to close in.
+RESULT: cop wins in 8 moves; LLM calls via gatekeeper=7
+```
 
 ## R.6 Communication-Challenge Analysis
 > _TBD._ Ambiguity/deception/mutual-understanding without a fixed protocol (see [`docs/PRD_nl_communication.md`](docs/PRD_nl_communication.md)).
