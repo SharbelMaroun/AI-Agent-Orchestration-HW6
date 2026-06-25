@@ -526,7 +526,7 @@ _Deploy both MCP servers with token auth (deployment tasks, not modules)._
 | T7.16 | Store URLs/tokens in `.env` (git-ignored) | P0 | ✅ | `<TBD>` | `.env-example`: COP/THIEF_MCP_URL + MCP_AUTH_SECRET |
 | T7.17 | Latency check intra-region (<200ms round-trip) | P2 | ⬜ | `<TBD>` | After deploy |
 | T7.18 | Retry/backoff on cloud calls via gatekeeper | P1 | ✅ | `<TBD>` | `McpClient` routes every call through the gatekeeper |
-| T7.19 | End-to-end cloud match (6 games) | P0 | 🟦 | `<TBD>` | After deploy + opponent |
+| T7.19 | End-to-end cloud match (6 games) | P0 | 🟦 | `<TBD>` | Cross-network driver built (`remote_match.py` + `host_server.py` + `play_remote.py`); live run needs a partner team |
 | T7.20 | README deployment section | P1 | ✅ | `<TBD>` | README §4.1 (Render + ngrok step-by-step) |
 | T7.21 | Firewall/non-standard-port caveat documented | P1 | ✅ | `<TBD>` | README §2.5 + PLAN §3 |
 | T7.22 | Rotate tokens before submission | P2 | ⬜ | `<TBD>` | Rotated |

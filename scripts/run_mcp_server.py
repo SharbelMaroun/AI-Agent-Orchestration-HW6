@@ -18,6 +18,7 @@ import random
 from dotenv import load_dotenv
 
 from marl_cop_thief.services.game_engine import GameEngine
+from marl_cop_thief.services.mcp.host_server import build_host_server
 from marl_cop_thief.services.mcp.message_bus import MessageBus
 from marl_cop_thief.services.mcp.servers import build_cop_server, build_thief_server
 from marl_cop_thief.services.mcp.tools import ToolService
@@ -27,7 +28,7 @@ from marl_cop_thief.shared.mcp_auth import TokenAuth
 
 def _parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Run a cop/thief MCP server over HTTP.")
-    parser.add_argument("--role", choices=["cop", "thief"], default=os.environ.get("MCP_ROLE"))
+    parser.add_argument("--role", choices=["cop", "thief", "host"], default=os.environ.get("MCP_ROLE"))
     parser.add_argument("--port", type=int, default=int(os.environ.get("PORT", "8000")))
     return parser.parse_args()
 
@@ -35,8 +36,8 @@ def _parse_args() -> argparse.Namespace:
 def main() -> None:
     load_dotenv()
     args = _parse_args()
-    if args.role not in ("cop", "thief"):
-        raise SystemExit("Set --role cop|thief (or env MCP_ROLE).")
+    if args.role not in ("cop", "thief", "host"):
+        raise SystemExit("Set --role cop|thief|host (or env MCP_ROLE).")
 
     cfg = load_config()
     width, height = cfg["grid_size"]
@@ -55,8 +56,8 @@ def main() -> None:
     else:
         print("[auth] WARNING: MCP_AUTH_SECRET not set -> server is OPEN. Set it before public deploy.")
 
-    build = build_cop_server if args.role == "cop" else build_thief_server
-    server = build(tools, auth=auth)
+    builders = {"cop": build_cop_server, "thief": build_thief_server, "host": build_host_server}
+    server = builders[args.role](tools, auth=auth)
     print(f"[run] {args.role} MCP server -> http://0.0.0.0:{args.port} (transport=http)")
     server.run(transport="http", host="0.0.0.0", port=args.port)
 

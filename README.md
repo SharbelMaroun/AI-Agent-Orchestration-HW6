@@ -118,6 +118,24 @@ Either way the server prints a valid bearer token on startup; the client carries
 through `McpClient` (gatekeeper-routed). A `401` means the server is up and **auth is enforced** but your
 local secret doesn't match Render's; an `[OK]` with status means full end-to-end success.
 
+### Live inter-group match (cross-network)
+Two teams play on **one shared authoritative game** via a role-parameterized **host** server:
+1. **One team hosts:** `uv run python scripts/run_mcp_server.py --role host --port 8000` (deploy it, or
+   `ngrok http 8000`). Mint a token: `uv run python scripts/mint_token.py`, then share **the host URL + token**.
+2. **Both teams** put the agreed host in `.env` — **this is where the partner's URL + token go:**
+   ```
+   HOST_MCP_URL=https://<the-host>.onrender.com
+   HOST_MCP_TOKEN=<the bearer token>
+   ```
+   (Partner hosts → paste *their* URL + the token *they* sent. You host → your URL + a token you minted.)
+3. **Each team runs only its own role** against the host — one cop, one thief:
+   ```
+   uv run python scripts/play_remote.py --role cop      # you
+   uv run python scripts/play_remote.py --role thief    # partner
+   ```
+   Each driver polls for its turn, observes, decides client-side (ADR-001), and submits over MCP
+   (gatekeeper-routed, token-authenticated). `services/remote_match.py` is the reusable engine.
+
 ---
 
 # 📊 Project Report / Results
@@ -154,6 +172,7 @@ Newest first.
 
 | Date | What we did | Why | Evidence |
 |------|-------------|-----|----------|
+| 2026-06-25 | **Cross-network match driver (live inter-group play)** — role-parameterized `mcp/host_server.py` (one shared authoritative game), `services/remote_match.py` (`play_my_turns` polls the host, acts only on its role's turn, observe→decide→submit; greedy `remote_decider`; never stalls — illegal→STAY), `scripts/play_remote.py` (`--role cop|thief` over `HOST_MCP_URL`/`HOST_MCP_TOKEN`), `run_mcp_server.py --role host`. Both teams run their own role against one host | Enable a real live match vs a partner team over MCP (T7.19) | `services/remote_match.py` (100% cov); README §4.1 live-match guide; 233 tests, 100% cov |
 | 2026-06-25 | **TODO reconciliation + token helper** — flipped the stale-done template rows to ✅ with evidence (Phase 1/2/3 behaviours, Phase 8 Google setup + google_auth/calendar, Phase 9 config/version + quality gates + R.x-backed docs); left optional/by-design (q_table, strategy_base, logging_setup, cli_runner) and process/blocked rows honest. Added `scripts/mint_token.py` to issue partner bearer tokens | Make the TODO honestly reflect the ~complete state; ease partner onboarding | `docs/TODO.md`; `scripts/mint_token.py`; 228 tests, 100% cov |
 | 2026-06-25 | **Inter-group series runner** — `services/series_runner.run_series(config, a, b)` plays the **6-game 3-cop/3-thief role-swap** (§12.1), accumulates `totals_by_group`, and builds the `bonus_game` report incl. `bonus_claim`; generic `match_reporter.send_report` emails any report (JSON-only, gated). Exposed via `Sdk.run_series`/`send_report` + `scripts/run_series.py`. Live cross-group play swaps local policies for the opponent's remote MCP servers (`McpClient`) | Be plug-and-play for the inter-group bonus the moment a partner appears (T9.84) | `services/series_runner.py`; 228 tests, 100% cov; PRD_email_reporting §4 |
 | 2026-06-25 | **Cloud verified end-to-end** — with the matching `MCP_AUTH_SECRET` set, an **authenticated `get_game_status` call succeeds on both** cloud servers via `McpClient` (gatekeeper-routed): `{to_move: thief, moves_used: 0, moves_left: 25, ...}`. Full stack proven: Render deploy → token auth → transport → live MCP tool call | Prove the cloud MCP layer works end-to-end (G4/G5/S5) | `results/cloud_check.txt` |
