@@ -26,12 +26,12 @@ the JSON result and calls `send_email` to deliver it. The read/extract/calendar 
 Google competency demonstrated on real inbox data. The game and the email/calendar agent share **one
 Google credential** and **one recipient mailbox**; they are otherwise independent capabilities.
 
-> **Status (2026-06-25):** §1.1 describes **planned wiring**. Today the Gmail/Calendar tools
-> (`read_emails`, `extract_meeting`, `add_calendar_event`, `send_email`) and the JSON report builders
-> (`services/reporting.py`) are implemented and tested in isolation (dependency-injected fakes), but **no
-> orchestrator/SDK path calls `send_email`**, and nothing reads `reporting.recipient_email` /
-> `reporting.send_real_email` yet. End-of-match report-email wiring is pending (README R.0: "real OAuth
-> send pending").
+> **Status (2026-06-26):** §1.1 is **implemented and wired**. After a full match the CLI
+> (`main._maybe_send_report`) and the remote drivers (`scripts/play_remote.py`, `scripts/run_series.py`)
+> call `send_match_report` / `send_report` (SDK → `services/match_reporter.py`), gated by
+> `reporting.send_real_email` and addressed to `reporting.recipient_email`. Real Gmail send was **verified
+> live** (README R.1). All Gmail/Calendar calls are **gatekeeper-routed** (`shared/google_api`; the
+> `gmail` service in `rate_limits.json`).
 
 ### 1.2 Autonomy boundary (interactive setup vs autonomous runs)
 The "fully autonomous, zero manual intervention" requirement (PRD G1/NFR-1) applies to the **match
@@ -43,10 +43,10 @@ refreshed and the full pipeline (game → report email) runs with no human in th
 ## 2. Tools (Inputs / Outputs)
 | Tool | Input | Output | Notes |
 |------|-------|--------|-------|
-| `read_emails(gmail_service, query, max_results)` | injected Gmail service, optional query, count | `list[dict]` of `{'id','snippet'}` | Scans inbox; needs read scope |
-| `extract_meeting(llm, email_text)` | `LLMClient`, raw email text | `Meeting{title, start, end, location?}` or `None` | LLM-assisted parse (gatekeeper routing _planned_; LLM client injected directly today) |
-| `add_calendar_event(calendar_service, meeting)` | injected Calendar service, `Meeting` | `dict {'id','htmlLink'}` | Creates event on `primary` calendar |
-| `send_email(gmail_service, to, subject, body)` | injected Gmail service, recipient, subject, body | `message_id` (str) | Real **send** (not draft); used for the report email |
+| `read_emails(gmail_service, query, max_results, gatekeeper?)` | injected Gmail service, optional query, count, optional gatekeeper | `list[dict]` of `{'id','snippet'}` | Scans inbox; needs read scope; gatekeeper-routed |
+| `extract_meeting(llm, email_text)` | `LLMClient`, raw email text | `Meeting{title, start, end, location?}` or `None` | LLM-assisted parse; gatekept when a `GatekeptLLM` is injected (as in production) |
+| `add_calendar_event(calendar_service, meeting, timezone?, gatekeeper?)` | injected Calendar service, `Meeting`, optional tz + gatekeeper | `dict {'id','htmlLink'}` | Creates event on `primary` calendar; gatekeeper-routed |
+| `send_email(gmail_service, to, subject, body, gatekeeper?)` | injected Gmail service, recipient, subject, body, optional gatekeeper | `message_id` (str) | Real **send** (not draft); gatekeeper-routed; used for the report email |
 
 `Meeting(title: str, start: str, end: str, location: str | None = None)` — `start`/`end` are ISO-8601
 **strings** (not datetime objects). There is no `EmailMessage` domain model: `read_emails` yields plain
@@ -59,7 +59,8 @@ caller passes `reporting.timezone` (`Asia/Jerusalem`); when no timezone is given
 datetime must then carry its own offset). `Meeting.location` is written into the event **description**.
 `extract_meeting` returns `None` if the LLM omits title, start, **or** end — there is no auto end default.
 Build services as `build("gmail","v1",credentials=creds)` / `build("calendar","v3",credentials=creds)`.
-_Planned:_ gatekeeper-route the Google calls and default a missing end to `start + 1 hour`.
+Google calls are **gatekeeper-routed** (`shared/google_api.execute_request`); _planned:_ default a
+missing end to `start + 1 hour`.
 
 ## 3. Setup, Scopes & Configuration
 - **Google Cloud (per the install guide):** OAuth **Desktop** client; enable **Gmail API** *and*
@@ -88,9 +89,10 @@ _Planned:_ gatekeeper-route the Google calls and default a missing end to `start
 - `.gitignore` must exclude `client_secret.json`, `token.json`, `credentials.json`, `.env`.
 - **Token expiry / recovery (the deadline trap):** tokens expire. Build the recovery path in from the
   start — `if token missing/expired/invalid → delete token.json → re-run → browser re-consent → new token`.
-- **Planned:** Gmail/Calendar API calls will route through the **gatekeeper**
-  ([`PRD_gatekeeper.md`](PRD_gatekeeper.md)) once OAuth is wired (the LLM path is gatekept today; see
-  README R.9). They are **not gatekept yet** — the injected service is called directly.
+- **Gatekept:** Gmail/Calendar API calls route through the **gatekeeper**
+  ([`PRD_gatekeeper.md`](PRD_gatekeeper.md)) via `shared/google_api.execute_request` — each network
+  `.execute()` is admitted/limited/retried/logged using the `gmail` service in `rate_limits.json`
+  (the LLM path is gatekept the same way; see README R.9).
 
 ## 5. Performance Metrics
 - `read_emails` returns within the gatekeeper's latency/retry budget; pagination bounded by `max_results`.
@@ -113,9 +115,9 @@ _Planned:_ gatekeeper-route the Google calls and default a missing end to `start
 - **S1:** `read_emails` returns inbox messages for a known query (Gmail mocked in unit tests).
 - **S2:** `extract_meeting` returns the correct `Meeting` for an invite email; returns `None` (no crash) for a non-invite.
 - **S3:** `add_calendar_event` creates an event whose start matches the extracted time (Calendar mocked in unit tests).
-- **S4 (planned wiring):** `send_email` performs a real send to `reporting.recipient_email`; in dev that
-  is `sharbelma3@gmail.com`. *Not yet wired — no orchestrator/SDK path calls `send_email` and nothing
-  reads `reporting.recipient_email`/`send_real_email` today (README R.0: "real OAuth send pending").*
+- **S4:** `send_email` performs a real send to `reporting.recipient_email` (dev: `sharbelma3@gmail.com`),
+  wired end-of-match via `send_match_report`/`send_report` (SDK → CLI/remote drivers) and gated by
+  `reporting.send_real_email`. Verified live (README R.1).
 - **S5:** Switching `recipient_email` to `rmisegal+uoh26b@gmail.com` requires **no code change**.
 - **S6:** Expired/missing token triggers the documented re-consent path without leaking secrets to logs.
 - **S7:** Module files ≤150 lines; external APIs mocked; ≥85% coverage of all four tools' branches.

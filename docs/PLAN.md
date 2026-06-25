@@ -2,7 +2,7 @@
 
 **Project:** Dual AI Agent Race via MCP Servers — "Cop & Thief"
 **Document version:** 1.00
-**Status:** Draft — pending approval
+**Status:** Approved (2026-06-25)
 **Governing standard:** [`../MATERIALS/software_submission_guidelines-V3_Summary.md`](../MATERIALS/software_submission_guidelines-V3_Summary.md)
 
 > Companion to [`PRD.md`](PRD.md). Describes the technical architecture, decisions, data
@@ -71,8 +71,41 @@ External Consumers (GUI / CLI / Tests / Inter-group runner)
 - **NLProtocol** converts agent intent ↔ free text and parses inbound text into a structured belief update.
 - **Gatekeeper** wraps every outbound API call (LLM + Gmail) with rate limiting, queueing, retries, logging.
 
-### 1.4 Level 4 — Code
-See the module layout in §4 and the per-mechanism PRDs.
+### 1.4 Level 4 — Code (key classes & one vertical slice)
+The smallest C4 level — concrete functions for the natural-language turn (the graded core):
+
+```text
+Sdk.run_nl_match(backend, gatekeeper)              sdk/sdk.py
+  -> nl_match.run_nl_match(config, ...)            services/nl_match.py
+       per turn:
+         NLDecider.decide(state, belief)           services/nl_protocol/nl_decider.py
+           GatekeptLLM.complete(prompt)            shared/llm_client.py -> ApiGatekeeper.execute(backend)  shared/gatekeeper.py
+           ambiguity_handler.parse_position(text)  services/nl_protocol/nl_decode.py  (bad text -> prior belief)
+         GameEngine.apply(state, action)           services/game_engine.py  (legality + capture, authoritative)
+         score_subgame(...)                        services/scoring.py
+  -> summary dict -> send_match_report             services/match_reporter.py -> gmail_client.send_email (gatekept)
+```
+All grid distances come from one core (`shared/grid_math` ← `strategy/geometry`, `services/remote_match`),
+and every external call (LLM, Gmail/Calendar via `shared/google_api`, MCP via `shared/mcp_transport`)
+funnels through `shared/gatekeeper.ApiGatekeeper`. Full module inventory: §4.
+
+### 1.5 Deployment view (C4 deployment)
+```text
+        Developer machine (local, outbound-only)              Render cloud (one Docker image, deployed x2)
+  +-------------------------------------------+        +---------------------------------------------+
+  |  CLI / GUI -> SDK -> Services             |        |  cop-mcp   (MCP_ROLE=cop)    HTTPS :$PORT    |
+  |  LLM client ---- HTTPS ----> OpenAI API   |        |  thief-mcp (MCP_ROLE=thief)  HTTPS :$PORT    |
+  |  McpClient  -- HTTPS (bearer token) ------------->  |  TokenAuth (MCP_AUTH_SECRET, HMAC; revocable)|
+  |  Gmail client -- HTTPS ----> Google APIs  |        |  FastMCP — tools only (no LLM, no secrets)   |
+  +--------------------+----------------------+        +---------------------------------------------+
+        |  live inter-group match (role chosen per run):           ^
+        |  play_remote.py --role cop|thief  -- bearer -->  shared HOST server (run_mcp_server.py --role host)
+        v
+   Gmail JSON report --> reporting.recipient_email
+```
+- **Outbound-only** from the dev machine (no inbound ports) — the ADR-001 / §3 security model.
+- The two public MCP URLs (cop/thief) satisfy the assignment's G4/G5; a separate `--role host` server
+  hosts the single shared authoritative game for a live cross-team series. Auth is a revocable HMAC bearer token.
 
 ---
 
