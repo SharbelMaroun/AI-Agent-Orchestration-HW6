@@ -31,6 +31,10 @@ execute the tool → returns the result to the LLM to complete the environment l
 ### 2.2 Setup
 - `PORT_COP`, `PORT_THIEF`, server base URLs, and auth tokens read from `config`/`.env`.
 - Transport: HTTP(S); local phase uses distinct localhost ports; cloud phase uses public HTTPS URLs.
+- **As-built:** the client transport is `shared/mcp_transport.McpClient(base_url, token, invoke, gatekeeper)`
+  — every `call_tool(...)` routes through the **gatekeeper** and carries the bearer token; the low-level
+  `invoke` is dependency-injected (production: a `fastmcp.Client` HTTP adapter; tests: a fake), so it is
+  offline-testable. The FastMCP servers (`mcp/servers.py`) run over streamable-HTTP at deploy time.
 
 ## 3. Architecture (Client vs Server)
 ```text
@@ -57,10 +61,13 @@ execute the tool → returns the result to the LLM to complete the environment l
 - Cloud URLs must be reachable (not firewalled); avoid org networks blocking non-standard ports.
 
 ## 6. Security
-- **Token-based auth** on both MCP URLs, with the ability to **revoke** access.
+- **Token-based auth** on both MCP URLs, with the ability to **revoke** access. **As-built:**
+  `shared/mcp_auth.TokenAuth` mints **HMAC-signed, tamper-evident** bearer tokens (`mint`), verifies them
+  in constant time (`verify`), and supports immediate **revocation** (`revoke`); the signing secret comes
+  from `MCP_AUTH_SECRET` (env, never hard-coded). Unauthorized/tampered/revoked tokens are rejected (S5).
 - Prefer **Hybrid** deployment (ADR-002): client + LLM local, only MCP server public, outbound-only —
   no inbound ports opened on developer machines.
-- Tokens in `.env` (git-ignored); `.env-example` documents required vars with dummy values.
+- Tokens/secret in `.env` (git-ignored); `.env-example` documents required vars with dummy values.
 
 ## 7. Alternatives Considered
 - **Single shared MCP server for both agents:** rejected — assignment requires two independent servers.

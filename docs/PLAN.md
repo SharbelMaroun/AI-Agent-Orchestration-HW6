@@ -177,6 +177,9 @@ src/marl_cop_thief/
 └── shared/
     ├── gatekeeper.py           # API gatekeeper (rate limit + FIFO queue + backpressure + retries + concurrency)
     ├── rate_limit.py           # RateLimitConfig, QueueStatus, SlidingWindowLimiter (config-driven)
+    ├── mcp_auth.py             # TokenAuth: mint/verify/revoke HMAC bearer tokens
+    ├── mcp_transport.py        # McpClient: gatekeeper-routed, token-auth remote tool calls
+    ├── budget.py               # BudgetTracker: spend counter + forecast + overrun alert
     ├── llm_client.py           # LLMClient protocol + GatekeptLLM
     ├── llm_backend.py          # select OpenAI vs offline echo backend (by OPENAI_API_KEY)
     ├── openai_backend.py       # real OpenAI Chat Completions (omitted from coverage)
