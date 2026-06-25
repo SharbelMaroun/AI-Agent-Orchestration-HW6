@@ -54,6 +54,7 @@ omit = [
     "src/marl_cop_thief/main.py",
     "src/marl_cop_thief/__main__.py",
     "src/marl_cop_thief/services/mcp/servers.py",
+    "src/marl_cop_thief/services/mcp/host_server.py",
     "src/marl_cop_thief/shared/google_auth.py",
     "src/marl_cop_thief/shared/openai_backend.py",
     "*/tests/*",
