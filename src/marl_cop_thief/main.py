@@ -54,15 +54,17 @@ def _run_simple(sdk: Sdk, gui: bool, live: bool) -> None:
 
 
 def _maybe_send_report(sdk: Sdk, summary: dict) -> None:
-    """Email the JSON match report via real Gmail when reporting.send_real_email is set."""
+    """Email the JSON match report via real Gmail (gatekeeper-routed) when enabled."""
     if not sdk.config.get("reporting", {}).get("send_real_email", False):
         return
     from .shared.gmail_client import send_email
+    from .shared.google_api import gmail_gatekeeper
     from .shared.google_auth import build_services
 
     sd = os.environ.get("MARL_GOOGLE_SECRETS_DIR") or sdk.config.get("google", {}).get("secrets_dir", "")
     gmail, _ = build_services(sd, sdk.config["google"]["scopes"])
-    mid = sdk.send_match_report(summary, lambda to, subj, body: send_email(gmail, to, subj, body))
+    gk = gmail_gatekeeper()  # route the Gmail send through the central gatekeeper (§2)
+    mid = sdk.send_match_report(summary, lambda to, subj, body: send_email(gmail, to, subj, body, gk))
     print(f"Report email sent: id={mid}")
 
 

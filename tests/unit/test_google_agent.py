@@ -7,6 +7,7 @@ import base64
 from marl_cop_thief.services.google_agent.calendar_writer import add_calendar_event
 from marl_cop_thief.services.google_agent.email_reader import read_emails
 from marl_cop_thief.services.google_agent.meeting_extractor import extract_meeting
+from marl_cop_thief.shared.gatekeeper import ApiGatekeeper
 from marl_cop_thief.shared.gmail_client import send_email
 from marl_cop_thief.shared.models import Meeting
 
@@ -166,3 +167,26 @@ def test_send_email_returns_message_id():
     assert "to@example.com" in decoded
     assert "Hi" in decoded
     assert "Body text" in decoded
+
+
+def test_send_email_routes_through_gatekeeper():
+    gk = ApiGatekeeper()
+    assert send_email(_FakeGmail(sends={"id": "m"}), "a@b", "s", "b", gatekeeper=gk) == "m"
+    assert gk.calls == 1  # the send was admitted + counted by the central gatekeeper
+
+
+def test_read_emails_routes_through_gatekeeper():
+    gk = ApiGatekeeper()
+    gmail = _FakeGmail(listing={"messages": [{"id": "a1"}]}, gets={"a1": {"id": "a1"}})
+    read_emails(gmail, gatekeeper=gk)
+    assert gk.calls == 2  # list + get are both routed through the gatekeeper
+
+
+def test_add_calendar_event_routes_through_gatekeeper():
+    gk = ApiGatekeeper()
+    add_calendar_event(
+        _FakeCalendar({"id": "e", "htmlLink": "l"}),
+        Meeting(title="T", start="s", end="e"),
+        gatekeeper=gk,
+    )
+    assert gk.calls == 1

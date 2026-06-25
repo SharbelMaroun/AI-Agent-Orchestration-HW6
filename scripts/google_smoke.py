@@ -22,6 +22,7 @@ from marl_cop_thief.services.google_agent.email_reader import read_emails
 from marl_cop_thief.services.google_agent.meeting_extractor import extract_meeting
 from marl_cop_thief.shared.config import load_config
 from marl_cop_thief.shared.gmail_client import send_email
+from marl_cop_thief.shared.google_api import gmail_gatekeeper
 from marl_cop_thief.shared.google_auth import build_services
 from marl_cop_thief.shared.llm_backend import select_backend, select_gatekeeper
 from marl_cop_thief.shared.llm_client import GatekeptLLM
@@ -57,9 +58,10 @@ def main() -> None:
     if services is None:
         raise SystemExit("Could not build Google services — check client_secret.json + test user.")
     gmail, calendar = services
+    gk = gmail_gatekeeper()  # all Gmail/Calendar calls below route through the gatekeeper (§2)
 
     print("\n[1/4] read_emails:")
-    emails = _step("read_emails", lambda: read_emails(gmail, max_results=3)) or []
+    emails = _step("read_emails", lambda: read_emails(gmail, max_results=3, gatekeeper=gk)) or []
     for e in emails:
         print(f"     - {e['id']}: {e['snippet'][:70]}")
 
@@ -72,14 +74,16 @@ def main() -> None:
     print("\n[3/4] add_calendar_event:")
     if meeting is not None:
         tz = cfg.get("reporting", {}).get("timezone")
-        event = _step("add_calendar_event", lambda: add_calendar_event(calendar, meeting, timezone=tz))
+        event = _step("add_calendar_event",
+                      lambda: add_calendar_event(calendar, meeting, timezone=tz, gatekeeper=gk))
         if event:
             print(f"     -> {event.get('htmlLink')}")
 
     print("\n[4/4] send_email (test, to your dev address):")
     to = cfg["reporting"]["recipient_email"]
     mid = _step("send_email", lambda: send_email(
-        gmail, to, "Cop&Thief setup smoke test", '{"status":"ok","note":"setup verified"}'))
+        gmail, to, "Cop&Thief setup smoke test",
+        '{"status":"ok","note":"setup verified"}', gatekeeper=gk))
     if mid:
         print(f"     -> sent message id {mid} to {to}")
 
