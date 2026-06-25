@@ -1,0 +1,105 @@
+   Building marl-cop-thief @ file:///C:/orch%20fo%20AI%20agents/AI-Agent-Orchestration-HW6
+      Built marl-cop-thief @ file:///C:/orch%20fo%20AI%20agents/AI-Agent-Orchestration-HW6
+Uninstalled 1 package in 32ms
+Installed 1 package in 88ms
+============================= test session starts =============================
+platform win32 -- Python 3.13.2, pytest-9.1.1, pluggy-1.6.0
+rootdir: C:\orch fo AI agents\AI-Agent-Orchestration-HW6
+configfile: pyproject.toml
+testpaths: tests
+plugins: anyio-4.14.1, cov-7.1.0
+collected 189 items
+
+tests\integration\test_gui.py ............                               [  6%]
+tests\integration\test_match_flow.py .                                   [  6%]
+tests\integration\test_mcp_servers.py ..                                 [  7%]
+tests\integration\test_nl_match.py .                                     [  8%]
+tests\integration\test_subgame_flow.py ..                                [  9%]
+tests\unit\test_barriers.py ..                                           [ 10%]
+tests\unit\test_board.py ....                                            [ 12%]
+tests\unit\test_config.py .........                                      [ 17%]
+tests\unit\test_constants.py ...                                         [ 19%]
+tests\unit\test_game_engine.py .............                             [ 25%]
+tests\unit\test_gatekeeper.py .........                                  [ 30%]
+tests\unit\test_gatekeeper_concurrency.py .......                        [ 34%]
+tests\unit\test_geometry.py ...                                          [ 35%]
+tests\unit\test_google_agent.py .........                                [ 40%]
+tests\unit\test_heuristic.py ....                                        [ 42%]
+tests\unit\test_llm_backend.py .....                                     [ 45%]
+tests\unit\test_llm_client.py .                                          [ 46%]
+tests\unit\test_match_stream.py ......                                   [ 49%]
+tests\unit\test_message_bus.py ....                                      [ 51%]
+tests\unit\test_models.py ...                                            [ 52%]
+tests\unit\test_nl_decider.py ....                                       [ 55%]
+tests\unit\test_nl_match_runner.py ..............                        [ 62%]
+tests\unit\test_nl_protocol.py ..........                                [ 67%]
+tests\unit\test_observation.py .....                                     [ 70%]
+tests\unit\test_orchestrator.py ........                                 [ 74%]
+tests\unit\test_rate_limit.py .......                                    [ 78%]
+tests\unit\test_reporting.py .....                                       [ 80%]
+tests\unit\test_scoring.py ....                                          [ 83%]
+tests\unit\test_sdk.py ....                                              [ 85%]
+tests\unit\test_smart_cop.py .....                                       [ 87%]
+tests\unit\test_smart_thief.py .......                                   [ 91%]
+tests\unit\test_token_cost.py .....                                      [ 94%]
+tests\unit\test_tool_service.py .......                                  [ 97%]
+tests\unit\test_turn_pipeline.py ..                                      [ 98%]
+tests\unit\test_version.py ..                                            [100%]
+
+- generated xml file: C:\orch fo AI agents\AI-Agent-Orchestration-HW6\results\junit.xml -
+=============================== tests coverage ================================
+_______________ coverage: platform win32, python 3.13.2-final-0 _______________
+
+Name                                                            Stmts   Miss Branch BrPart  Cover   Missing
+-----------------------------------------------------------------------------------------------------------
+src\marl_cop_thief\__init__.py                                      3      0      0      0   100%
+src\marl_cop_thief\sdk\__init__.py                                  2      0      0      0   100%
+src\marl_cop_thief\sdk\sdk.py                                      19      0      0      0   100%
+src\marl_cop_thief\services\__init__.py                             0      0      0      0   100%
+src\marl_cop_thief\services\accumulator.py                          8      0      0      0   100%
+src\marl_cop_thief\services\barriers.py                             7      0      0      0   100%
+src\marl_cop_thief\services\board.py                               24      0      8      0   100%
+src\marl_cop_thief\services\game_engine.py                         58      0     26      0   100%
+src\marl_cop_thief\services\google_agent\__init__.py                0      0      0      0   100%
+src\marl_cop_thief\services\google_agent\calendar_writer.py         7      0      0      0   100%
+src\marl_cop_thief\services\google_agent\email_reader.py           10      0      2      0   100%
+src\marl_cop_thief\services\google_agent\meeting_extractor.py      16      0      4      0   100%
+src\marl_cop_thief\services\match_stream.py                        24      0      2      0   100%
+src\marl_cop_thief\services\mcp\__init__.py                         0      0      0      0   100%
+src\marl_cop_thief\services\mcp\message_bus.py                     17      0      0      0   100%
+src\marl_cop_thief\services\mcp\tools.py                           37      0      6      0   100%
+src\marl_cop_thief\services\nl_match.py                            58      0      6      0   100%
+src\marl_cop_thief\services\nl_protocol\__init__.py                 0      0      0      0   100%
+src\marl_cop_thief\services\nl_protocol\ambiguity_handler.py       11      0      4      0   100%
+src\marl_cop_thief\services\nl_protocol\nl_decider.py              38      0      8      0   100%
+src\marl_cop_thief\services\nl_protocol\nl_decode.py               15      0      2      0   100%
+src\marl_cop_thief\services\nl_protocol\nl_encode.py               18      0      6      0   100%
+src\marl_cop_thief\services\nl_protocol\nl_speak.py                15      0      0      0   100%
+src\marl_cop_thief\services\nl_protocol\prompt_templates.py        24      0      6      0   100%
+src\marl_cop_thief\services\observation.py                         24      0      0      0   100%
+src\marl_cop_thief\services\orchestrator.py                        41      0      6      0   100%
+src\marl_cop_thief\services\reporting.py                            9      0      0      0   100%
+src\marl_cop_thief\services\scoring.py                             11      0      2      0   100%
+src\marl_cop_thief\services\strategy\__init__.py                    0      0      0      0   100%
+src\marl_cop_thief\services\strategy\evasion.py                    11      0      0      0   100%
+src\marl_cop_thief\services\strategy\geometry.py                    4      0      0      0   100%
+src\marl_cop_thief\services\strategy\heuristic.py                  19      0      4      0   100%
+src\marl_cop_thief\services\strategy\smart_cop.py                  27      0      6      0   100%
+src\marl_cop_thief\services\strategy\smart_thief.py                10      0      2      0   100%
+src\marl_cop_thief\services\turn_pipeline.py                       12      0      2      0   100%
+src\marl_cop_thief\shared\__init__.py                               2      0      0      0   100%
+src\marl_cop_thief\shared\config.py                                30      0      6      0   100%
+src\marl_cop_thief\shared\constants.py                             16      0      0      0   100%
+src\marl_cop_thief\shared\gatekeeper.py                           105      0     14      0   100%
+src\marl_cop_thief\shared\gmail_client.py                          12      0      0      0   100%
+src\marl_cop_thief\shared\llm_backend.py                           18      0      4      0   100%
+src\marl_cop_thief\shared\llm_client.py                            11      0      0      0   100%
+src\marl_cop_thief\shared\models.py                                58      0      0      0   100%
+src\marl_cop_thief\shared\rate_limit.py                            56      0     10      0   100%
+src\marl_cop_thief\shared\token_cost.py                            18      0      2      0   100%
+src\marl_cop_thief\shared\version.py                                3      0      0      0   100%
+-----------------------------------------------------------------------------------------------------------
+TOTAL                                                             908      0    138      0   100%
+Coverage XML written to file results/coverage.xml
+Required test coverage of 85.0% reached. Total coverage: 100.00%
+============================ 189 passed in 23.55s =============================

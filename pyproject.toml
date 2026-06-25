@@ -43,7 +43,9 @@ ignore = ["E501"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-addopts = "--cov=src --cov-branch --cov-report=term-missing"
+# Every run also emits a machine-readable JUnit report (pass/fail per test) to results/.
+# For an HTML coverage report: uv run pytest --cov-report=html:results/htmlcov
+addopts = "--cov=src --cov-branch --cov-report=term-missing --cov-report=xml:results/coverage.xml --junitxml=results/junit.xml"
 
 [tool.coverage.run]
 source = ["src"]

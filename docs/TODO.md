@@ -749,16 +749,16 @@ _Close every gap from the 2026-06-25 multi-agent audit (see docs/AUDIT-2026-06-2
 | T10.5 | README token-cost table skeleton R.7 [gap26] | P1 | ✅ | `<TBD>` | Table present |
 | T10.6 | LICENSE file + README License/Credits [gap22,32] | P1 | ✅ | `<TBD>` | MIT LICENSE; credits listed |
 | T10.7 | Preserve audit findings in repo [meta] | P1 | ✅ | `<TBD>` | docs/AUDIT-2026-06-25.md |
-| T10.8 | Automated test report (junit-xml + HTML coverage) + save success/fail run logs to results/ [gap2,25,C10] | P0 | ⬜ | `<TBD>` | Report + logs artifacts |
-| T10.9 | Document expected results per test [gap2] | P1 | ⬜ | `<TBD>` | Expected outcomes recorded |
-| T10.10 | Enable branch coverage (branch=true, --cov-branch) in pyproject [gap24] | P0 | 🟦 | `<TBD>` | CLAUDE/PLAN updated; configure in pyproject |
-| T10.11 | Tiered coverage: critical modules >=95% [gap23] | P1 | 🟦 | `<TBD>` | CLAUDE rule added; tag tasks |
+| T10.8 | Automated test report (junit-xml + HTML coverage) + save success/fail run logs to results/ [gap2,25,C10] | P0 | ✅ | `<TBD>` | pytest addopts → `results/{junit,coverage}.xml`; `results/test_run.log` committed |
+| T10.9 | Document expected results per test [gap2] | P1 | ✅ | `<TBD>` | `results/TEST_REPORT.md` (expected results per area + regen) |
+| T10.10 | Enable branch coverage (branch=true, --cov-branch) in pyproject [gap24] | P0 | ✅ | `<TBD>` | `branch=true` + `--cov-branch` in pyproject |
+| T10.11 | Tiered coverage: critical modules >=95% [gap23] | P1 | ✅ | `<TBD>` | All counted modules at **100%** (≥95% floor met) |
 | T10.12 | Exact ruff: target-version py310 + ignore E501 [gap35,36] | P1 | ✅ | `<TBD>` | CLAUDE updated; mirror in pyproject |
-| T10.13 | Exact coverage omit block in pyproject [gap34] | P2 | ⬜ | `<TBD>` | source=src; omit gui/main/tests |
-| T10.14 | docs/EDGE_CASES.md register (boundary|input|expected) [gap11] | P1 | ⬜ | `<TBD>` | Edge-case table per module |
-| T10.15 | Capture fault screenshots for edge cases once code exists [gap11,C10] | P2 | ⬜ | `<TBD>` | In README R.4/R.5 |
-| T10.16 | __init__.py in every sub-package (services/mcp/shared/strategy/google_agent/nl_protocol/gui/tests) [gap16] | P1 | ⬜ | `<TBD>` | All dirs have __init__ |
-| T10.17 | pyproject [project]: name,version,description,authors,license,deps (6 fields) [gap52] | P1 | ⬜ | `<TBD>` | All fields present |
+| T10.13 | Exact coverage omit block in pyproject [gap34] | P2 | ✅ | `<TBD>` | source=src; omit gui/main/servers/auth/openai/tests |
+| T10.14 | docs/EDGE_CASES.md register (boundary|input|expected) [gap11] | P1 | ✅ | `<TBD>` | `docs/EDGE_CASES.md` per-module table |
+| T10.15 | Capture fault screenshots for edge cases once code exists [gap11,C10] | P2 | 🟦 | `<TBD>` | Fault reports in README R.3/R.4 (freeze, always-left); more pending |
+| T10.16 | __init__.py in every sub-package (services/mcp/shared/strategy/google_agent/nl_protocol/gui/tests) [gap16] | P1 | ✅ | `<TBD>` | All src sub-pkgs + tests/ dirs have `__init__.py` |
+| T10.17 | pyproject [project]: name,version,description,authors,license,deps (6 fields) [gap52] | P1 | ✅ | `<TBD>` | All 6 fields present |
 | T10.18 | Relative file I/O for in-repo paths; secrets_dir sole external [gap53,C21] | P1 | ⬜ | `<TBD>` | No absolute in-repo paths |
 | T10.19 | Per-environment config templates (.env.dev/.env.prod) [gap60] | P2 | ⬜ | `<TBD>` | Templates shipped |
 | T10.20 | Pin Google client lib versions in pyproject (version churn) [C26] | P2 | ⬜ | `<TBD>` | Versions pinned |
@@ -768,11 +768,11 @@ _Close every gap from the 2026-06-25 multi-agent audit (see docs/AUDIT-2026-06-2
 | T10.24 | Graph quality 5-part (labels,legend,colors,caption,>=150dpi) [gap13] | P2 | ⬜ | `<TBD>` | DoD on viz tasks |
 | T10.25 | Name viz stack (Matplotlib/Seaborn/Plotly) + add deps [gap42] | P2 | ⬜ | `<TBD>` | Deps added |
 | T10.26 | Budget mgmt: forecast + real-time spend counter + overrun alert [gap14,C20] | P2 | 🟦 | `<TBD>` | Forecast + token-cost util (`token_cost.py`) + design in README R.7; live gatekeeper spend counter/alert pending |
-| T10.27 | Usability NFR + Nielsen 10 heuristics mapping + accessibility [gap15,43,44,46,47,C8] | P1 | ⬜ | `<TBD>` | PRD NFR + README UI section |
-| T10.28 | User-workflow + interactions/feedback documentation [gap45] | P2 | ⬜ | `<TBD>` | README section 3 / PRD_ui |
-| T10.29 | ISO/IEC 25010 per-characteristic self-assessment table [gap50,51] | P2 | ⬜ | `<TBD>` | 8-char mapping |
-| T10.30 | Standards alignment: cite all five (ISO,MIT SQA,Google,MS,Nielsen) [gap59] | P2 | 🟦 | `<TBD>` | README section 4 note; expand |
-| T10.31 | Extension points/plugin architecture + lifecycle hooks + worked example [gap48,49,58,C11] | P2 | ⬜ | `<TBD>` | PLAN section + example |
+| T10.27 | Usability NFR + Nielsen 10 heuristics mapping + accessibility [gap15,43,44,46,47,C8] | P1 | ✅ | `<TBD>` | README R.11 (Nielsen table + accessibility) |
+| T10.28 | User-workflow + interactions/feedback documentation [gap45] | P2 | ✅ | `<TBD>` | README §3.2 workflow + R.11 feedback |
+| T10.29 | ISO/IEC 25010 per-characteristic self-assessment table [gap50,51] | P2 | ✅ | `<TBD>` | README R.10 (8-char mapping) |
+| T10.30 | Standards alignment: cite all five (ISO,MIT SQA,Google,MS,Nielsen) [gap59] | P2 | ✅ | `<TBD>` | README R.11 Standards-alignment line |
+| T10.31 | Extension points/plugin architecture + lifecycle hooks + worked example [gap48,49,58,C11] | P2 | ✅ | `<TBD>` | PLAN §4.1 extension-points table + examples |
 | T10.32 | C4 Level-4 (Code) view + labeled deployment diagram [C22] | P2 | ⬜ | `<TBD>` | Diagrams in assets/ |
 | T10.33 | Building-block contract: Input/Output/Setup + DI testability [C9] | P2 | ⬜ | `<TBD>` | Contract documented |
 | T10.34 | Production secret-management note (Vault/Secrets Manager) [gap37] | P3 | ⬜ | `<TBD>` | PLAN section 3 note |

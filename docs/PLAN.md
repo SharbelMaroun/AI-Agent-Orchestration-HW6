@@ -214,6 +214,22 @@ assets/    graphs, board screenshots, match.gif        results/  run logs
 > and a **capture flash** on a cop win. Trails + `max_moves` are passed in by the caller so the renderer
 > stays stateless. (Matplotlib can't draw colour emoji, so agents are distinct glowing tokens, not emoji.)
 
+### 4.1 Extension Points (extensibility)
+New behaviour is added by implementing a small interface and registering it via config — **no core edits**:
+
+| Extension point | Interface / contract | Register via | Worked example |
+|---|---|---|---|
+| **Strategy (cop/thief)** | `Decider = Callable[[GameEngine, GameState], Action]` | add to `COP_POLICIES` / `THIEF_POLICIES` in `orchestrator.py`; pick with `strategy.type` / `strategy.thief_type` | add `q_table`: write `q_table_action(engine, state)`, register `COP_POLICIES["q_table"]=...`, set `strategy.type:"q_table"` |
+| **LLM backend** | `Callable[[str], str]` | `shared/llm_backend.select_backend` (keyed on env) | swap OpenAI for Anthropic by returning a different completion callable |
+| **Speaker (NL voice)** | `Speaker = Callable[[Role, Observation, Action], str]` | inject into `NLDecider` (`encode` template or `nl_speak.llm_speaker`) | add a new persona by writing a `speak_prompt` variant |
+| **GUI renderer/consumer** | consume the SDK frame stream (`(state, caption)`) | `gui/` viewers (`live_viewer`, `match_animator`) | add a web renderer that consumes `Sdk.stream_nl_frames` |
+| **MCP tools** | FastMCP tool functions over `ToolService` | `services/mcp/` | expose a new verification tool |
+
+Lifecycle seams today are the **per-turn pipeline** (`turn_pipeline.run_turn` — the natural before/after-move
+hook) and the **frame stream** (`match_stream.stream_subgame` — observe each turn). A formal plugin/middleware
+registry (entry-points) is a noted future enhancement; the callable-interface + config-registry pattern
+above already allows adding strategies, backends, voices, renderers, and tools without touching core logic.
+
 ---
 
 ## 5. Data Contracts & Schemas
