@@ -8,7 +8,7 @@
 > **Status:** ⬜ Not Started · 🟦 In Progress · ✅ Completed — **Priority:** P0–P3. Owner: `<TBD>`.  
 > Update statuses continuously; add a README Work-Log row + evidence (graph/screenshot) per task.
 
-> **Implementation status (code, 2026-06-25):** Phase 0 ✅ · Phase 1 ✅ · Phase 2 🟦 (tool layer + 2 FastMCP servers done; MCP transport/auth pending) · Phase 3 ✅ · Phase 5 ✅ (NL agents + minimal gatekeeper) · Phase 4 🟦 (heuristic only) — all green (ruff clean, pytest 86 passing, 100% coverage). Phases 6–10 mostly pending; the gatekeeper is minimal (retry+log) pending full FIFO queue.
+> **Implementation status (code, 2026-06-25):** Phase 0 ✅ · Phase 1 ✅ · Phase 2 🟦 (tool layer + 2 FastMCP servers done; MCP transport/auth pending) · Phase 3 ✅ · Phase 5 ✅ (NL agents, runnable via --nl) · Phase 8 🟦 (report builder + Gmail/Calendar agent tools done; real OAuth send pending) · Phase 4 🟦 (heuristic only) — all green (ruff clean, pytest 106 passing, 100% coverage). Phases 6/7/9/10 mostly pending; gatekeeper minimal (retry+log) pending full FIFO queue.
 
 ---
 
@@ -499,28 +499,28 @@ _Google setup + read/extract/calendar/send agent + JSON report. See PRD_gmail_ca
 
 | ID | Task | Pri | Status | Owner | DoD |
 |----|------|-----|--------|-------|-----|
-| T8.1 | Spec & single-concern interface for `shared/google_auth.py` — OAuth flow, token load/refresh/recovery | P0 | ⬜ | `<TBD>` | Interface + docstring agreed; ≤150-LOC plan |
-| T8.2 | Define typed models/signatures for `shared/google_auth.py` | P0 | ⬜ | `<TBD>` | Typed inputs/outputs defined |
-| T8.3 | RED: write failing unit tests for `shared/google_auth.py` (happy path) | P0 | ⬜ | `<TBD>` | Failing tests committed |
-| T8.4 | GREEN: implement `shared/google_auth.py` | P0 | ⬜ | `<TBD>` | Happy-path tests pass |
-| T8.5 | Edge-case & boundary tests for `shared/google_auth.py` | P0 | ⬜ | `<TBD>` | Empty/invalid/limit inputs covered |
-| T8.6 | Defensive error handling in `shared/google_auth.py` | P0 | ⬜ | `<TBD>` | Graceful failure + clear message |
-| T8.7 | Refactor `shared/google_auth.py`: DRY, ≤150 lines, single responsibility | P0 | ⬜ | `<TBD>` | No duplication; ≤150 LOC |
-| T8.8 | Docstrings + why-comments for `shared/google_auth.py` | P0 | ⬜ | `<TBD>` | Module/functions documented |
-| T8.9 | Ruff clean `shared/google_auth.py` | P0 | ⬜ | `<TBD>` | 0 ruff violations |
-| T8.10 | Mock external deps in `shared/google_auth.py` tests | P0 | ⬜ | `<TBD>` | No live external calls |
-| T8.11 | Coverage ≥85% for `shared/google_auth.py` + add README Work Log row | P0 | ⬜ | `<TBD>` | ≥85% coverage; Work Log updated |
-| T8.12 | Spec & single-concern interface for `shared/gmail_client.py` — Gmail read + send (via gatekeeper) | P0 | ⬜ | `<TBD>` | Interface + docstring agreed; ≤150-LOC plan |
-| T8.13 | Define typed models/signatures for `shared/gmail_client.py` | P0 | ⬜ | `<TBD>` | Typed inputs/outputs defined |
-| T8.14 | RED: write failing unit tests for `shared/gmail_client.py` (happy path) | P0 | ⬜ | `<TBD>` | Failing tests committed |
-| T8.15 | GREEN: implement `shared/gmail_client.py` | P0 | ⬜ | `<TBD>` | Happy-path tests pass |
-| T8.16 | Edge-case & boundary tests for `shared/gmail_client.py` | P0 | ⬜ | `<TBD>` | Empty/invalid/limit inputs covered |
-| T8.17 | Defensive error handling in `shared/gmail_client.py` | P0 | ⬜ | `<TBD>` | Graceful failure + clear message |
-| T8.18 | Refactor `shared/gmail_client.py`: DRY, ≤150 lines, single responsibility | P0 | ⬜ | `<TBD>` | No duplication; ≤150 LOC |
-| T8.19 | Docstrings + why-comments for `shared/gmail_client.py` | P0 | ⬜ | `<TBD>` | Module/functions documented |
-| T8.20 | Ruff clean `shared/gmail_client.py` | P0 | ⬜ | `<TBD>` | 0 ruff violations |
-| T8.21 | Mock external deps in `shared/gmail_client.py` tests | P0 | ⬜ | `<TBD>` | No live external calls |
-| T8.22 | Coverage ≥85% for `shared/gmail_client.py` + add README Work Log row | P0 | ⬜ | `<TBD>` | ≥85% coverage; Work Log updated |
+| T8.1 | Spec & single-concern interface for `shared/google_auth.py` — OAuth flow, token load/refresh/recovery | P0 | 🟦 | `<TBD>` | Interface + docstring agreed; ≤150-LOC plan |
+| T8.2 | Define typed models/signatures for `shared/google_auth.py` | P0 | 🟦 | `<TBD>` | Typed inputs/outputs defined |
+| T8.3 | RED: write failing unit tests for `shared/google_auth.py` (happy path) | P0 | 🟦 | `<TBD>` | Failing tests committed |
+| T8.4 | GREEN: implement `shared/google_auth.py` | P0 | 🟦 | `<TBD>` | Happy-path tests pass |
+| T8.5 | Edge-case & boundary tests for `shared/google_auth.py` | P0 | 🟦 | `<TBD>` | Empty/invalid/limit inputs covered |
+| T8.6 | Defensive error handling in `shared/google_auth.py` | P0 | 🟦 | `<TBD>` | Graceful failure + clear message |
+| T8.7 | Refactor `shared/google_auth.py`: DRY, ≤150 lines, single responsibility | P0 | 🟦 | `<TBD>` | No duplication; ≤150 LOC |
+| T8.8 | Docstrings + why-comments for `shared/google_auth.py` | P0 | 🟦 | `<TBD>` | Module/functions documented |
+| T8.9 | Ruff clean `shared/google_auth.py` | P0 | 🟦 | `<TBD>` | 0 ruff violations |
+| T8.10 | Mock external deps in `shared/google_auth.py` tests | P0 | 🟦 | `<TBD>` | No live external calls |
+| T8.11 | Coverage ≥85% for `shared/google_auth.py` + add README Work Log row | P0 | 🟦 | `<TBD>` | ≥85% coverage; Work Log updated |
+| T8.12 | Spec & single-concern interface for `shared/gmail_client.py` — Gmail read + send (via gatekeeper) | P0 | ✅ | `<TBD>` | Interface + docstring agreed; ≤150-LOC plan |
+| T8.13 | Define typed models/signatures for `shared/gmail_client.py` | P0 | ✅ | `<TBD>` | Typed inputs/outputs defined |
+| T8.14 | RED: write failing unit tests for `shared/gmail_client.py` (happy path) | P0 | ✅ | `<TBD>` | Failing tests committed |
+| T8.15 | GREEN: implement `shared/gmail_client.py` | P0 | ✅ | `<TBD>` | Happy-path tests pass |
+| T8.16 | Edge-case & boundary tests for `shared/gmail_client.py` | P0 | ✅ | `<TBD>` | Empty/invalid/limit inputs covered |
+| T8.17 | Defensive error handling in `shared/gmail_client.py` | P0 | ✅ | `<TBD>` | Graceful failure + clear message |
+| T8.18 | Refactor `shared/gmail_client.py`: DRY, ≤150 lines, single responsibility | P0 | ✅ | `<TBD>` | No duplication; ≤150 LOC |
+| T8.19 | Docstrings + why-comments for `shared/gmail_client.py` | P0 | ✅ | `<TBD>` | Module/functions documented |
+| T8.20 | Ruff clean `shared/gmail_client.py` | P0 | ✅ | `<TBD>` | 0 ruff violations |
+| T8.21 | Mock external deps in `shared/gmail_client.py` tests | P0 | ✅ | `<TBD>` | No live external calls |
+| T8.22 | Coverage ≥85% for `shared/gmail_client.py` + add README Work Log row | P0 | ✅ | `<TBD>` | ≥85% coverage; Work Log updated |
 | T8.23 | Spec & single-concern interface for `shared/calendar_client.py` — Google Calendar events (via gatekeeper) | P0 | ⬜ | `<TBD>` | Interface + docstring agreed; ≤150-LOC plan |
 | T8.24 | Define typed models/signatures for `shared/calendar_client.py` | P0 | ⬜ | `<TBD>` | Typed inputs/outputs defined |
 | T8.25 | RED: write failing unit tests for `shared/calendar_client.py` (happy path) | P0 | ⬜ | `<TBD>` | Failing tests committed |
@@ -532,50 +532,50 @@ _Google setup + read/extract/calendar/send agent + JSON report. See PRD_gmail_ca
 | T8.31 | Ruff clean `shared/calendar_client.py` | P0 | ⬜ | `<TBD>` | 0 ruff violations |
 | T8.32 | Mock external deps in `shared/calendar_client.py` tests | P0 | ⬜ | `<TBD>` | No live external calls |
 | T8.33 | Coverage ≥85% for `shared/calendar_client.py` + add README Work Log row | P0 | ⬜ | `<TBD>` | ≥85% coverage; Work Log updated |
-| T8.34 | Spec & single-concern interface for `services/google_agent/email_reader.py` — read_emails() | P0 | ⬜ | `<TBD>` | Interface + docstring agreed; ≤150-LOC plan |
-| T8.35 | Define typed models/signatures for `services/google_agent/email_reader.py` | P0 | ⬜ | `<TBD>` | Typed inputs/outputs defined |
-| T8.36 | RED: write failing unit tests for `services/google_agent/email_reader.py` (happy path) | P0 | ⬜ | `<TBD>` | Failing tests committed |
-| T8.37 | GREEN: implement `services/google_agent/email_reader.py` | P0 | ⬜ | `<TBD>` | Happy-path tests pass |
-| T8.38 | Edge-case & boundary tests for `services/google_agent/email_reader.py` | P0 | ⬜ | `<TBD>` | Empty/invalid/limit inputs covered |
-| T8.39 | Defensive error handling in `services/google_agent/email_reader.py` | P0 | ⬜ | `<TBD>` | Graceful failure + clear message |
-| T8.40 | Refactor `services/google_agent/email_reader.py`: DRY, ≤150 lines, single responsibility | P0 | ⬜ | `<TBD>` | No duplication; ≤150 LOC |
-| T8.41 | Docstrings + why-comments for `services/google_agent/email_reader.py` | P0 | ⬜ | `<TBD>` | Module/functions documented |
-| T8.42 | Ruff clean `services/google_agent/email_reader.py` | P0 | ⬜ | `<TBD>` | 0 ruff violations |
-| T8.43 | Mock external deps in `services/google_agent/email_reader.py` tests | P0 | ⬜ | `<TBD>` | No live external calls |
-| T8.44 | Coverage ≥85% for `services/google_agent/email_reader.py` + add README Work Log row | P0 | ⬜ | `<TBD>` | ≥85% coverage; Work Log updated |
-| T8.45 | Spec & single-concern interface for `services/google_agent/meeting_extractor.py` — extract_meeting() (LLM-assisted) | P0 | ⬜ | `<TBD>` | Interface + docstring agreed; ≤150-LOC plan |
-| T8.46 | Define typed models/signatures for `services/google_agent/meeting_extractor.py` | P0 | ⬜ | `<TBD>` | Typed inputs/outputs defined |
-| T8.47 | RED: write failing unit tests for `services/google_agent/meeting_extractor.py` (happy path) | P0 | ⬜ | `<TBD>` | Failing tests committed |
-| T8.48 | GREEN: implement `services/google_agent/meeting_extractor.py` | P0 | ⬜ | `<TBD>` | Happy-path tests pass |
-| T8.49 | Edge-case & boundary tests for `services/google_agent/meeting_extractor.py` | P0 | ⬜ | `<TBD>` | Empty/invalid/limit inputs covered |
-| T8.50 | Defensive error handling in `services/google_agent/meeting_extractor.py` | P0 | ⬜ | `<TBD>` | Graceful failure + clear message |
-| T8.51 | Refactor `services/google_agent/meeting_extractor.py`: DRY, ≤150 lines, single responsibility | P0 | ⬜ | `<TBD>` | No duplication; ≤150 LOC |
-| T8.52 | Docstrings + why-comments for `services/google_agent/meeting_extractor.py` | P0 | ⬜ | `<TBD>` | Module/functions documented |
-| T8.53 | Ruff clean `services/google_agent/meeting_extractor.py` | P0 | ⬜ | `<TBD>` | 0 ruff violations |
-| T8.54 | Mock external deps in `services/google_agent/meeting_extractor.py` tests | P0 | ⬜ | `<TBD>` | No live external calls |
-| T8.55 | Coverage ≥85% for `services/google_agent/meeting_extractor.py` + add README Work Log row | P0 | ⬜ | `<TBD>` | ≥85% coverage; Work Log updated |
-| T8.56 | Spec & single-concern interface for `services/google_agent/calendar_writer.py` — add_calendar_event() | P0 | ⬜ | `<TBD>` | Interface + docstring agreed; ≤150-LOC plan |
-| T8.57 | Define typed models/signatures for `services/google_agent/calendar_writer.py` | P0 | ⬜ | `<TBD>` | Typed inputs/outputs defined |
-| T8.58 | RED: write failing unit tests for `services/google_agent/calendar_writer.py` (happy path) | P0 | ⬜ | `<TBD>` | Failing tests committed |
-| T8.59 | GREEN: implement `services/google_agent/calendar_writer.py` | P0 | ⬜ | `<TBD>` | Happy-path tests pass |
-| T8.60 | Edge-case & boundary tests for `services/google_agent/calendar_writer.py` | P0 | ⬜ | `<TBD>` | Empty/invalid/limit inputs covered |
-| T8.61 | Defensive error handling in `services/google_agent/calendar_writer.py` | P0 | ⬜ | `<TBD>` | Graceful failure + clear message |
-| T8.62 | Refactor `services/google_agent/calendar_writer.py`: DRY, ≤150 lines, single responsibility | P0 | ⬜ | `<TBD>` | No duplication; ≤150 LOC |
-| T8.63 | Docstrings + why-comments for `services/google_agent/calendar_writer.py` | P0 | ⬜ | `<TBD>` | Module/functions documented |
-| T8.64 | Ruff clean `services/google_agent/calendar_writer.py` | P0 | ⬜ | `<TBD>` | 0 ruff violations |
-| T8.65 | Mock external deps in `services/google_agent/calendar_writer.py` tests | P0 | ⬜ | `<TBD>` | No live external calls |
-| T8.66 | Coverage ≥85% for `services/google_agent/calendar_writer.py` + add README Work Log row | P0 | ⬜ | `<TBD>` | ≥85% coverage; Work Log updated |
-| T8.67 | Spec & single-concern interface for `services/reporting.py` — build JSON report + send via send_email | P0 | ⬜ | `<TBD>` | Interface + docstring agreed; ≤150-LOC plan |
-| T8.68 | Define typed models/signatures for `services/reporting.py` | P0 | ⬜ | `<TBD>` | Typed inputs/outputs defined |
-| T8.69 | RED: write failing unit tests for `services/reporting.py` (happy path) | P0 | ⬜ | `<TBD>` | Failing tests committed |
-| T8.70 | GREEN: implement `services/reporting.py` | P0 | ⬜ | `<TBD>` | Happy-path tests pass |
-| T8.71 | Edge-case & boundary tests for `services/reporting.py` | P0 | ⬜ | `<TBD>` | Empty/invalid/limit inputs covered |
-| T8.72 | Defensive error handling in `services/reporting.py` | P0 | ⬜ | `<TBD>` | Graceful failure + clear message |
-| T8.73 | Refactor `services/reporting.py`: DRY, ≤150 lines, single responsibility | P0 | ⬜ | `<TBD>` | No duplication; ≤150 LOC |
-| T8.74 | Docstrings + why-comments for `services/reporting.py` | P0 | ⬜ | `<TBD>` | Module/functions documented |
-| T8.75 | Ruff clean `services/reporting.py` | P0 | ⬜ | `<TBD>` | 0 ruff violations |
-| T8.76 | Mock external deps in `services/reporting.py` tests | P0 | ⬜ | `<TBD>` | No live external calls |
-| T8.77 | Coverage ≥85% for `services/reporting.py` + add README Work Log row | P0 | ⬜ | `<TBD>` | ≥85% coverage; Work Log updated |
+| T8.34 | Spec & single-concern interface for `services/google_agent/email_reader.py` — read_emails() | P0 | ✅ | `<TBD>` | Interface + docstring agreed; ≤150-LOC plan |
+| T8.35 | Define typed models/signatures for `services/google_agent/email_reader.py` | P0 | ✅ | `<TBD>` | Typed inputs/outputs defined |
+| T8.36 | RED: write failing unit tests for `services/google_agent/email_reader.py` (happy path) | P0 | ✅ | `<TBD>` | Failing tests committed |
+| T8.37 | GREEN: implement `services/google_agent/email_reader.py` | P0 | ✅ | `<TBD>` | Happy-path tests pass |
+| T8.38 | Edge-case & boundary tests for `services/google_agent/email_reader.py` | P0 | ✅ | `<TBD>` | Empty/invalid/limit inputs covered |
+| T8.39 | Defensive error handling in `services/google_agent/email_reader.py` | P0 | ✅ | `<TBD>` | Graceful failure + clear message |
+| T8.40 | Refactor `services/google_agent/email_reader.py`: DRY, ≤150 lines, single responsibility | P0 | ✅ | `<TBD>` | No duplication; ≤150 LOC |
+| T8.41 | Docstrings + why-comments for `services/google_agent/email_reader.py` | P0 | ✅ | `<TBD>` | Module/functions documented |
+| T8.42 | Ruff clean `services/google_agent/email_reader.py` | P0 | ✅ | `<TBD>` | 0 ruff violations |
+| T8.43 | Mock external deps in `services/google_agent/email_reader.py` tests | P0 | ✅ | `<TBD>` | No live external calls |
+| T8.44 | Coverage ≥85% for `services/google_agent/email_reader.py` + add README Work Log row | P0 | ✅ | `<TBD>` | ≥85% coverage; Work Log updated |
+| T8.45 | Spec & single-concern interface for `services/google_agent/meeting_extractor.py` — extract_meeting() (LLM-assisted) | P0 | ✅ | `<TBD>` | Interface + docstring agreed; ≤150-LOC plan |
+| T8.46 | Define typed models/signatures for `services/google_agent/meeting_extractor.py` | P0 | ✅ | `<TBD>` | Typed inputs/outputs defined |
+| T8.47 | RED: write failing unit tests for `services/google_agent/meeting_extractor.py` (happy path) | P0 | ✅ | `<TBD>` | Failing tests committed |
+| T8.48 | GREEN: implement `services/google_agent/meeting_extractor.py` | P0 | ✅ | `<TBD>` | Happy-path tests pass |
+| T8.49 | Edge-case & boundary tests for `services/google_agent/meeting_extractor.py` | P0 | ✅ | `<TBD>` | Empty/invalid/limit inputs covered |
+| T8.50 | Defensive error handling in `services/google_agent/meeting_extractor.py` | P0 | ✅ | `<TBD>` | Graceful failure + clear message |
+| T8.51 | Refactor `services/google_agent/meeting_extractor.py`: DRY, ≤150 lines, single responsibility | P0 | ✅ | `<TBD>` | No duplication; ≤150 LOC |
+| T8.52 | Docstrings + why-comments for `services/google_agent/meeting_extractor.py` | P0 | ✅ | `<TBD>` | Module/functions documented |
+| T8.53 | Ruff clean `services/google_agent/meeting_extractor.py` | P0 | ✅ | `<TBD>` | 0 ruff violations |
+| T8.54 | Mock external deps in `services/google_agent/meeting_extractor.py` tests | P0 | ✅ | `<TBD>` | No live external calls |
+| T8.55 | Coverage ≥85% for `services/google_agent/meeting_extractor.py` + add README Work Log row | P0 | ✅ | `<TBD>` | ≥85% coverage; Work Log updated |
+| T8.56 | Spec & single-concern interface for `services/google_agent/calendar_writer.py` — add_calendar_event() | P0 | ✅ | `<TBD>` | Interface + docstring agreed; ≤150-LOC plan |
+| T8.57 | Define typed models/signatures for `services/google_agent/calendar_writer.py` | P0 | ✅ | `<TBD>` | Typed inputs/outputs defined |
+| T8.58 | RED: write failing unit tests for `services/google_agent/calendar_writer.py` (happy path) | P0 | ✅ | `<TBD>` | Failing tests committed |
+| T8.59 | GREEN: implement `services/google_agent/calendar_writer.py` | P0 | ✅ | `<TBD>` | Happy-path tests pass |
+| T8.60 | Edge-case & boundary tests for `services/google_agent/calendar_writer.py` | P0 | ✅ | `<TBD>` | Empty/invalid/limit inputs covered |
+| T8.61 | Defensive error handling in `services/google_agent/calendar_writer.py` | P0 | ✅ | `<TBD>` | Graceful failure + clear message |
+| T8.62 | Refactor `services/google_agent/calendar_writer.py`: DRY, ≤150 lines, single responsibility | P0 | ✅ | `<TBD>` | No duplication; ≤150 LOC |
+| T8.63 | Docstrings + why-comments for `services/google_agent/calendar_writer.py` | P0 | ✅ | `<TBD>` | Module/functions documented |
+| T8.64 | Ruff clean `services/google_agent/calendar_writer.py` | P0 | ✅ | `<TBD>` | 0 ruff violations |
+| T8.65 | Mock external deps in `services/google_agent/calendar_writer.py` tests | P0 | ✅ | `<TBD>` | No live external calls |
+| T8.66 | Coverage ≥85% for `services/google_agent/calendar_writer.py` + add README Work Log row | P0 | ✅ | `<TBD>` | ≥85% coverage; Work Log updated |
+| T8.67 | Spec & single-concern interface for `services/reporting.py` — build JSON report + send via send_email | P0 | ✅ | `<TBD>` | Interface + docstring agreed; ≤150-LOC plan |
+| T8.68 | Define typed models/signatures for `services/reporting.py` | P0 | ✅ | `<TBD>` | Typed inputs/outputs defined |
+| T8.69 | RED: write failing unit tests for `services/reporting.py` (happy path) | P0 | ✅ | `<TBD>` | Failing tests committed |
+| T8.70 | GREEN: implement `services/reporting.py` | P0 | ✅ | `<TBD>` | Happy-path tests pass |
+| T8.71 | Edge-case & boundary tests for `services/reporting.py` | P0 | ✅ | `<TBD>` | Empty/invalid/limit inputs covered |
+| T8.72 | Defensive error handling in `services/reporting.py` | P0 | ✅ | `<TBD>` | Graceful failure + clear message |
+| T8.73 | Refactor `services/reporting.py`: DRY, ≤150 lines, single responsibility | P0 | ✅ | `<TBD>` | No duplication; ≤150 LOC |
+| T8.74 | Docstrings + why-comments for `services/reporting.py` | P0 | ✅ | `<TBD>` | Module/functions documented |
+| T8.75 | Ruff clean `services/reporting.py` | P0 | ✅ | `<TBD>` | 0 ruff violations |
+| T8.76 | Mock external deps in `services/reporting.py` tests | P0 | ✅ | `<TBD>` | No live external calls |
+| T8.77 | Coverage ≥85% for `services/reporting.py` + add README Work Log row | P0 | ✅ | `<TBD>` | ≥85% coverage; Work Log updated |
 | T8.78 | Create Google Cloud project (snake_case name) | P0 | ⬜ | `<TBD>` | Project exists |
 | T8.79 | Enable Gmail API | P0 | ⬜ | `<TBD>` | Enabled |
 | T8.80 | Enable Google Calendar API | P0 | ⬜ | `<TBD>` | Enabled |
@@ -593,10 +593,10 @@ _Google setup + read/extract/calendar/send agent + JSON report. See PRD_gmail_ca
 | T8.92 | First-run consent -> `token.json` created | P0 | ⬜ | `<TBD>` | Token generated |
 | T8.93 | Token-expiry recovery (delete -> re-consent) | P0 | ⬜ | `<TBD>` | Path tested |
 | T8.94 | Handle 'unverified app' warning (test user) | P1 | ⬜ | `<TBD>` | Flow proceeds |
-| T8.95 | Build internal-game JSON report | P0 | ⬜ | `<TBD>` | Matches schema |
-| T8.96 | Build inter-group bonus JSON report | P1 | ⬜ | `<TBD>` | Matches schema |
+| T8.95 | Build internal-game JSON report | P0 | ✅ | `<TBD>` | Matches schema |
+| T8.96 | Build inter-group bonus JSON report | P1 | ✅ | `<TBD>` | Matches schema |
 | T8.97 | Validate JSON against schema before send | P1 | ⬜ | `<TBD>` | Validation passes |
-| T8.98 | Email body is JSON-only (no free text) | P0 | ⬜ | `<TBD>` | Machine-parseable |
+| T8.98 | Email body is JSON-only (no free text) | P0 | ✅ | `<TBD>` | Machine-parseable |
 | T8.99 | Recipient from config (dev sharbelma3@gmail.com) | P0 | ⬜ | `<TBD>` | Config-driven |
 | T8.100 | send_email performs real SEND (not draft) | P0 | ⬜ | `<TBD>` | Email received |
 | T8.101 | End-to-end: 6 games -> report email sent | P0 | ⬜ | `<TBD>` | One email delivered |

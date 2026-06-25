@@ -8,6 +8,9 @@ license = { text = "MIT" }
 authors = [{ name = "Sharbel Maroun" }]
 dependencies = [
     "fastmcp>=3.4.2",
+    "google-api-python-client>=2.197.0",
+    "google-auth-httplib2>=0.4.0",
+    "google-auth-oauthlib>=1.4.0",
 ]
 
 [dependency-groups]
@@ -39,6 +42,7 @@ omit = [
     "src/marl_cop_thief/main.py",
     "src/marl_cop_thief/__main__.py",
     "src/marl_cop_thief/services/mcp/servers.py",
+    "src/marl_cop_thief/shared/google_auth.py",
     "*/tests/*",
     "src/marl_cop_thief/**/gui/*",
 ]

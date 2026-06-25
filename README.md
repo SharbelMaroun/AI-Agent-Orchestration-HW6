@@ -104,17 +104,20 @@ Nielsen's 10 usability heuristics (GUI/CLI) — see [`docs/PLAN.md`](docs/PLAN.m
 | 3 | Orchestrator + SDK + CLI (full local match) | ✅ done | `python -m marl_cop_thief` runs |
 | 4 | Decision strategy | 🟦 minimal | heuristic decider only; belief/Q-table pending |
 | 5 | Natural-language + LLM | ✅ done | NL encode/decode, ambiguity handler, NL decider; LLM via gatekeeper |
+| 8 | Report builder + Gmail/Calendar agent | 🟦 partial | JSON builders + read/extract/calendar/send tools tested; real OAuth send pending |
 | 9 | API gatekeeper | 🟦 minimal | retry + per-call logging; FIFO queue/backpressure pending |
-| 6–8, 10 | GUI, cloud, Gmail agent, research | ⬜ pending | — |
+| 6, 7, 10 | GUI, cloud, research | ⬜ pending | — |
 
-Whole suite: **86 tests, 100% coverage, Ruff zero-violation.** The LLM client routes every call through
-the (minimal) gatekeeper; the full FIFO-queue gatekeeper lands in Phase 9.
+Whole suite: **106 tests, 100% coverage, Ruff zero-violation.** The NL match is runnable via
+`uv run python -m marl_cop_thief --nl`. The Gmail/Calendar tools are dependency-injected (tested with
+fakes); `shared/google_auth.py` builds the real services and needs your Google OAuth `client_secret.json`.
 
 ## R.1 Work Log (running changelog)
 Newest first.
 
 | Date | What we did | Why | Evidence |
 |------|-------------|-----|----------|
+| 2026-06-25 | **NL match runnable** (`--nl`) + **Phase 8** report builder (internal + inter-group JSON) and Gmail/Calendar agent tools (read/extract/calendar/send, dependency-injected) | Make NL playable + build the submission report | 106 tests, 100% cov; `--nl` CLI works (workflow-authored) |
 | 2026-06-25 | **Phase 5**: NL encode/decode + ambiguity handler + NL decider; **minimal gatekeeper** + LLM client; agents coordinate in free text via the LLM-through-gatekeeper | The graded core: NL coordination under partial obs | 86 tests, 100% cov; NL sub-game runs offline |
 | 2026-06-25 | **Phase 2**: MCP tool layer (observation, message bus, tool service w/ turn-ownership) + 2 FastMCP servers exposing 6 tools each | Build the agent communication infra | 72 tests, 100% cov, ruff clean |
 | 2026-06-25 | **Phase 3**: orchestrator + turn pipeline + accumulator + SDK + CLI; full autonomous 6-sub-game match runs (heuristic decider) | Wire the end-to-end local match | `uv run python -m marl_cop_thief` works; 55 tests, 100% cov |

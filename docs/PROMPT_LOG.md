@@ -30,7 +30,7 @@ Implemented in `src/marl_cop_thief/services/nl_protocol/prompt_templates.py`.
 | B1 | `system_prompt(role)` | 1.0 | Frame the partial-observation pursuit, NL-only, role+goal | Allows vagueness so the thief can bluff |
 | B2 | `interpret_prompt(message)` | 1.0 | Extract opponent position as `x,y` or `unknown` from a message | Paired with defensive `parse_position`; falls back to prior on failure |
 | B3 | encode (deterministic) | 1.0 | Cop reveals its cell; thief stays vague (partial deception) | Template-based in `nl_encode.py` (no LLM needed to speak) |
-| B4 | meeting-extraction prompt | _TBD_ | Extract meeting + time from an email (Phase 8) | _TBD_ |
+| B4 | meeting-extraction prompt | 1.0 | Extract `title\|start_iso\|end_iso` from an email | In `services/google_agent/meeting_extractor.py`; defensive parse → `Meeting` or `None` |
 
 ## C. Recommended practices (running list)
 - Treat the submission guidelines as authoritative; restate constraints in each prompt.
