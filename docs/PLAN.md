@@ -167,6 +167,7 @@ src/marl_cop_thief/
 │   ├── observation.py          # partial-observation snapshot
 │   ├── reporting.py            # JSON report builders (internal + inter-group)
 │   ├── match_reporter.py       # summary -> JSON report email (config-gated send)
+│   ├── bonus.py                # inter-group bonus scoring (10/5/5 + averaging, §12.2)
 │   ├── nl_protocol/            # nl_encode, nl_decode, ambiguity_handler,
 │   │                           #   prompt_templates, nl_decider
 │   ├── google_agent/           # email_reader, meeting_extractor, calendar_writer (DI)

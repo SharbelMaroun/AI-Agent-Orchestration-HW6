@@ -50,3 +50,12 @@ def test_send_match_report_sends_when_enabled():
     sent = {}
     out = Sdk(cfg).send_match_report(_REPORT_SUMMARY, lambda to, s, b: sent.update(to=to) or "mid")
     assert out == "mid" and sent["to"] == "x@y"
+
+
+def test_bonus_awards_and_final_via_sdk():
+    from marl_cop_thief.services.bonus import SeriesResult
+
+    sdk = Sdk(CONFIG)
+    assert sdk.bonus_awards(SeriesResult({"A": 90, "B": 40})) == {"A": 10.0, "B": 5.0}
+    series = [SeriesResult({"A": 90, "B": 40}), SeriesResult({"A": 40, "B": 90})]
+    assert sdk.bonus_final("A", series) == 7.5

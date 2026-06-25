@@ -734,8 +734,8 @@ _Cross-cutting infra, quality gates, research/visualization, final checklist & s
 | T9.81 | Final checklist (guidelines section 20.9) pass | P0 | ⬜ | `<TBD>` | All items checked |
 | T9.82 | Prepare submission: GitHub link + 2 MCP URLs | P0 | ⬜ | `<TBD>` | Report assembled |
 | T9.83 | Send final report email to lecturer | P0 | ⬜ | `<TBD>` | Submitted |
-| T9.84 | (Bonus) Inter-group series (3+3 role swap) | P3 | ⬜ | `<TBD>` | Both reports agree |
-| T9.85 | (Bonus) Confirm mutual-agreement JSON match | P3 | ⬜ | `<TBD>` | Identical results |
+| T9.84 | (Bonus) Inter-group series (3+3 role swap) | P3 | 🟦 | `<TBD>` | Scoring math done (`bonus.py`); 6-game role-swap runner + partner team pending |
+| T9.85 | (Bonus) Confirm mutual-agreement JSON match | P3 | ✅ | `<TBD>` | `series_awards` voids (0/0) when `mutual_agreement` is false |
 
 ## Phase 10 — Audit closure (requirements coverage gaps) (Milestone: M10)
 _Close every gap from the 2026-06-25 multi-agent audit (see docs/AUDIT-2026-06-25.md). DONE = fixed in docs this pass; the rest are tracked for implementation._
@@ -783,7 +783,7 @@ _Close every gap from the 2026-06-25 multi-agent audit (see docs/AUDIT-2026-06-2
 | T10.39 | Strategic (non-random) start-position option [C16] | P3 | ⬜ | `<TBD>` | Config/strategy choice |
 | T10.40 | Clarify special-action generality vs barrier [C14] | P3 | ✅ | `<TBD>` | PRD_game_engine §1 rule 4 note |
 | T10.41 | Local-phase MCP transport avoids stdio pipe errors (use HTTP ports) [C15] | P2 | ✅ | `<TBD>` | PLAN §3 local-transport note (HTTP ports, not stdio) |
-| T10.42 | Bonus scoring math: 10/5/5 + average across series + multi-group [gap62,63,C5] | P3 | ⬜ | `<TBD>` | PRD_email_reporting section 4 |
+| T10.42 | Bonus scoring math: 10/5/5 + average across series + multi-group [gap62,63,C5] | P3 | ✅ | `<TBD>` | `services/bonus.py` (`series_awards`/`final_bonus`) + SDK + tests; values parameterized (staff-confirmable) |
 | T10.43 | Google: one project + two work areas + new Auth Platform + OAuth-client-id-not-API-key [gap27,28,64,65,66,C2] | P1 | ✅ | `<TBD>` | PRD note added |
 | T10.44 | OAuth combined troubleshooting gate (test user+scopes+both APIs) [gap31,C3] | P1 | ✅ | `<TBD>` | PRD note added |
 | T10.45 | Standalone main.py Google smoke test via uv run main.py (draft+event) [gap30,71,72,74,75] | P1 | ✅ | `<TBD>` | `scripts/google_smoke.py` run on real Google: consent+read+extract+send OK |

@@ -8,6 +8,7 @@ from __future__ import annotations
 from collections.abc import Callable, Iterator
 from typing import Any
 
+from ..services.bonus import SeriesResult, final_bonus, series_awards
 from ..services.match_reporter import Sender
 from ..services.match_reporter import send_match_report as _send_match_report
 from ..services.match_stream import Frame, heuristic_subgame_stream
@@ -41,6 +42,14 @@ class Sdk:
     ) -> str | None:
         """Email the JSON match report via ``sender`` (only if reporting.send_real_email)."""
         return _send_match_report(self.config, summary, sender, meta)
+
+    def bonus_awards(self, series: SeriesResult) -> dict[str, float]:
+        """Per-series inter-group bonus points (the report's ``bonus_claim``; §12.2)."""
+        return series_awards(series)
+
+    def bonus_final(self, group: str, series_list: list[SeriesResult]) -> float:
+        """A group's final bonus = average of its per-series awards (§12.2)."""
+        return final_bonus(group, series_list)
 
     def stream_simple_frames(self) -> Iterator[Frame]:
         """Stream the heuristic/smart sub-game turn-by-turn for the live GUI."""

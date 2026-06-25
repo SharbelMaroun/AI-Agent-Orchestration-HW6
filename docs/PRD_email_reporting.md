@@ -96,6 +96,13 @@ can ingest it automatically.
 - A game that did not conclude due to a **technical loss** is failed → **re-run** to complete the quota of 6.
 - **Inter-group bonus:** both groups email reports with the **exact same result** (mutual agreement).
   Disagreement/mismatch → bonus cancelled (0 for both for that series). Submit within **one week**.
+- **Bonus arithmetic (as-built — `services/bonus.py`, §12.2):** per series the higher accumulated score
+  wins **10**, the loser **5**, a tie **5/5**; a non-mutual-agreement series is **void (0/0)**.
+  `series_awards(series)` produces the report's `bonus_claim`; `final_bonus(group, series_list)` averages a
+  group's awards over all valid series (e.g. 10 & 5 → 7.5). Exposed via `Sdk.bonus_awards` / `Sdk.bonus_final`.
+  Award values are **parameters** (defaults from the spec) — the spec's 8.5 example needs a per-series rule
+  the docs state inconsistently, so the exact values stay **confirmable with course staff** (audit C5). The
+  6-game **3-cop/3-thief role-swap** *runner* (orchestrating the series itself) is still pending (T10.36).
 
 ## 5. Performance Metrics
 - Single send succeeds within the gatekeeper's retry budget; delivery confirmed via Gmail API response.
