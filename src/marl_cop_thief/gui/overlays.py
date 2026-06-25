@@ -22,11 +22,11 @@ def draw_hud(ax: Any, state: GameState, max_moves: int | None) -> None:
     else:
         color = theme.COP if state.to_move is Role.COP else theme.THIEF
         banner = f"{state.to_move.value.upper()} to move"
-    ax.set_title(banner, color=color, fontsize=15, fontweight="bold", pad=14)
+    ax.set_title(banner, color=color, fontsize=15, fontweight="bold", pad=8)
     moves = f"MOVE {state.moves_used}" + (f" / {max_moves}" if max_moves else "")
-    ax.text(0.0, 1.03, moves, transform=ax.transAxes, color=theme.MUTED, fontsize=9, ha="left")
-    ax.text(1.0, 1.03, "● cop", transform=ax.transAxes, color=theme.COP, fontsize=9, ha="right")
-    ax.text(0.86, 1.03, "★ thief", transform=ax.transAxes, color=theme.THIEF, fontsize=9, ha="right")
+    ax.text(0.0, 1.015, moves, transform=ax.transAxes, color=theme.MUTED, fontsize=9, ha="left")
+    ax.text(1.0, 1.015, "● cop", transform=ax.transAxes, color=theme.COP, fontsize=9, ha="right")
+    ax.text(0.85, 1.015, "★ thief", transform=ax.transAxes, color=theme.THIEF, fontsize=9, ha="right")
 
 
 def draw_speech(ax: Any, state: GameState, message: str) -> None:
@@ -38,10 +38,11 @@ def draw_speech(ax: Any, state: GameState, message: str) -> None:
     speaker = state.cop if is_cop else state.thief
     color = theme.COP if is_cop else theme.THIEF
     ax.annotate(
-        textwrap.fill(text, 46),
+        textwrap.fill(text, 52),
         xy=(speaker.x, speaker.y), xycoords="data",
-        xytext=(0.5, -0.16), textcoords="axes fraction",
-        ha="center", va="top", color=theme.TEXT, fontsize=9.5,
+        xytext=(0.5, -0.13), textcoords="axes fraction",
+        ha="center", va="top", color=theme.TEXT, fontsize=10,
         bbox={"boxstyle": "round,pad=0.5", "fc": theme.PANEL, "ec": color, "lw": 1.5},
         arrowprops={"arrowstyle": "-|>", "color": color, "alpha": 0.8, "shrinkA": 6},
+        annotation_clip=False,
     )
