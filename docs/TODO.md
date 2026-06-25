@@ -767,7 +767,7 @@ _Close every gap from the 2026-06-25 multi-agent audit (see docs/AUDIT-2026-06-2
 | T10.23 | Notebook includes LaTeX + academic references [gap12] | P2 | ✅ | `<TBD>` | `notebooks/analysis.ipynb` (LaTeX + 6 references) |
 | T10.24 | Graph quality 5-part (labels,legend,colors,caption,>=150dpi) [gap13] | P2 | ✅ | `<TBD>` | All figures: titles/labels/legend/annotations @150dpi |
 | T10.25 | Name viz stack (Matplotlib/Seaborn/Plotly) + add deps [gap42] | P2 | ✅ | `<TBD>` | Matplotlib (named in R.3); Seaborn/Plotly optional |
-| T10.26 | Budget mgmt: forecast + real-time spend counter + overrun alert [gap14,C20] | P2 | 🟦 | `<TBD>` | Forecast + token-cost util (`token_cost.py`) + design in README R.7; live gatekeeper spend counter/alert pending |
+| T10.26 | Budget mgmt: forecast + real-time spend counter + overrun alert [gap14,C20] | P2 | ✅ | `<TBD>` | `shared/budget.py` (`BudgetTracker`): live spend/remaining + forecast + alert/over-budget; CLI prints it; README R.7 + config `llm.budget` |
 | T10.27 | Usability NFR + Nielsen 10 heuristics mapping + accessibility [gap15,43,44,46,47,C8] | P1 | ✅ | `<TBD>` | README R.11 (Nielsen table + accessibility) |
 | T10.28 | User-workflow + interactions/feedback documentation [gap45] | P2 | ✅ | `<TBD>` | README §3.2 workflow + R.11 feedback |
 | T10.29 | ISO/IEC 25010 per-characteristic self-assessment table [gap50,51] | P2 | ✅ | `<TBD>` | README R.10 (8-char mapping) |
