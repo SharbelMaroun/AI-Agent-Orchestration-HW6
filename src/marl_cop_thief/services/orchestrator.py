@@ -12,10 +12,12 @@ from .game_engine import GameEngine
 from .scoring import score_subgame
 from .strategy.heuristic import cop_action, thief_action
 from .strategy.smart_cop import smart_cop_action
+from .strategy.smart_thief import smart_thief_action
 from .turn_pipeline import Decider, run_turn
 
-# Config-selectable cop policies (config["strategy"]["type"]); thief is always greedy.
+# Config-selectable policies. Cop: config["strategy"]["type"]; thief: config["strategy"]["thief_type"].
 COP_POLICIES: dict[str, Decider] = {"heuristic": cop_action, "smart": smart_cop_action}
+THIEF_POLICIES: dict[str, Decider] = {"greedy": thief_action, "smart": smart_thief_action}
 
 
 def select_cop_policy(config: dict[str, Any]) -> Decider:
@@ -24,6 +26,14 @@ def select_cop_policy(config: dict[str, Any]) -> Decider:
     if name not in COP_POLICIES:
         raise ValueError(f"Unknown cop strategy {name!r}; choose from {sorted(COP_POLICIES)}")
     return COP_POLICIES[name]
+
+
+def select_thief_policy(config: dict[str, Any]) -> Decider:
+    """Pick the thief decider from config (default ``smart``); reject unknowns."""
+    name = config.get("strategy", {}).get("thief_type", "smart")
+    if name not in THIEF_POLICIES:
+        raise ValueError(f"Unknown thief strategy {name!r}; choose from {sorted(THIEF_POLICIES)}")
+    return THIEF_POLICIES[name]
 
 
 class Orchestrator:
@@ -38,7 +48,7 @@ class Orchestrator:
         self.seed = config.get("seed", 0)
         self.deciders: dict[Role, Decider] = {
             Role.COP: select_cop_policy(config),
-            Role.THIEF: thief_action,
+            Role.THIEF: select_thief_policy(config),
         }
 
     def play_subgame(self, index: int, rng: random.Random) -> SubGameResult:

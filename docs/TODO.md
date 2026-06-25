@@ -20,14 +20,14 @@
 | 1 | Game logic & rules engine | M1 | 68 |
 | 2 | MCP communication infrastructure | M2 | 63 |
 | 3 | Orchestrator & full local match | M3 | 60 |
-| 4 | Decision strategy | M4 | 70 |
+| 4 | Decision strategy | M4 | 75 |
 | 5 | Natural-language integration | M5 | 60 |
 | 6 | GUI & CLI | M6 | 57 |
 | 7 | Cloud deployment & security | M7 | 27 |
 | 8 | Gmail/Calendar agent & reporting | M8 | 104 |
 | 9 | Gatekeeper, quality gates, research & submission | M9 | 85 |
 | 10 | Audit closure (requirements coverage gaps) | M10 | 54 |
-| — | **Total** | — | **684** |
+| — | **Total** | — | **689** |
 
 ---
 
@@ -362,6 +362,11 @@ _Heuristic policies + optional tabular Q-learning. See PRD_decision_strategy.md.
 | T4.68 | Config-driven `smart` selection in `Orchestrator` + reject unknown strategy | P1 | ✅ | `<TBD>` | `test_smart_strategy_is_selected_and_dominates` / `test_unknown_strategy_is_rejected` |
 | T4.69 | Refresh comparison graphs (greedy vs smart vs NL; grid-size overlay) via `make_figures.py` | P1 | ✅ | `<TBD>` | `assets/heuristic_vs_nl.png`, `assets/winrate_vs_gridsize.png` |
 | T4.70 | Update `PRD_decision_strategy.md` §3.1 + README R.3 (cornering policy + barrier analysis) | P1 | ✅ | `<TBD>` | Docs reflect as-built |
+| T4.71 | Diagnose "thief always goes left" (distance-tie + `DIRECTIONS_8` order → `max` picks first/west) | P1 | ✅ | `<TBD>` | Root cause documented (README R.3) |
+| T4.72 | RED: tests for `strategy/evasion.py` (mobility, center_distance, evade_key) | P1 | ✅ | `<TBD>` | `test_smart_thief.py` |
+| T4.73 | GREEN: `smart_thief_action` ranking `(distance, mobility, centrality)` — flees + keeps escape room | P1 | ✅ | `<TBD>` | Thief roams the board, not one wall |
+| T4.74 | Config-selectable thief (`strategy.thief_type`, default `smart`) + reject unknown; wire orchestrator/match_stream/NL `_choose` | P1 | ✅ | `<TBD>` | `select_thief_policy`; greedy retained as baseline |
+| T4.75 | Report honest trade-off: smart cop vs smart thief capture 1.00/1.00/0.90/0.88/0.47 (README R.3, PRD §4) | P1 | ✅ | `<TBD>` | Documented |
 
 ## Phase 5 — Natural-language integration (Milestone: M5)
 _Free-text protocol + belief update; robust to ambiguity/deception. See PRD_nl_communication.md._

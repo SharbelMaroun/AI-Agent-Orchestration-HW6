@@ -13,7 +13,8 @@
     "thief_loss": 5
   },
   "strategy": {
-    "type": "heuristic"
+    "type": "heuristic",
+    "thief_type": "smart"
   },
   "gui": {
     "live_backend": "TkAgg",

@@ -27,16 +27,17 @@ selected from config without code changes.
 - **Output:** a single chosen `Action` (+ optional message hint for the NL layer).
 
 ### 2.2 Setup (from config)
-- `strategy.type ∈ {"heuristic", "smart"}` (default `heuristic`). A Tabular Q-Learning policy
-  (`q_table`) with RL hyper-params (`learning_rate`, `discount_factor`, `epsilon`) is **design-only /
-  pending** — not yet wired into the `Orchestrator` (`COP_POLICIES = {"heuristic", "smart"}`) and not
-  present in `config/config.json`. The `Orchestrator` rejects any unknown `strategy.type` (including
-  `"q_table"` until implemented) with a clear error. Defaults documented; nothing hard-coded.
+- `strategy.type ∈ {"heuristic", "smart"}` (default `heuristic`) selects the **cop**;
+  `strategy.thief_type ∈ {"greedy", "smart"}` (default `smart`) selects the **thief**. A Tabular
+  Q-Learning policy (`q_table`) with RL hyper-params is **design-only / pending** — not wired into the
+  `Orchestrator`. The `Orchestrator`/`select_*_policy` reject any unknown value with a clear error.
+  Defaults documented; nothing hard-coded.
 
 ## 3. Default Heuristic Policy
 - **Cop (`heuristic`):** move to minimize Chebyshev distance to the belief's most-likely Thief cell.
-- **Thief:** move to maximize minimum distance to the Cop / toward the largest open region; avoid
-  dead-ends created by barriers.
+- **Thief (`greedy`):** move to maximize Chebyshev distance from the Cop. **Limitation:** distance ties
+  on an open board are common, and a fixed direction-order tie-break makes the Thief **hug one wall**
+  ("always goes left") — visibly un-smart. Superseded as the default by §3.2.
 
 ### 3.1 Cornering Cop Policy (`smart`, implemented Phase 4)
 The greedy cop above only minimizes distance, so against an equal-speed evader on an open board the two
@@ -49,6 +50,15 @@ on 5×5, dropping to ≈ 0.62 on 6×6). The `smart` cop fixes this with a **one-
 - Minimizing escape options **herds the Thief into a corner**, where the board edges act as walls and
   its mobility collapses, so the Cop closes the final gap. Measured **capture rate = 1.00** on 3×3–7×7.
 
+### 3.2 Smart Thief Evasion (`smart`, implemented; default thief)
+The greedy thief (§3) drifts into a wall because every distance-tie resolves to the same direction.
+`smart_thief_action` (and the NL thief's `_choose`) instead rank candidate cells by
+**`evade_key = (distance from cop, own mobility, centrality)`** (`strategy/evasion.py`): flee the cop,
+break ties toward **open space** (most passable neighbours), then toward the **centre** (most escape
+room). The thief now uses the whole board and is markedly harder to corner. It is the **default**
+(`strategy.thief_type = "smart"`); the `greedy` thief is retained as the controlled baseline for the
+cop comparison in §4 / README R.3.
+
 **Barrier analysis (why cornering, not walls).** In this engine `place_barrier` seals the **Cop's own
 cell** and costs a full turn (the Cop does not move). It therefore cannot block the cell a fleeing Thief
 is moving *toward*, so wall-building is a weak, tempo-negative lever; geometric cornering dominates. The
@@ -57,8 +67,10 @@ best. (Stronger barrier use would need an engine that lets the Cop place barrier
 
 ## 4. Performance Metrics
 - **Measured today (README R.3):** greedy `heuristic` cop ≈ 0.72 capture and the cornering `smart` cop
-  **1.00** vs. the greedy thief (5×5; 100% on 3×3–7×7). _A head-to-head vs. a **random** opponent
-  (target win-rate > 50%) is not yet benchmarked — the thief is always greedy in code._
+  **1.00** vs. the **greedy** thief (5×5; 100% on 3×3–7×7) — the controlled baseline comparison.
+- **Cornering cop vs. the new `smart` thief (default):** the smarter evader is genuinely harder to corner —
+  capture drops to **1.00 (3×3), 1.00 (4×4), 0.90 (5×5), 0.88 (6×6), 0.47 (7×7)** (40 seeds each). The
+  cop's one-ply look-ahead still *models* a greedy thief; making it model the smart thief is noted future work.
 - **Decision latency:** action chosen in O(grid cells) time, negligible vs. LLM latency.
 - **(RL) learning curve — contingent on the optional Q-learning track (§1.1, §7):** if `q_table` is
   implemented, average reward per episode should trend upward and the curve would be recorded in the
