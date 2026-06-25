@@ -225,6 +225,7 @@ All tunables live in `config/` (nothing hard-coded). Full schema in [`docs/PLAN.
 | `max_barriers` | int | `5` | Cop barrier budget per game |
 | `visibility_radius` | int | `1` | Partial-observation radius |
 | `scoring.*` | int | `20/10/5/5` | cop_win / thief_win / cop_loss / thief_loss |
+| `llm.model` | str | `gpt-4o-mini` | OpenAI model for the NL match (used when `OPENAI_API_KEY` is set) |
 | `reporting.recipient_email` | str | `sharbelma3@gmail.com` | Report recipient (→ `rmisegal+uoh26b@gmail.com` at submission) |
 | `google.secrets_dir` | path | _external_ | Folder (outside repo) holding `client_secret.json`/`token.json` |
 | `google.scopes` | list | gmail.modify, calendar | OAuth scopes |

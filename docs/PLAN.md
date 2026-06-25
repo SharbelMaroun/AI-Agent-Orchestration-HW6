@@ -198,6 +198,8 @@ assets/    graphs, board screenshots, match.gif        results/  run logs
   "max_barriers": 5,
   "visibility_radius": 1,
   "scoring": { "cop_win": 20, "thief_win": 10, "cop_loss": 5, "thief_loss": 5 },
+  "strategy": { "type": "heuristic" },
+  "llm": { "provider": "openai", "model": "gpt-4o-mini" },
   "reporting": {
     "recipient_email": "sharbelma3@gmail.com",
     "_submission_recipient": "rmisegal+uoh26b@gmail.com",
