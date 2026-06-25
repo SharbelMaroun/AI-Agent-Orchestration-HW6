@@ -104,6 +104,7 @@ Nielsen's 10 usability heuristics (GUI/CLI) — see [`docs/PLAN.md`](docs/PLAN.m
 | 3 | Orchestrator + SDK + CLI (full local match) | ✅ done | `python -m marl_cop_thief` runs |
 | 4 | Decision strategy | 🟦 minimal | heuristic decider only; belief/Q-table pending |
 | 5 | Natural-language + LLM | ✅ done | NL encode/decode, ambiguity handler, NL decider; LLM via gatekeeper |
+| 6 | GUI | 🟦 partial | board renderer + animated GIF (`--gui`); live interactive window pending |
 | 8 | Report builder + Gmail/Calendar agent | 🟦 partial | JSON builders + read/extract/calendar/send tools tested; real OAuth send pending |
 | 9 | API gatekeeper | 🟦 minimal | retry + per-call logging; FIFO queue/backpressure pending |
 | 6, 7, 10 | GUI, cloud, research | ⬜ pending | — |
@@ -117,6 +118,7 @@ Newest first.
 
 | Date | What we did | Why | Evidence |
 |------|-------------|-----|----------|
+| 2026-06-25 | **Phase 6**: GUI board renderer + match animator (`--gui` → animated GIF) + smoke tests | Visualize the game; required screenshots | 108 tests; `assets/match.gif` |
 | 2026-06-25 | Generated **experiment graphs + board screenshots + NL log** from real runs; filled README R.3–R.5 | Report results with evidence | `scripts/make_figures.py`; 5 PNGs in `assets/`, log in `results/` |
 | 2026-06-25 | **NL match runnable** (`--nl`) + **Phase 8** report builder (internal + inter-group JSON) and Gmail/Calendar agent tools (read/extract/calendar/send, dependency-injected) | Make NL playable + build the submission report | 106 tests, 100% cov; `--nl` CLI works (workflow-authored) |
 | 2026-06-25 | **Phase 5**: NL encode/decode + ambiguity handler + NL decider; **minimal gatekeeper** + LLM client; agents coordinate in free text via the LLM-through-gatekeeper | The graded core: NL coordination under partial obs | 86 tests, 100% cov; NL sub-game runs offline |
@@ -164,11 +166,17 @@ evade, matching the assignment's sanity-check intuition.
 the cop oscillating (2,1)↔(1,2) while the thief mirrors (4,3)↔(3,4) — so the thief survives the 25-move
 cap. This explains the sub-100% capture rate and motivates barrier use / a belief-based strategy (Phase 4).
 
-## R.4 Screenshots (board states)
-Rendered board states — **cop = blue circle, thief = red star, barriers = black**. (Live GUI screenshots
-arrive with Phase 6; these come from the same renderer.)
+## R.4 Screenshots & GUI (Phase 6)
+The GUI renders the board — **cop = blue circle, thief = red star, barriers = black** — reading state
+from the engine only. Run `uv run python -m marl_cop_thief --gui` to produce an animated GIF of a sub-game.
+
+Start vs. capture (static):
 
 ![Board: start and capture](assets/board_state.png)
+
+Animated sub-game (the cop closes in and captures):
+
+![Match animation](assets/match.gif)
 
 ## R.5 CLI Logs & MCP Communication
 A natural-language sub-game (full log: [`results/nl_match_sample.txt`](results/nl_match_sample.txt)) —

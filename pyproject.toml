@@ -49,6 +49,7 @@ omit = [
     "src/marl_cop_thief/services/mcp/servers.py",
     "src/marl_cop_thief/shared/google_auth.py",
     "*/tests/*",
+    "src/marl_cop_thief/gui/*",
     "src/marl_cop_thief/**/gui/*",
 ]
 
