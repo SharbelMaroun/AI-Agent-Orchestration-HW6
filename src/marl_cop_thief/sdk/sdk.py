@@ -9,6 +9,7 @@ from collections.abc import Callable, Iterator
 from typing import Any
 
 from ..services.bonus import SeriesResult, final_bonus, points_from_config, series_awards
+from ..services.interop_match import run_interop_series as _run_interop_series
 from ..services.match_reporter import Sender
 from ..services.match_reporter import send_match_report as _send_match_report
 from ..services.match_reporter import send_report as _send_report
@@ -17,6 +18,7 @@ from ..services.nl_match import nl_subgame_stream, run_nl_match
 from ..services.orchestrator import Orchestrator
 from ..services.series_runner import run_series as _run_series
 from ..shared import config as config_module
+from ..shared.constants import Role
 from ..shared.gatekeeper import ApiGatekeeper
 
 
@@ -79,3 +81,12 @@ class Sdk:
     ) -> Iterator[Frame]:
         """Stream the natural-language sub-game turn-by-turn for the live GUI."""
         return nl_subgame_stream(self.config, backend, gatekeeper, seed, creative)
+
+    def run_interop_series(
+        self,
+        partner_for: dict[Role, Any],
+        our_first_role: Role = Role.COP,
+        meta: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
+        """Play the 6-game role-swap vs a partner's ``/decide`` servers; return the report."""
+        return _run_interop_series(self.config, partner_for, our_first_role, meta)

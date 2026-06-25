@@ -158,7 +158,7 @@ Two teams play on **one shared authoritative game** via a role-parameterized **h
 | 6 | GUI | ✅ done | **modern-dark themed** board (glow cop/thief tokens, barrier slabs, movement trails, capture flash, HUD scoreboard, speech bubbles) · GIF (`--gui`) + **live real-time window** (`--live`, auto-closes when done) |
 | 8 | Report builder + Gmail/Calendar agent | ✅ done* | JSON builders + tools + **report-email wiring** (`match_reporter`→SDK→CLI, gated by `send_real_email`); **real OAuth verified** on live Google (consent + read + extract + calendar + **real email sent**). *Inter-group bonus arithmetic + cloud series pending |
 | 9 | API gatekeeper | ✅ done | config-driven rate limit + FIFO queue + backpressure + drain + retries/backoff + concurrency + `get_queue_status` (see R.9) |
-| 7 | Cloud deploy | ✅ done* | **deployed + verified end-to-end on Render** — `cop-mcp`/`thief-mcp` live at public HTTPS URLs with token auth; an **authenticated `get_game_status` tool call succeeds** through `McpClient` on both (`results/cloud_check.txt`); unauthenticated → 401 (S5). *Live 6-game inter-group match pending a partner team |
+| 7 | Cloud deploy | ✅ done* | **deployed + verified end-to-end on Render** — `cop-mcp`/`thief-mcp` live at public HTTPS URLs with token auth; an **authenticated `get_game_status` tool call succeeds** through `McpClient` on both (`results/cloud_check.txt`); unauthenticated → 401 (S5). Live 6-game inter-group match vs `salareen` **done — won 60–40**, JSON result emailed (R.1) |
 | 10 | Research/submission | 🟦 partial | audit closure batches 1–2 done; final submission steps pending |
 
 Whole suite: **249 tests, 100% coverage, Ruff zero-violation.** Every `uv run pytest` emits an automated
@@ -174,6 +174,7 @@ Newest first.
 
 | Date | What we did | Why | Evidence |
 |------|-------------|-----|----------|
+| 2026-06-26 | **Live inter-group match vs partner team `salareen` — WON 60–40** — built the full interop for their **custom JSON-over-HTTP `/decide` protocol** (not MCP): `services/partner_protocol` (coord/direction mapping — their `[row,col]` = our `(y,x)`, 4-dir, no stay/diagonals), `strategy/ortho_policy` (our 4-dir cop/thief policy), gatekeeper-routed `shared/partner_client`, and `services/interop_match` (**we** own the engine; our policy plays our role, their `/decide` plays theirs; 6-game 3-cop/3-thief swap). Exposed via `Sdk.run_interop_series` + `scripts/play_partner.py`; reachability probe `scripts/check_partner.py`. Played **6 live games (66 gatekeeper-routed `/decide` calls)** → **us 60 / salareen 40**, JSON result **emailed**. Found + handled: their cop `/decide` **500s on `place_barrier`** → interop is moves-only (`allow_barrier` off by default). | The §12 inter-group bonus match, working end-to-end across two different agent protocols | `docs/PRD_partner_interop.md`; `services/{partner_protocol,interop_match}.py` · `shared/partner_client.py` · `strategy/ortho_policy.py`; **266 tests, 100% cov**, Ruff clean |
 | 2026-06-26 | **Closed the standards-evaluation gaps** — (1) **Gmail/Calendar now route through the central gatekeeper** (`shared/google_api.execute_request`; `gmail` service in `rate_limits.json`), wired into the CLI + remote drivers, so *all* external calls (LLM · MCP · Gmail/Calendar) are gatekept (CLAUDE §2); (2) inter-group **bonus award values are config-driven** (`config.bonus` via `bonus.points_from_config`), not hardcoded; (3) **DRY** — `remote_match` distances unified onto new `shared/grid_math` (shared with `strategy/geometry`); (4) docs reconciled (task count **689** across TODO/CLAUDE/PROMPT_LOG; PRD/PLAN Draft→Approved; removed the report-send contradiction; PLAN **C4-L4 + deployment view** added); (5) `pyproject` `0.1.0`→`1.0.0`; coverage `omit` justified inline | Close the engineering-standards evaluation findings (gatekeeper §2, no-hardcode §7.2, DRY §4.2, doc consistency, versioning §8.1) | `shared/{google_api,grid_math}.py`; **249 tests, 100% cov**, Ruff clean |
 | 2026-06-25 | **Live remote flow emails the result** — `remote_match.build_match_report` turns the finished game's status into a JSON report (role/winner/scores); `play_remote.py` emails it via `send_report` when `reporting.send_real_email=true`, to `reporting.recipient_email` (kept as the dev address `sharbelma3@gmail.com`, not the lecturer, per request) | Get the live-match result by email; both teams can send the same JSON for the bonus | `services/remote_match.py` (100% cov); 239 tests, 100% cov |
 | 2026-06-25 | **Stronger live-match heuristic** — upgraded `remote_match.remote_decider` (observation-only, per assignment §4): now **edge/barrier-aware** (filters legal steps from `visible_cells`/`visible_barriers` → no wasted illegal→STAY turns), **searches when blind** (heads for the visible interior instead of standing still — a still cop hands the thief the clock), cop tie-breaks by **alignment then mobility** (corners the thief), thief tie-breaks by **escape room** | A stronger heuristic wins more inter-group games ⇒ more bonus | `services/remote_match.py` (100% cov); 236 tests, 100% cov |
@@ -494,6 +495,42 @@ palette toggle and keyboard navigation for a future live window.
 **Standards alignment:** **ISO/IEC 25010** (R.10), **MIT SQA** practices (docs-first, TDD, reviews),
 **Google/Microsoft API** design guidance (SDK facade, gatekeeper, versioned config), and **Nielsen's 10
 heuristics** (above) — see also [`docs/PLAN.md`](docs/PLAN.md) and `docs/PRD.md` §4.
+
+## R.12 Inter-Group Match (partner interop)
+Played a **live §12 inter-group series vs team `salareen`** (our group **sharNamr** — Sharbel, Amr) — **won 60–40**.
+
+Their servers speak a **custom JSON-over-HTTP decision protocol** (`/health`, `/identity`, `/capabilities`,
+`POST /decide`), **not MCP**. `/decide` is a **stateless policy**: the caller owns the game, sends a
+role-filtered observation with explicit `legal_actions`, and gets back one action. So **we own the
+`GameEngine`**, play our role with `strategy/ortho_policy`, and call their `/decide` for theirs (design:
+[`docs/PRD_partner_interop.md`](docs/PRD_partner_interop.md); run `uv run python scripts/play_partner.py`).
+
+**Result** (6 games · 3-cop/3-thief swap · full visibility · moves-only):
+
+| Game | Our role | Winner | Moves | Us | Partner |
+|---|---|---|---|---|---|
+| 0 | cop | thief | 25 | 5 | 10 |
+| 1 | cop | thief | 25 | 5 | 10 |
+| 2 | cop | **cop (capture)** | 8 | 20 | 5 |
+| 3 | thief | **thief** | 25 | 10 | 5 |
+| 4 | thief | **thief** | 25 | 10 | 5 |
+| 5 | thief | **thief** | 25 | 10 | 5 |
+| **Total** | | | | **60** | **40** |
+
+66 gatekeeper-routed `/decide` calls; JSON result emailed (§9). **Coordinate bridge** (validated live):
+their `[row,col]` = our `(y,x)`; `up/down/left/right` → `(0,−1)/(0,+1)/(−1,0)/(+1,0)`.
+
+### 🐞 Problems found & how we handled them
+- **No GUI on the interop run.** `play_partner.py` is a **headless CLI** (prints JSON + emails); the
+  animated/live GUI (`--gui`/`--live`) is wired only for the *local* match. The interop game state is local
+  (we own the engine), so a live window can be added — not done yet.
+- **Their cop `/decide` returns HTTP 500 on `place_barrier`** → interop is **moves-only** (`allow_barrier`
+  off by default; barriers are an optional cop ability their server can't process).
+- **Protocol asymmetry (open).** Our servers are **FastMCP**; their *bonus client* drives via **REST
+  `/decide`**, so they **cannot drive the match against our MCP servers** the way we drove theirs. For the
+  bonus both teams must email the **same** JSON, so either (a) we share this authoritative result and both
+  report it, or (b) we expose a REST `/decide` server mirroring their protocol. See
+  [`docs/PRD_partner_interop.md`](docs/PRD_partner_interop.md) §8.
 
 ---
 

@@ -148,6 +148,18 @@ funnels through `shared/gatekeeper.ApiGatekeeper`. Full module inventory: §4.
 - **Decision:** `uv` as the only package manager/task runner; `src/marl_cop_thief/` package; Ruff; pytest-cov.
 - **Rationale:** Mandated; reproducible locks; clean importable package.
 
+### ADR-009 — Interoperate with a foreign team's decision protocol via an adapter
+- **Decision:** For the §12 inter-group match against a team whose servers speak a *different* protocol
+  (salareen: custom REST `/decide`, not MCP), **we own the authoritative `GameEngine`** and call their
+  stateless `/decide` for their role, mapping coordinates/actions in `services/partner_protocol.py`.
+- **Rationale:** Their `/decide` is a stateless policy (caller owns the game) — the simplest interop
+  primitive; adapting on our side needs zero change from them. Validated live (won 60–40, emailed).
+- **Open asymmetry:** their *bonus client* expects both sides to expose REST `/decide`, but our servers are
+  FastMCP — so they cannot drive us the same way. Resolution: share the authoritative result for matching
+  reports, or expose a REST `/decide` server mirroring their protocol ([`PRD_partner_interop.md`](PRD_partner_interop.md) §8).
+- **Trade-off:** Interop is move-only/4-dir (their protocol has no diagonals/`stay`, and their cop `/decide`
+  500s on `place_barrier`) — a restricted variant of our 8-dir engine.
+
 ### ADR-008 — Gmail/Calendar agent: config-driven recipient + external secret folder
 - **Decision:** The report recipient is `reporting.recipient_email` (dev `sharbelma3@gmail.com`,
   submission `rmisegal+uoh26b@gmail.com`). `client_secret.json`/`token.json` live in a secret folder

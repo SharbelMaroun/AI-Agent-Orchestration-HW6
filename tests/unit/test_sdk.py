@@ -75,3 +75,15 @@ def test_bonus_award_values_come_from_config():
     cfg = {**CONFIG, "bonus": {"win": 12, "lose": 6, "tie": 6, "void": 0}}
     awards = Sdk(cfg).bonus_awards(SeriesResult({"A": 90, "B": 40}))
     assert awards == {"A": 12.0, "B": 6.0}  # config values override the spec defaults
+
+
+def test_run_interop_series_via_sdk():
+    from marl_cop_thief.shared.constants import Role
+    from marl_cop_thief.shared.models import Action
+
+    def passive(role, state):
+        return Action.stay()
+
+    cfg = {**CONFIG, "reporting": {"timezone": "Asia/Jerusalem"}}
+    rep = Sdk(cfg).run_interop_series({Role.COP: passive, Role.THIEF: passive})
+    assert rep["report_type"] == "interop_match" and len(rep["sub_games"]) == 6
