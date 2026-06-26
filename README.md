@@ -569,6 +569,40 @@ services), not an HTTP round-trip through the deployed server each move. Running
 live MCP server is the one item left to make "a session managed via its MCP server" (ex06 §3) demonstrable
 end-to-end (tracked as T7.33).
 
+## R.13 Architecture misalignment with the partner (`salareen`)
+The two teams put the agent's "brain" in **different places** — the root of every interop hurdle above.
+
+| | **sharNamr (us)** | **salareen (them)** |
+|---|---|---|
+| Transport | **MCP / FastMCP** | custom **REST** |
+| Decision ("brain") | **in the client** (orchestrator) | **in the server** (`/decide`) |
+| Server exposes | **tools only** (observe / move / status) | a **decision** (observation → action) |
+| Assignment fit (ex06 §5.2, §7) | ✅ matches | ✗ deviates (brain-in-server, not MCP) |
+
+**Why this blocks naive interop:** the assignment puts the brain in the *client* and keeps the MCP server
+*tools-only*, so our server has **no move to hand out**. The partner's game-driving client expects to **ask**
+the opponent for a move (their own `/decide` model), but a spec-compliant MCP server can't answer that. The
+mismatch isn't a bug in our code — it's two valid-but-different designs, only one of which (ours) is the
+assignment's.
+
+**Three ways to actually play, and what each needs:**
+
+| Who hosts the game | On *our* turn | Needs |
+|---|---|---|
+| **We host** | our client plays our move itself | nothing extra — we call *their* `/decide`. ✅ **done → 60–40** |
+| **They host** | they ask **our** `/decide` for our move | our **`/decide`** server. ✅ live (`decide-sharnamr.onrender.com`) |
+| **Shared MCP host** (spec-correct) | our client moves our own piece on a shared board | a **host** server both clients drive. ✅ live (`host-mcp.onrender.com`) |
+
+**What we built to bridge it — without changing our MCP design:**
+- `services/decide_service.py` + `scripts/run_decide_server.py` → a stateless REST **`/decide`** wrapping our
+  policy, so the partner can **host** and pull our move.
+- `services/mcp/host_server.py` deployed as **`host-mcp`** → a shared, role-parameterized MCP game so both
+  clients drive their own role (the assignment's intended cross-team model).
+
+**Bottom line:** our implementation is the spec-compliant one (tools-only MCP, brain in client); the extra
+`/decide` and `host-mcp` are **interop adapters** for a partner who built differently — they don't alter our
+core MCP design. Whoever hosts produces the authoritative result; both groups email the identical JSON.
+
 ---
 
 ## 5. Configuration Guide
