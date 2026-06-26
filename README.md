@@ -544,6 +544,17 @@ hand out). So for them to **host** and pull *our* move, we add a small **recipro
 policy — an **interop adapter only**; our MCP servers stay tools-only. Their existing client then drives us
 with **zero changes**. Deploy: a third Render service in [`render.yaml`](render.yaml).
 
+**Partner onboarding** — the problem, the target architecture, and **both** interop paths (REST `/decide` *and*
+MCP, with tool schemas + the report format) for the partner's coding agent:
+[`docs/PARTNER_ONBOARDING.md`](docs/PARTNER_ONBOARDING.md).
+
+**MCP transport caveat (honest).** Our two MCP servers are deployed, token-authed and reachable (verified by
+`check_mcp.py`), and the MCP tool layer + the over-MCP driver (`McpClient` / `host_server` / `play_remote.py`)
+are built and tested — but the headline match (`uv run cop-thief`) runs **in-process** (orchestrator →
+services), not an HTTP round-trip through the deployed server each move. Running a full 6-game *through* the
+live MCP server is the one item left to make "a session managed via its MCP server" (ex06 §3) demonstrable
+end-to-end (tracked as T7.33).
+
 ---
 
 ## 5. Configuration Guide

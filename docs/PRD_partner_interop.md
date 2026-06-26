@@ -92,9 +92,16 @@ are FastMCP** — so they cannot call our agents the same way. The two stacks ar
 resolutions:
 1. **Share the authoritative result (recommended — no new infra).** We already ran the 6-game series; send
    salareen our group info + the result JSON; both email the identical JSON.
-2. **Expose a REST `/decide` server mirroring their protocol (symmetric).** Wrap `ortho_policy` in a
+2. **Expose a REST `/decide` server mirroring their protocol (symmetric, built — §9).** Wrap our policy in a
    `/health`+`/identity`+`/capabilities`+`/decide` server, deploy it, share URLs+tokens; then their bonus
    client can drive a match against our agents independently. More robust, but a new server + deploy.
+3. **Partner adopts the spec model (most correct).** salareen moves their decision into their *client* and
+   re-exposes their agents as **FastMCP tools-only**, then both clients drive one shared host (our
+   `host_server`) — the assignment's intended cross-team model; the heaviest lift for them.
+
+Step-by-step onboarding for the partner's coding agent (the problem, the target architecture, **both** the
+REST and the MCP interop paths with tool schemas, and the report format):
+[`PARTNER_ONBOARDING.md`](PARTNER_ONBOARDING.md).
 
 **Info salareen requested (answers):** group = **sharNamr**; students = **Sharbel, Amr**; repo =
 `https://github.com/SharbelMaroun/AI-Agent-Orchestration-HW6`. Our MCP tools (a *game-hosting* model, not a
