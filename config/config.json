@@ -47,6 +47,7 @@
   "reporting": {
     "recipient_email": "sharbelma3@gmail.com",
     "submission_recipient": "rmisegal+uoh26b@gmail.com",
+    "recipients": ["sharbelma3@gmail.com", "rmisegal+uoh26b@gmail.com"],
     "send_real_email": false,
     "timezone": "Asia/Jerusalem",
     "report_meta": {
