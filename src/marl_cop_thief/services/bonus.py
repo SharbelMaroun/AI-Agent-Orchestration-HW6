@@ -13,9 +13,10 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any
 
-# Spec defaults (§12.2). The canonical, tunable values live in config (the ``bonus``
-# block); :func:`points_from_config` feeds them in, so these serve only as fallbacks
-# and parameter defaults (which the guidelines explicitly permit in code).
+# Award points. §12.2's rule sentence says the loser gets 5, but its worked example
+# (and the course lecturer, confirmed) say the loser gets **7**. The authoritative value
+# is config-driven (``bonus.lose = 7``) via :func:`points_from_config`; these constants
+# are only fallbacks/parameter-defaults when no config is supplied.
 WIN_POINTS = 10.0
 LOSE_POINTS = 5.0
 TIE_POINTS = 5.0
