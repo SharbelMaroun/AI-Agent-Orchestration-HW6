@@ -19,14 +19,23 @@ Sender = Callable[[str, str, str], str]
 _SUBJECT = "Cop & Thief — match report"
 
 
+def _recipients(reporting: dict[str, Any]) -> list[str]:
+    """Report recipients: the ``recipients`` list if set, else the single ``recipient_email``."""
+    return reporting.get("recipients") or [reporting["recipient_email"]]
+
+
 def send_report(
     config: dict[str, Any], report: dict[str, Any], sender: Sender, subject: str = _SUBJECT
 ) -> str | None:
-    """Email a pre-built report dict as a JSON-only body, gated by send_real_email."""
+    """Email a pre-built report dict as a JSON-only body, gated by send_real_email.
+
+    Sent to **all** ``reporting.recipients`` (comma-joined ``To`` header), falling back
+    to the single ``reporting.recipient_email`` when no list is configured.
+    """
     reporting = config.get("reporting", {})
     if not reporting.get("send_real_email", False):
         return None
-    return sender(reporting["recipient_email"], subject, report_to_json(report))
+    return sender(", ".join(_recipients(reporting)), subject, report_to_json(report))
 
 
 def send_match_report(

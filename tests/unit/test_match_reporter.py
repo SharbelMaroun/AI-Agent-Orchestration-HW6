@@ -45,6 +45,13 @@ def test_explicit_meta_overrides_config_meta():
     assert json.loads(sent["b"])["group_name"] == "Override"
 
 
+def test_sends_to_all_recipients_in_list():
+    sent = {}
+    cfg = {"reporting": {"recipients": ["a@x.com", "b@y.com"], "send_real_email": True}}
+    send_report(cfg, {"report_type": "x"}, lambda to, s, b: sent.update(to=to) or "mid")
+    assert sent["to"] == "a@x.com, b@y.com"  # comma-joined To -> both get the same JSON
+
+
 def test_send_report_gated_and_json_only():
     report = {"report_type": "bonus_game", "totals_by_group": {"A": 90}}
     # disabled by default -> no send
