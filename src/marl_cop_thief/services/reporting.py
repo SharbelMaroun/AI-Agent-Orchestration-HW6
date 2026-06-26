@@ -54,5 +54,9 @@ def build_intergroup_report(
 
 
 def report_to_json(report: dict[str, Any]) -> str:
-    """Serialize a report dict to a JSON string (the email body is JSON-only)."""
-    return json.dumps(report)
+    """Serialize a report to a pretty-printed JSON string (email body is JSON-only).
+
+    ``indent=2`` keeps the body human-readable while staying valid JSON for the
+    lecturer's automated ingestion; ``ensure_ascii=False`` renders any unicode as-is.
+    """
+    return json.dumps(report, indent=2, ensure_ascii=False)
