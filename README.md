@@ -517,8 +517,22 @@ role-filtered observation with explicit `legal_actions`, and gets back one actio
 | 5 | thief | **thief** | 25 | 10 | 5 |
 | **Total** | | | | **60** | **40** |
 
-66 gatekeeper-routed `/decide` calls; JSON result emailed (§9). **Coordinate bridge** (validated live):
+66 gatekeeper-routed `/decide` calls; JSON result emailed (§9). **Live & reproducible:** it's real network
+play (live calls to their `*.onrender.com` servers) yet fully deterministic — fixed `seed`, pure policies, a
+deterministic `/decide` — so the same seed reproduces 60–40 exactly, while a *different* seed yields a
+different live game (verified across 258 live calls: **seed 7 → 75–35** with two cop captures; seed 99 → 60–40
+but the capture lands on move 10, not 8). Determinism = reproducibility, not a cached result. **Coordinate
+bridge** (validated live):
 their `[row,col]` = our `(y,x)`; `up/down/left/right` → `(0,−1)/(0,+1)/(−1,0)/(+1,0)`.
+
+**Watch it.** `play_partner.py` is a headless CLI, but we own the game state, so the same board renderer used
+for the local match animates the interop match too:
+
+![Inter-group match vs salareen](assets/interop_match.gif)
+
+The cop capture in game 3 (move 8):
+
+![Capture frame](assets/interop_capture.png)
 
 ### 🐞 Problems found & how we handled them
 - **No GUI on the interop run.** `play_partner.py` is a **headless CLI** (prints JSON + emails); the

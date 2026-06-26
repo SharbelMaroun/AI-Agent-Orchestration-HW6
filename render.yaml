@@ -34,3 +34,15 @@ services:
     envVars:
       - key: MCP_AUTH_SECRET
         sync: false
+  # Shared MCP HOST server (one role-parameterized authoritative game) for Option B — the partner
+  # connects an MCP client and drives their role; we drive ours via scripts/play_remote.py.
+  - type: web
+    name: host-mcp
+    runtime: docker
+    plan: free
+    dockerfilePath: ./Dockerfile
+    envVars:
+      - key: MCP_ROLE
+        value: host
+      - key: MCP_AUTH_SECRET
+        sync: false
