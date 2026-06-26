@@ -520,6 +520,15 @@ role-filtered observation with explicit `legal_actions`, and gets back one actio
 66 gatekeeper-routed `/decide` calls; JSON result emailed (§9). **Coordinate bridge** (validated live):
 their `[row,col]` = our `(y,x)`; `up/down/left/right` → `(0,−1)/(0,+1)/(−1,0)/(+1,0)`.
 
+**Watch it.** `play_partner.py` is a headless CLI, but we own the game state, so the same board renderer used
+for the local match animates the interop match too:
+
+![Inter-group match vs salareen](assets/interop_match.gif)
+
+The cop capture in game 3 (move 8):
+
+![Capture frame](assets/interop_capture.png)
+
 ### 🐞 Problems found & how we handled them
 - **No GUI on the interop run.** `play_partner.py` is a **headless CLI** (prints JSON + emails); the
   animated/live GUI (`--gui`/`--live`) is wired only for the *local* match. The interop game state is local
