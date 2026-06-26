@@ -14,7 +14,7 @@
   },
   "bonus": {
     "win": 10,
-    "lose": 5,
+    "lose": 7,
     "tie": 5,
     "void": 0
   },
