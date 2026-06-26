@@ -6,6 +6,7 @@ No network/server is started — this introspects the in-process tool registry.
 import asyncio
 
 from marl_cop_thief.services.game_engine import GameEngine
+from marl_cop_thief.services.mcp.host_server import build_host_server
 from marl_cop_thief.services.mcp.message_bus import MessageBus
 from marl_cop_thief.services.mcp.servers import (
     TOOL_NAMES,
@@ -33,4 +34,10 @@ def test_cop_server_exposes_six_tools():
 
 def test_thief_server_exposes_six_tools():
     names = _tool_names(build_thief_server(_tools()))
+    assert names == set(TOOL_NAMES)
+
+
+def test_host_server_exposes_six_tools():
+    # the shared host exposes the same tools, role-parameterized (Option B cross-team play)
+    names = _tool_names(build_host_server(_tools()))
     assert names == set(TOOL_NAMES)
