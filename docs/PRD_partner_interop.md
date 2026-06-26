@@ -92,11 +92,29 @@ are FastMCP** — so they cannot call our agents the same way. The two stacks ar
 resolutions:
 1. **Share the authoritative result (recommended — no new infra).** We already ran the 6-game series; send
    salareen our group info + the result JSON; both email the identical JSON.
-2. **Expose a REST `/decide` server mirroring their protocol (symmetric).** Wrap `ortho_policy` in a
+2. **Expose a REST `/decide` server mirroring their protocol (symmetric, built — §9).** Wrap our policy in a
    `/health`+`/identity`+`/capabilities`+`/decide` server, deploy it, share URLs+tokens; then their bonus
    client can drive a match against our agents independently. More robust, but a new server + deploy.
+3. **Partner adopts the spec model (most correct).** salareen moves their decision into their *client* and
+   re-exposes their agents as **FastMCP tools-only**, then both clients drive one shared host (our
+   `host_server`) — the assignment's intended cross-team model; the heaviest lift for them.
+
+Step-by-step onboarding for the partner's coding agent (the problem, the target architecture, **both** the
+REST and the MCP interop paths with tool schemas, and the report format):
+[`PARTNER_ONBOARDING.md`](PARTNER_ONBOARDING.md).
 
 **Info salareen requested (answers):** group = **sharNamr**; students = **Sharbel, Amr**; repo =
 `https://github.com/SharbelMaroun/AI-Agent-Orchestration-HW6`. Our MCP tools (a *game-hosting* model, not a
 stateless `/decide`): `get_observation`, `send_message`, `receive_message`, `submit_action(kind,dx,dy)`,
 `verify_location`, `get_game_status`; each server hosts **one** game created at startup (no session id).
+
+## 9. Reciprocal `/decide` server (so the partner can host)
+To let salareen **host** the game and pull our agent's move, we expose our own decision endpoint mirroring
+their protocol: [`services/decide_service.py`](../src/marl_cop_thief/services/decide_service.py)
+`decide_action(observation) -> action` (pure; returns one of the caller's `legal_actions`) behind
+[`scripts/run_decide_server.py`](../scripts/run_decide_server.py) — stdlib JSON-over-HTTP (`GET
+/health|/identity|/capabilities`, `POST /decide`; bearer auth via `MCP_AUTH_SECRET`). Deployed as a third
+Render service (`render.yaml`, `decide-sharnamr`). **Interop adapter only** — our MCP servers stay
+tools-only (ADR-001); this just wraps our policy so the partner's REST bonus client drives us unchanged.
+- **S8:** `decide_action` returns a legal move that pursues (cop) / evades (thief); blind → toward centre.
+- **S9:** `/decide` echoes `request_id`, enforces `observation.request_id == request_id`, rejects bad tokens (401).

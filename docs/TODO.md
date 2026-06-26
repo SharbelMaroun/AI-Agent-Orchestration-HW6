@@ -539,6 +539,8 @@ _Deploy both MCP servers with token auth (deployment tasks, not modules)._
 | T7.29 | Reachability probe for partner servers | P1 | ✅ | `<TBD>` | `scripts/check_partner.py` (`/health`, `/identity`, `/capabilities`) |
 | T7.30 | Resolve protocol asymmetry (partner can't drive our FastMCP) | P0 | 🟦 | `<TBD>` | Open: share authoritative result OR expose a REST `/decide` server (PRD_partner_interop §8) |
 | T7.31 | Both teams email the same JSON (mutual agreement) | P0 | ⬜ | `<TBD>` | Send salareen the result + `sharNamr` group info; both report identical JSON |
+| T7.32 | Partner onboarding doc (REST + MCP paths) | P1 | ✅ | `<TBD>` | `docs/PARTNER_ONBOARDING.md` — problem, target architecture, both interop paths + tool schemas, report format |
+| T7.33 | Demonstrate a full match THROUGH the live MCP server | P1 | ⬜ | `<TBD>` | Headline match runs in-process; run a self-hosted 6-game over a deployed `host_server` (over-MCP driver exists; closes the ex06 §3 "managed via MCP server" gap) |
 | T7.25 | Rollback / redeploy procedure | P2 | ⬜ | `<TBD>` | Documented |
 | T7.26 | Cloud cost note | P3 | ⬜ | `<TBD>` | Estimated |
 | T7.27 | Capture CLI logs from a cloud run | P1 | ✅ | `<TBD>` | `results/cloud_check.txt` (authenticated get_game_status on both servers) |

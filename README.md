@@ -532,6 +532,29 @@ their `[row,col]` = our `(y,x)`; `up/down/left/right` → `(0,−1)/(0,+1)/(−1
   report it, or (b) we expose a REST `/decide` server mirroring their protocol. See
   [`docs/PRD_partner_interop.md`](docs/PRD_partner_interop.md) §8.
 
+### Whose architecture? + the reciprocal `/decide` bridge
+**This is not our bug — the opposite.** The assignment requires the agent's brain in the **client** and the
+MCP server **tools-only** (ex06 §5.2 / ADR-001). We followed it: our FastMCP servers expose tools
+(`get_observation`/`submit_action`/…) but **no decision** — our policy runs in our client. salareen put the
+decision **in the server** (`/decide`) and used **custom REST, not MCP** — a deviation that happens to make
+*their* agents callable (handy for interop) and ours not (a spec-compliant tools-only server has no move to
+hand out). So for them to **host** and pull *our* move, we add a small **reciprocal REST `/decide` server**
+([`services/decide_service.py`](src/marl_cop_thief/services/decide_service.py) +
+[`scripts/run_decide_server.py`](scripts/run_decide_server.py)) that mirrors their protocol and wraps our
+policy — an **interop adapter only**; our MCP servers stay tools-only. Their existing client then drives us
+with **zero changes**. Deploy: a third Render service in [`render.yaml`](render.yaml).
+
+**Partner onboarding** — the problem, the target architecture, and **both** interop paths (REST `/decide` *and*
+MCP, with tool schemas + the report format) for the partner's coding agent:
+[`docs/PARTNER_ONBOARDING.md`](docs/PARTNER_ONBOARDING.md).
+
+**MCP transport caveat (honest).** Our two MCP servers are deployed, token-authed and reachable (verified by
+`check_mcp.py`), and the MCP tool layer + the over-MCP driver (`McpClient` / `host_server` / `play_remote.py`)
+are built and tested — but the headline match (`uv run cop-thief`) runs **in-process** (orchestrator →
+services), not an HTTP round-trip through the deployed server each move. Running a full 6-game *through* the
+live MCP server is the one item left to make "a session managed via its MCP server" (ex06 §3) demonstrable
+end-to-end (tracked as T7.33).
+
 ---
 
 ## 5. Configuration Guide
