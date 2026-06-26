@@ -20,6 +20,7 @@ from dotenv import load_dotenv
 from marl_cop_thief.sdk import Sdk
 from marl_cop_thief.services.game_engine import GameEngine
 from marl_cop_thief.services.interop_match import make_partner_decide
+from marl_cop_thief.services.reporting import build_interop_bonus_report
 from marl_cop_thief.shared.config import load_json
 from marl_cop_thief.shared.constants import Role
 from marl_cop_thief.shared.gatekeeper import gatekeeper_from_config
@@ -53,14 +54,15 @@ def _maybe_email(sdk: Sdk, report: dict) -> None:
     gmail, _ = build_services(sd, sdk.config["google"]["scopes"])
     gk = gmail_gatekeeper()
     mid = send_report(sdk.config, report, lambda to, s, b: send_email(gmail, to, s, b, gk))
-    print(f"Report emailed to {sdk.config['reporting']['recipient_email']}: id={mid}")
+    rep = sdk.config["reporting"]
+    to = rep.get("recipients") or [rep["recipient_email"]]
+    print(f"Report emailed to {', '.join(to)}: id={mid}")
 
 
 def main() -> None:
     load_dotenv()
     parser = argparse.ArgumentParser(description="Play the inter-group match vs the partner.")
     parser.add_argument("--first-role", choices=["cop", "thief"], default="cop")
-    parser.add_argument("--opponent", default="salareen", help="opponent group name (for the report)")
     args = parser.parse_args()
 
     sdk = Sdk()
@@ -71,9 +73,8 @@ def main() -> None:
         Role.COP: make_partner_decide(_client("PARTNER_COP_URL", "PARTNER_COP_TOKEN", gk), engine, vis),
         Role.THIEF: make_partner_decide(_client("PARTNER_THIEF_URL", "PARTNER_THIEF_TOKEN", gk), engine, vis),
     }
-    meta = dict(sdk.config.get("reporting", {}).get("report_meta", {}))
-    meta["opponent_group"] = args.opponent
-    report = sdk.run_interop_series(partner_for, Role(args.first_role), meta=meta)
+    interop = sdk.run_interop_series(partner_for, Role(args.first_role))
+    report = build_interop_bonus_report(sdk.config, interop)
     print(json.dumps(report, indent=2))
     _maybe_email(sdk, report)
 

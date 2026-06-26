@@ -7,6 +7,7 @@ import json
 from marl_cop_thief.services.reporting import (
     build_intergroup_report,
     build_internal_report,
+    build_interop_bonus_report,
     report_to_json,
 )
 
@@ -118,3 +119,25 @@ def test_report_to_json_round_trips():
     body = report_to_json(report)
     assert isinstance(body, str)
     assert json.loads(body) == report
+
+
+def test_interop_bonus_report_from_config_and_result():
+    config = {
+        "reporting": {
+            "timezone": "Asia/Jerusalem",
+            "report_meta": {"group_name": "G1", "students": ["a"], "github_repo": "r1",
+                            "cop_mcp_url": "c1", "thief_mcp_url": "t1"},
+            "intergroup": {"opponent_group": "G2", "opponent_github_repo": "r2",
+                           "opponent_students": ["b"], "opponent_cop_mcp_url": "c2",
+                           "opponent_thief_mcp_url": "t2"},
+        },
+        "bonus": {"win": 10, "lose": 7, "tie": 5, "void": 0},
+    }
+    interop = {"totals": {"us": 60, "partner": 40}, "sub_games": [{"index": 0}]}
+    rep = build_interop_bonus_report(config, interop)
+    assert rep["report_type"] == "bonus_game"
+    assert rep["groups"] == {"group_1": "G1", "group_2": "G2"}
+    assert rep["github_repo_group_2"] == "r2" and rep["students_group_2"] == ["b"]
+    assert rep["totals_by_group"] == {"G1": 60, "G2": 40}
+    assert rep["bonus_claim"] == {"G1": 10.0, "G2": 7.0}  # winner 10, loser 7 (config)
+    assert rep["mutual_agreement"] is True

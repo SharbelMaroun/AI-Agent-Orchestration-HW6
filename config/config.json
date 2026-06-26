@@ -47,8 +47,8 @@
   "reporting": {
     "recipient_email": "sharbelma3@gmail.com",
     "submission_recipient": "rmisegal+uoh26b@gmail.com",
-    "recipients": ["sharbelma3@gmail.com", "areentarabeh1@gmail.com"],
-    "send_real_email": false,
+    "recipients": ["sharbelma3@gmail.com", "areentarabeh1@gmail.com", "rmisegal+uoh26b@gmail.com"],
+    "send_real_email": true,
     "timezone": "Asia/Jerusalem",
     "report_meta": {
       "group_name": "sharNamr",
@@ -56,6 +56,13 @@
       "github_repo": "https://github.com/SharbelMaroun/AI-Agent-Orchestration-HW6",
       "cop_mcp_url": "https://cop-mcp.onrender.com",
       "thief_mcp_url": "https://thief-mcp.onrender.com"
+    },
+    "intergroup": {
+      "opponent_group": "salareen",
+      "opponent_github_repo": "https://github.com/areen-at/AI-agents-HW6.git",
+      "opponent_students": ["Areen Tarabeh", "Saleh Hammam"],
+      "opponent_cop_mcp_url": "https://salareen-cop.onrender.com/mcp",
+      "opponent_thief_mcp_url": "https://salareen-thief.onrender.com/mcp"
     }
   },
   "google": {

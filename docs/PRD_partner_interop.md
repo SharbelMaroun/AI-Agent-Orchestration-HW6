@@ -118,3 +118,12 @@ Render service (`render.yaml`, `decide-sharnamr`). **Interop adapter only** — 
 tools-only (ADR-001); this just wraps our policy so the partner's REST bonus client drives us unchanged.
 - **S8:** `decide_action` returns a legal move that pursues (cop) / evades (thief); blind → toward centre.
 - **S9:** `/decide` echoes `request_id`, enforces `observation.request_id == request_id`, rejects bad tokens (401).
+
+## 10. Submission report (`bonus_game`)
+The §9.2 `bonus_game` report is built **config-driven** by
+`reporting.build_interop_bonus_report(config, interop)` from `reporting.report_meta` (group 1 = us) +
+`reporting.intergroup` (group 2 = opponent) + the live interop result; `bonus_claim` = `bonus.series_awards`
+with **`bonus.lose = 7`** (lecturer-confirmed — §12.2's worked example uses 7, though its rule sentence says
+5). `scripts/play_partner.py` plays the match and emails the JSON-only body to **all** `reporting.recipients`.
+**§12.2 mutual agreement:** both groups must email the *identical* JSON or **both get 0** — so the partner
+sends the same authoritative result (our run: sharNamr 60 – 40 salareen).

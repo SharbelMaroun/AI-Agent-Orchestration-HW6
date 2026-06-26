@@ -611,6 +611,17 @@ we can play **any** partner whatever their stack. Throughout, **our core stays e
 requires** (FastMCP, tools-only servers, brain in the client); the extra paths are optional adapters layered on
 top, never a change to that compliant core.
 
+### Submission (inter-group bonus)
+The submission report is the **§9.2 `bonus_game` JSON**, built **config-driven** by
+`reporting.build_interop_bonus_report` from `config.reporting.report_meta` (group 1 = us) +
+`config.reporting.intergroup` (group 2 = opponent) + the live result, with `bonus_claim` from
+`bonus.series_awards`. Per the **lecturer, the loser scores 7** (`config.bonus.lose = 7`; §12.2's rule says 5
+but its worked example — and the lecturer — say 7). `scripts/play_partner.py` plays the live match and emails
+the JSON-only body to all `reporting.recipients`. Our authoritative run: **sharNamr 60 – 40 salareen →
+`bonus_claim {sharNamr: 10, salareen: 7}`**, emailed to both teams + the lecturer (`rmisegal+uoh26b@gmail.com`).
+**§12.2 requires both groups to email the *identical* JSON** — so `salareen` must send the same result, or it
+is 0 for both.
+
 ---
 
 ## 5. Configuration Guide
