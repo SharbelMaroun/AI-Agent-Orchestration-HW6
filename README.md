@@ -603,6 +603,14 @@ assignment's.
 `/decide` and `host-mcp` are **interop adapters** for a partner who built differently — they don't alter our
 core MCP design. Whoever hosts produces the authoritative result; both groups email the identical JSON.
 
+**Why we did the extra work.** Once the inter-group phase started, we saw that **different groups implemented
+the agent differently** (e.g. `salareen` put the decision in the *server* over REST, instead of the
+assignment's tools-only MCP). Rather than be locked to one rigid integration, we deliberately **did additional
+work and added more interoperation methods** — *we-host*, *they-host* (`/decide`), and a *shared MCP host* — so
+we can play **any** partner whatever their stack. Throughout, **our core stays exactly what the assignment
+requires** (FastMCP, tools-only servers, brain in the client); the extra paths are optional adapters layered on
+top, never a change to that compliant core.
+
 ---
 
 ## 5. Configuration Guide
